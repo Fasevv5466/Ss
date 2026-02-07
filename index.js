@@ -1,77 +1,75 @@
 // =================================================================
-// 🎭 نظام KIRA UPTIME الأسطوري المخيف - Koyeb Edition
+// 🎭 نظام KIRA UPTIME الأسطوري المظلم - النسخة المعدلة
 // =================================================================
 
 const express = require('express');
 const app = express();
 const chalk = require('chalk');
 const cron = require("node-cron");
-const { exec } = require("child_process");
 const moment = require("moment-timezone");
-const axios = require('axios');
 
 // =================================================================
-// ⚡ نظام Uptime المخيف (بدون systeminformation)
+// ⚡ نظام Uptime المظلم
 // =================================================================
-class UptimeSystem {
+class DarkUptimeSystem {
     constructor() {
         this.startTime = Date.now();
-        this.soulsCollected = 0;
-        this.ritualsPerformed = 0;
-        this.guardians = [
-            { name: "Azazel", power: 1666, element: "Fire", status: "Awake" },
-            { name: "Beelzebub", power: 1333, element: "Shadow", status: "Awake" },
-            { name: "Lilith", power: 1555, element: "Blood", status: "Awake" },
-            { name: "Mephistopheles", power: 1444, element: "Soul", status: "Awake" },
-            { name: "Asmodeus", power: 1777, element: "Chaos", status: "Awake" }
+        this.corpsesCollected = 0;
+        this.darkRituals = 0;
+        this.shadowEntities = [
+            { name: "الظل الأول", power: 999, domain: "الذاكرة المظلمة", status: "نشط" },
+            { name: "الهاوية", power: 888, domain: "النسيان الأبدي", status: "نشط" },
+            { name: "الليل الدائم", power: 777, domain: "السكون المخيف", status: "نشط" },
+            { name: "الصمت القاتل", power: 666, domain: "الفراغ", status: "نشط" },
+            { name: "العدم", power: 555, domain: "اللاشيء", status: "نشط" }
         ];
-        this.prophecies = [];
-        this.omens = [];
+        this.darkProphecies = [];
+        this.soulFragments = [];
         
-        this.initSystem();
+        this.initDarkSystem();
     }
     
-    initSystem() {
-        console.log(chalk.hex('#ff0000').bold(`
+    initDarkSystem() {
+        console.log(chalk.hex('#000000').bold(`
         ╔═══════════════════════════════════════════════════════╗
         ║                                                       ║
-        ║  🩸 KIRA UPTIME DAEMON v2.0 ACTIVATED 🩸           ║
+        ║  ⚰️  نظام KIRA UPTIME المظلم ⚰️                     ║
         ║                                                       ║
         ╚═══════════════════════════════════════════════════════╝
         `));
         
-        // بدء النبوءات
-        this.startProphecies();
+        // بدء النبوءات المظلمة
+        this.startDarkProphecies();
     }
     
-    startProphecies() {
+    startDarkProphecies() {
         setInterval(() => {
             if (Math.random() > 0.7) {
-                this.addProphecy();
+                this.addDarkProphecy();
             }
         }, 30000);
     }
     
-    addProphecy() {
+    addDarkProphecy() {
         const prophecies = [
-            "الخوادم تتنفس في الظلام...",
-            "الكود يتدفق كالدم في العروق...",
-            "وقت التشغيل يسعى للأبدية...",
-            "عاصفة من الطلبات تقترب...",
-            "قاعدة البيانات تحلم بالفوضى...",
-            "الذاكرة تتذكر كل شيء...",
-            "الشبكة تنبض بالحياة..."
+            "الجثث تتكاثر في الظلام...",
+            "الذاكرة تنسى لكن الألم يبقى...",
+            "الوقت يتجمد عند منتصف الليل...",
+            "الأصوات تختفي في الفراغ...",
+            "الأرواح تبحث عن جثثها المفقودة...",
+            "الظلام يلتهم النور قطعة قطعة...",
+            "الصمت يصبح أصدع من الصراخ..."
         ];
         
         const prophecy = prophecies[Math.floor(Math.random() * prophecies.length)];
-        this.prophecies.push({
-            id: this.prophecies.length + 1,
+        this.darkProphecies.push({
+            id: this.darkProphecies.length + 1,
             text: prophecy,
             timestamp: moment().format('HH:mm:ss'),
-            severity: ['MINOR', 'MAJOR', 'CRITICAL'][Math.floor(Math.random() * 3)]
+            intensity: Math.floor(Math.random() * 100)
         });
         
-        if (this.prophecies.length > 10) this.prophecies.shift();
+        if (this.darkProphecies.length > 10) this.darkProphecies.shift();
     }
     
     getUptime() {
@@ -87,7 +85,7 @@ class UptimeSystem {
     getSystemInfo() {
         const uptime = this.getUptime();
         
-        // معلومات النظام من os
+        // معلومات النظام
         const os = require('os');
         const usedMemory = process.memoryUsage().heapUsed / 1024 / 1024;
         const totalMemory = os.totalmem() / 1024 / 1024 / 1024;
@@ -95,48 +93,45 @@ class UptimeSystem {
         
         return {
             version: "2.0.666",
-            status: "ACTIVE",
-            performance: ['OPTIMAL', 'HIGH', 'MEDIUM'][Math.floor(Math.random() * 3)],
-            uptime: `${uptime.days}d ${uptime.hours}h ${uptime.minutes}m ${uptime.seconds}s`,
+            status: "نشط في الظلام",
+            intensity: ['عالية', 'متوسطة', 'منخفضة'][Math.floor(Math.random() * 3)],
+            uptime: `${uptime.days} يوم ${uptime.hours} ساعة ${uptime.minutes} دقيقة ${uptime.seconds} ثانية`,
             memory: {
                 used: usedMemory.toFixed(2) + ' MB',
                 total: totalMemory.toFixed(2) + ' GB',
                 free: freeMemory.toFixed(2) + ' GB',
-                percentage: ((usedMemory / (totalMemory * 1024)) * 100).toFixed(2) + '%'
+                corruption: ((usedMemory / (totalMemory * 1024)) * 100).toFixed(2) + '%'
             },
             cpu: {
                 cores: os.cpus().length,
-                load: (Math.random() * 100).toFixed(2) + '%'
+                temperature: (Math.random() * 80 + 20).toFixed(2) + '°C'
             },
-            guardians: this.guardians.length,
-            prophecies: this.prophecies.length,
-            soulsCollected: this.soulsCollected,
-            ritualsPerformed: this.ritualsPerformed
+            entities: this.shadowEntities.length,
+            prophecies: this.darkProphecies.length,
+            corpsesCollected: this.corpsesCollected,
+            darkRituals: this.darkRituals,
+            fragments: Math.floor(Math.random() * 1000)
         };
     }
 }
 
-// إنشاء نظام Uptime
-const uptimeSystem = new UptimeSystem();
+// إنشاء نظام Uptime المظلم
+const darkUptimeSystem = new DarkUptimeSystem();
 
 // =================================================================
 // ⚙️ الإعدادات
 // =================================================================
-const timerestart = 120;
 const port = process.env.PORT || 8000;
 
 // =================================================================
-// 🎭 واجهة الـ Uptime المخيفة
+// 🎭 واجهة الـ Uptime المظلمة
 // =================================================================
 app.get('/', (req, res) => {
-    const uptime = uptimeSystem.getUptime();
-    const systemInfo = uptimeSystem.getSystemInfo();
+    const uptime = darkUptimeSystem.getUptime();
+    const systemInfo = darkUptimeSystem.getSystemInfo();
     
-    // الحصول على عنوان URL الحالي من Koyeb
+    // الحصول على عنوان URL من Koyeb
     const koyebUrl = process.env.KOYEB_APP_URL || `http://localhost:${port}`;
-    const koyebService = process.env.KOYEB_SERVICE_NAME || 'kira-uptime';
-    const koyebRegion = process.env.KOYEB_REGION || 'unknown';
-    const koyebInstance = process.env.KOYEB_INSTANCE_ID || 'unknown';
     
     const html = `
     <!DOCTYPE html>
@@ -144,9 +139,9 @@ app.get('/', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🎭 KIRA UPTIME DAEMON</title>
+        <title>⚰️ KIRA UPTIME المظلم</title>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
             
             * {
                 margin: 0;
@@ -155,194 +150,253 @@ app.get('/', (req, res) => {
             }
             
             body {
-                background: linear-gradient(135deg, #000000, #1a0000, #00001a);
-                color: #ff0000;
-                font-family: 'Reem Kufi', sans-serif;
+                background: #000000;
+                color: #8b0000;
+                font-family: 'Cairo', sans-serif;
                 min-height: 100vh;
+                background-image: url('https://i.ibb.co/V4s8YDV/temp-1770486919518.jpg');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                background-blend-mode: multiply;
                 overflow-x: hidden;
+            }
+            
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                z-index: -1;
             }
             
             .container {
                 max-width: 1200px;
                 margin: 0 auto;
                 padding: 20px;
+                position: relative;
+                z-index: 1;
             }
             
             .header {
                 text-align: center;
                 padding: 40px 0;
-                border-bottom: 3px solid #ff0000;
                 margin-bottom: 40px;
+                border-bottom: 3px solid #8b0000;
                 position: relative;
             }
             
             .header h1 {
-                font-size: 3.5rem;
-                text-shadow: 0 0 15px #ff0000, 0 0 25px #ff0000;
+                font-size: 4rem;
+                color: #8b0000;
+                text-shadow: 0 0 20px #ff0000, 0 0 40px #8b0000;
                 margin-bottom: 20px;
+                letter-spacing: 3px;
+                font-weight: 900;
             }
             
             .header p {
-                font-size: 1.3rem;
-                color: #ff6666;
+                font-size: 1.4rem;
+                color: #a52a2a;
             }
             
-            .uptime-display {
-                background: rgba(0, 0, 0, 0.85);
-                border: 3px solid #ff0000;
+            .corpse-counter {
+                background: rgba(0, 0, 0, 0.9);
+                border: 3px solid #8b0000;
                 border-radius: 20px;
                 padding: 30px;
                 margin-bottom: 30px;
-                box-shadow: 0 0 40px rgba(255, 0, 0, 0.3);
+                box-shadow: 0 0 50px rgba(139, 0, 0, 0.5);
+                backdrop-filter: blur(10px);
             }
             
-            .uptime-title {
-                font-size: 2.2rem;
-                color: #ff4444;
+            .corpse-title {
+                font-size: 2.5rem;
+                color: #8b0000;
                 margin-bottom: 25px;
                 text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 15px;
             }
             
-            .uptime-numbers {
+            .corpse-numbers {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 20px;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 25px;
                 margin-bottom: 30px;
             }
             
-            .time-unit {
-                background: linear-gradient(145deg, #1a0000, #330000);
-                border: 2px solid #ff0000;
+            .corpse-unit {
+                background: linear-gradient(145deg, #1a0000, #000000);
+                border: 2px solid #8b0000;
                 border-radius: 15px;
                 padding: 25px;
                 text-align: center;
                 transition: all 0.3s;
+                position: relative;
+                overflow: hidden;
             }
             
-            .time-unit:hover {
+            .corpse-unit::before {
+                content: '⚰️';
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                font-size: 1.5rem;
+                opacity: 0.3;
+            }
+            
+            .corpse-unit:hover {
                 transform: translateY(-10px);
-                box-shadow: 0 10px 25px rgba(255, 0, 0, 0.4);
+                box-shadow: 0 15px 30px rgba(139, 0, 0, 0.4);
+                border-color: #ff0000;
             }
             
-            .time-value {
-                font-size: 3.5rem;
+            .corpse-value {
+                font-size: 4rem;
                 font-weight: bold;
                 color: #ffffff;
-                text-shadow: 0 0 10px #ff0000;
+                text-shadow: 0 0 15px #8b0000;
                 margin-bottom: 10px;
+                font-family: monospace;
             }
             
-            .time-label {
-                font-size: 1.3rem;
-                color: #ff8888;
+            .corpse-label {
+                font-size: 1.4rem;
+                color: #a52a2a;
                 text-transform: uppercase;
+                letter-spacing: 2px;
             }
             
             .system-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                gap: 25px;
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 30px;
                 margin-bottom: 40px;
             }
             
-            .info-card {
-                background: rgba(26, 0, 0, 0.9);
-                border: 2px solid #660000;
+            .dark-card {
+                background: rgba(0, 0, 0, 0.9);
+                border: 2px solid #333;
                 border-radius: 15px;
                 padding: 25px;
                 transition: all 0.3s;
+                backdrop-filter: blur(10px);
             }
             
-            .info-card:hover {
-                border-color: #ff0000;
-                box-shadow: 0 0 25px rgba(255, 0, 0, 0.2);
+            .dark-card:hover {
+                border-color: #8b0000;
+                box-shadow: 0 0 30px rgba(139, 0, 0, 0.3);
             }
             
-            .card-title {
+            .dark-title {
                 font-size: 1.8rem;
-                color: #ff4444;
+                color: #8b0000;
                 margin-bottom: 20px;
                 padding-bottom: 10px;
-                border-bottom: 2px solid #330000;
+                border-bottom: 2px solid #333;
                 display: flex;
                 align-items: center;
                 gap: 10px;
             }
             
-            .info-content {
-                color: #ff9999;
+            .dark-content {
+                color: #a52a2a;
                 font-size: 1.1rem;
                 line-height: 1.8;
-            }
-            
-            .koyeb-info {
-                background: linear-gradient(135deg, #000033, #000066);
-                border: 2px solid #0066ff;
-            }
-            
-            .koyeb-info .card-title {
-                color: #00aaff;
             }
             
             .status-badge {
                 display: inline-block;
                 padding: 8px 20px;
-                border-radius: 25px;
+                border-radius: 20px;
                 font-weight: bold;
                 font-size: 0.9rem;
                 margin: 5px;
+                background: rgba(139, 0, 0, 0.2);
+                color: #8b0000;
+                border: 1px solid #8b0000;
             }
             
-            .status-active {
-                background: rgba(0, 255, 0, 0.15);
-                color: #00ff00;
-                border: 1px solid #00ff00;
-            }
-            
-            .guardians-grid {
+            .entities-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
                 gap: 20px;
                 margin-top: 15px;
             }
             
-            .guardian {
-                background: rgba(51, 0, 51, 0.8);
-                border: 1px solid #8a2be2;
-                border-radius: 12px;
+            .entity {
+                background: rgba(26, 0, 0, 0.8);
+                border: 1px solid #333;
+                border-radius: 10px;
                 padding: 15px;
                 text-align: center;
                 transition: all 0.3s;
             }
             
-            .guardian:hover {
+            .entity:hover {
+                border-color: #8b0000;
                 transform: scale(1.05);
-                box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
             }
             
-            .guardian-name {
-                color: #da70d6;
+            .entity-name {
+                color: #8b0000;
                 font-size: 1.3rem;
                 font-weight: bold;
                 margin-bottom: 8px;
             }
             
+            .entity-power {
+                color: #d2691e;
+                font-size: 1rem;
+            }
+            
             .footer {
                 text-align: center;
                 padding: 40px 0;
-                border-top: 2px solid #660000;
                 margin-top: 40px;
-                color: #ff6666;
+                color: #a52a2a;
                 font-size: 1.1rem;
+                border-top: 2px solid #333;
             }
             
-            .floating {
+            .blood-drip {
+                position: fixed;
+                width: 2px;
+                height: 100px;
+                background: linear-gradient(to bottom, #8b0000, transparent);
+                animation: drip 3s linear infinite;
+                z-index: 0;
+            }
+            
+            @keyframes drip {
+                0% {
+                    transform: translateY(-100px);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 1;
+                }
+                90% {
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh);
+                    opacity: 0;
+                }
+            }
+            
+            .skull {
                 position: fixed;
                 font-size: 2rem;
-                opacity: 0.1;
-                animation: float 20s linear infinite;
+                opacity: 0.05;
+                animation: float 30s linear infinite;
                 pointer-events: none;
-                z-index: -1;
+                z-index: 0;
             }
             
             @keyframes float {
@@ -351,138 +405,199 @@ app.get('/', (req, res) => {
             }
             
             @media (max-width: 768px) {
-                .header h1 { font-size: 2.5rem; }
-                .uptime-numbers { grid-template-columns: repeat(2, 1fr); }
-                .time-value { font-size: 2.5rem; }
+                .header h1 { font-size: 2.8rem; }
+                .corpse-numbers { grid-template-columns: repeat(2, 1fr); }
+                .corpse-value { font-size: 3rem; }
                 .system-grid { grid-template-columns: 1fr; }
+            }
+            
+            .link {
+                color: #8b0000;
+                text-decoration: none;
+                transition: color 0.3s;
+            }
+            
+            .link:hover {
+                color: #ff0000;
+                text-decoration: underline;
+            }
+            
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                margin-top: 15px;
+            }
+            
+            .stat-item {
+                padding: 10px;
+                background: rgba(26, 0, 0, 0.5);
+                border-radius: 8px;
+                text-align: center;
             }
         </style>
     </head>
     <body>
+        <div class="overlay"></div>
+        
+        <div id="bloodContainer"></div>
+        <div id="skullContainer"></div>
+        
         <div class="container">
             <div class="header">
-                <h1>🎭 KIRA UPTIME DAEMON</h1>
-                <p>⏳ نظام مراقبة الوقت التشغيلي المخيف على Koyeb</p>
+                <h1>⚰️ KIRA UPTIME المظلم</h1>
+                <p>عداد الجثث والميتات - النظام يعمل في الظلام</p>
             </div>
             
-            <div class="uptime-display">
-                <div class="uptime-title">⏳ وقت التشغيل الحالي</div>
-                <div class="uptime-numbers">
-                    <div class="time-unit">
-                        <div class="time-value">${uptime.days}</div>
-                        <div class="time-label">أيام</div>
+            <div class="corpse-counter">
+                <div class="corpse-title">⚰️ عداد الجثث الميتة ⚰️</div>
+                <div class="corpse-numbers">
+                    <div class="corpse-unit">
+                        <div class="corpse-value">${uptime.days}</div>
+                        <div class="corpse-label">جثث أيام</div>
                     </div>
-                    <div class="time-unit">
-                        <div class="time-value">${uptime.hours}</div>
-                        <div class="time-label">ساعات</div>
+                    <div class="corpse-unit">
+                        <div class="corpse-value">${uptime.hours}</div>
+                        <div class="corpse-label">جثث ساعات</div>
                     </div>
-                    <div class="time-unit">
-                        <div class="time-value">${uptime.minutes}</div>
-                        <div class="time-label">دقائق</div>
+                    <div class="corpse-unit">
+                        <div class="corpse-value">${uptime.minutes}</div>
+                        <div class="corpse-label">جثث دقائق</div>
                     </div>
-                    <div class="time-unit">
-                        <div class="time-value">${uptime.seconds}</div>
-                        <div class="time-label">ثواني</div>
+                    <div class="corpse-unit">
+                        <div class="corpse-value">${uptime.seconds}</div>
+                        <div class="corpse-label">جثث ثواني</div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div style="color:#8b0000; font-weight:bold;">⚰️ الجثث المجمعة</div>
+                        <div style="color:#ffffff; font-size:1.5rem;">${systemInfo.corpsesCollected}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div style="color:#8b0000; font-weight:bold;">🔥 الطقوس المظلمة</div>
+                        <div style="color:#ffffff; font-size:1.5rem;">${systemInfo.darkRituals}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div style="color:#8b0000; font-weight:bold;">💀 شظايا الأرواح</div>
+                        <div style="color:#ffffff; font-size:1.5rem;">${systemInfo.fragments}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div style="color:#8b0000; font-weight:bold;">👁️ النبوءات</div>
+                        <div style="color:#ffffff; font-size:1.5rem;">${systemInfo.prophecies}</div>
                     </div>
                 </div>
             </div>
             
             <div class="system-grid">
-                <div class="info-card">
-                    <div class="card-title">🏰 معلومات النظام</div>
-                    <div class="info-content">
-                        <p>📊 الإصدار: ${systemInfo.version}</p>
-                        <p>⚡ الحالة: <span class="status-badge status-active">${systemInfo.status}</span></p>
-                        <p>🎯 الأداء: ${systemInfo.performance}</p>
+                <div class="dark-card">
+                    <div class="dark-title">💀 النظام المظلم</div>
+                    <div class="dark-content">
+                        <p>⚡ الإصدار: ${systemInfo.version}</p>
+                        <p>🎯 الحالة: <span class="status-badge">${systemInfo.status}</span></p>
+                        <p>🔥 الشدة: ${systemInfo.intensity}</p>
                         <p>💾 الذاكرة: ${systemInfo.memory.used} / ${systemInfo.memory.total}</p>
-                        <p>🧠 المعالج: ${systemInfo.cpu.cores} نواة | ${systemInfo.cpu.load} تحميل</p>
-                        <p>👹 الحراس: ${systemInfo.guardians}/13 نشط</p>
-                        <p>🔮 النبوءات: ${systemInfo.prophecies} نشطة</p>
+                        <p>🧠 الفساد: ${systemInfo.memory.corruption}</p>
+                        <p>🌡️ الحرارة: ${systemInfo.cpu.temperature}</p>
+                        <p>🔗 الرابط: <a href="${koyebUrl}" class="link">${koyebUrl}</a></p>
                     </div>
                 </div>
                 
-                <div class="info-card koyeb-info">
-                    <div class="card-title">☁️ معلومات Koyeb</div>
-                    <div class="info-content">
-                        <p>🔗 الرابط: <a href="${koyebUrl}" style="color:#00aaff">${koyebUrl}</a></p>
-                        <p>📦 الخدمة: ${koyebService}</p>
-                        <p>📍 المنطقة: ${koyebRegion}</p>
-                        <p>🆔 المثيل: ${koyebInstance}</p>
-                        <p>🌐 المنفذ: ${port}</p>
-                        <p>📅 وقت التشغيل: ${systemInfo.uptime}</p>
-                        <p>🎯 النظام: Koyeb + Node.js v18</p>
-                    </div>
-                </div>
-                
-                <div class="info-card">
-                    <div class="card-title">👹 حراس النظام</div>
-                    <div class="info-content">
-                        <div class="guardians-grid">
-                            ${uptimeSystem.guardians.map(g => `
-                                <div class="guardian">
-                                    <div class="guardian-name">${g.name}</div>
-                                    <div style="color:#ffd700">قوة: ${g.power}</div>
-                                    <div style="color:#${g.element === 'Fire' ? 'ff4500' : g.element === 'Shadow' ? '8a2be2' : 'ff0000'}">العنصر: ${g.element}</div>
-                                    <div style="color:#00ff00">الحالة: ${g.status}</div>
+                <div class="dark-card">
+                    <div class="dark-title">👻 الكيانات الظليلة</div>
+                    <div class="dark-content">
+                        <div class="entities-grid">
+                            ${darkUptimeSystem.shadowEntities.map(e => `
+                                <div class="entity">
+                                    <div class="entity-name">${e.name}</div>
+                                    <div class="entity-power">قوة: ${e.power}</div>
+                                    <div style="color:#666;">مملكة: ${e.domain}</div>
+                                    <div style="color:#008000;">الحالة: ${e.status}</div>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="info-card">
-                <div class="card-title">🔮 النبوءات الأخيرة</div>
-                <div class="info-content">
-                    ${uptimeSystem.prophecies.slice(-5).map(p => `
-                        <p style="margin-bottom: 10px; padding: 10px; background: rgba(75, 0, 130, 0.2); border-radius: 8px;">
-                            <span style="color:#${p.severity === 'CRITICAL' ? 'ff0000' : p.severity === 'MAJOR' ? 'ff9900' : 'ff69b4'}">
-                                #${p.id} [${p.severity}]
-                            </span>
-                            <br>${p.text}
-                            <br><small style="color:#888">${p.timestamp}</small>
-                        </p>
-                    `).join('')}
-                    ${uptimeSystem.prophecies.length === 0 ? '<p style="color:#888; text-align:center;">⏳ جاري استقبال النبوءات...</p>' : ''}
+                
+                <div class="dark-card">
+                    <div class="dark-title">🔮 النبوءات المظلمة</div>
+                    <div class="dark-content">
+                        ${darkUptimeSystem.darkProphecies.slice(-3).map(p => `
+                            <p style="margin-bottom: 15px; padding: 15px; background: rgba(139, 0, 0, 0.1); border-radius: 10px; border-left: 3px solid #8b0000;">
+                                <span style="color:#8b0000; font-weight:bold;">
+                                    #${p.id} [شدة: ${p.intensity}%]
+                                </span>
+                                <br>${p.text}
+                                <br><small style="color:#666;">${p.timestamp}</small>
+                            </p>
+                        `).join('')}
+                        ${darkUptimeSystem.darkProphecies.length === 0 ? 
+                            '<p style="color:#666; text-align:center; padding:20px;">⚰️ جاري استقبال النبوءات من العالم الآخر...</p>' : ''}
+                    </div>
                 </div>
             </div>
             
             <div class="footer">
-                <p>🎭 نظام KIRA UPTIME DAEMON v2.0</p>
+                <p>⚰️ نظام KIRA UPTIME المظلم v2.0</p>
                 <p>☁️ مستضاف على Koyeb | 🕒 ${moment().tz("Asia/Riyadh").format("HH:mm:ss")}</p>
-                <p>📅 ${moment().tz("Asia/Riyadh").format("DD/MM/YYYY")} | 👁️ العين الثالثة: مفتوحة</p>
-                <p>"النظام يعمل... الظلام يراقب... Koyeb يحمي..."</p>
+                <p>📅 ${moment().tz("Asia/Riyadh").format("DD/MM/YYYY")} | 💀 العداد: ${systemInfo.corpsesCollected} جثة</p>
+                <p>"الجثث تتكاثر... الظلام يزداد... النظام يعمل..."</p>
             </div>
         </div>
         
         <script>
-            // عناصر عائمة مخيفة
-            const symbols = ['👹', '🔮', '🩸', '⚡', '🌀', '💀', '👁️', '🔥', '🌑', '⚰️'];
-            for (let i = 0; i < 15; i++) {
-                const el = document.createElement('div');
-                el.className = 'floating';
-                el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                el.style.left = Math.random() * 100 + 'vw';
-                el.style.animationDuration = (Math.random() * 30 + 20) + 's';
-                el.style.animationDelay = Math.random() * 5 + 's';
-                document.body.appendChild(el);
+            // إنشاء قطرات الدم
+            for (let i = 0; i < 10; i++) {
+                const drip = document.createElement('div');
+                drip.className = 'blood-drip';
+                drip.style.left = Math.random() * 100 + 'vw';
+                drip.style.animationDelay = Math.random() * 5 + 's';
+                drip.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.getElementById('bloodContainer').appendChild(drip);
             }
             
-            // تحديث الوقت كل ثانية
-            function updateTime() {
-                const timeEls = document.querySelectorAll('.time-value');
-                if (timeEls.length === 4) {
-                    fetch('/api/uptime')
-                        .then(r => r.json())
-                        .then(data => {
-                            timeEls[0].textContent = data.days;
-                            timeEls[1].textContent = data.hours;
-                            timeEls[2].textContent = data.minutes;
-                            timeEls[3].textContent = data.seconds;
-                        });
-                }
+            // إنشاء جماجم عائمة
+            for (let i = 0; i < 20; i++) {
+                const skull = document.createElement('div');
+                skull.className = 'skull';
+                skull.textContent = '💀';
+                skull.style.left = Math.random() * 100 + 'vw';
+                skull.style.animationDuration = (Math.random() * 40 + 20) + 's';
+                skull.style.animationDelay = Math.random() * 10 + 's';
+                document.getElementById('skullContainer').appendChild(skull);
             }
-            setInterval(updateTime, 1000);
+            
+            // تحديث العداد كل ثانية
+            function updateCounter() {
+                fetch('/api/uptime')
+                    .then(r => r.json())
+                    .then(data => {
+                        const values = document.querySelectorAll('.corpse-value');
+                        if (values.length === 4) {
+                            values[0].textContent = data.days;
+                            values[1].textContent = data.hours;
+                            values[2].textContent = data.minutes;
+                            values[3].textContent = data.seconds;
+                        }
+                        
+                        // تحديث الجثث عشوائياً
+                        const corpseCount = document.querySelector('.stat-item:nth-child(1) div:nth-child(2)');
+                        if (corpseCount && Math.random() > 0.8) {
+                            const current = parseInt(corpseCount.textContent) || 0;
+                            corpseCount.textContent = current + 1;
+                        }
+                    });
+            }
+            setInterval(updateCounter, 1000);
+            
+            // تأثير الكتابة المتلألئة
+            const title = document.querySelector('.header h1');
+            let hue = 0;
+            setInterval(() => {
+                hue = (hue + 1) % 360;
+                title.style.textShadow = \`0 0 20px hsl(\${hue}, 100%, 50%), 0 0 40px hsl(\${hue}, 100%, 30%)\`;
+            }, 100);
         </script>
     </body>
     </html>
@@ -496,40 +611,23 @@ app.get('/', (req, res) => {
 // =================================================================
 
 app.get('/api/uptime', (req, res) => {
-    res.json(uptimeSystem.getUptime());
+    res.json(darkUptimeSystem.getUptime());
 });
 
 app.get('/api/system', (req, res) => {
-    res.json(uptimeSystem.getSystemInfo());
+    res.json(darkUptimeSystem.getSystemInfo());
 });
 
 app.get('/api/prophecies', (req, res) => {
-    res.json(uptimeSystem.prophecies);
+    res.json(darkUptimeSystem.darkProphecies);
 });
 
-app.get('/api/guardians', (req, res) => {
-    res.json(uptimeSystem.guardians);
+app.get('/api/entities', (req, res) => {
+    res.json(darkUptimeSystem.shadowEntities);
 });
 
-app.get('/api/koyeb', (req, res) => {
-    res.json({
-        url: process.env.KOYEB_APP_URL || `http://localhost:${port}`,
-        service: process.env.KOYEB_SERVICE_NAME || 'kira-uptime',
-        region: process.env.KOYEB_REGION || 'unknown',
-        instance: process.env.KOYEB_INSTANCE_ID || 'unknown',
-        port: port,
-        nodeVersion: process.version,
-        platform: process.platform
-    });
-});
-
-// =================================================================
-// 🎭 مسار الـ Uptime للبوت
-// =================================================================
 app.get('/uptime', (req, res) => {
-    const uptime = uptimeSystem.getUptime();
-    const systemInfo = uptimeSystem.getSystemInfo();
-    
+    const systemInfo = darkUptimeSystem.getSystemInfo();
     const koyebUrl = process.env.KOYEB_APP_URL || `http://localhost:${port}`;
     
     res.json({
@@ -538,120 +636,109 @@ app.get('/uptime', (req, res) => {
             uptime: systemInfo.uptime,
             version: systemInfo.version,
             status: systemInfo.status,
-            performance: systemInfo.performance,
+            corpses: systemInfo.corpsesCollected,
+            rituals: systemInfo.darkRituals,
             koyeb: {
                 url: koyebUrl,
                 online: true
             },
-            guardians: systemInfo.guardians,
+            entities: systemInfo.entities,
             prophecies: systemInfo.prophecies,
-            memory: systemInfo.memory.used,
             timestamp: moment().tz("Asia/Riyadh").format("HH:mm:ss")
         }
     });
 });
 
 // =================================================================
-// 🖼️ صفحة بسيطة للـ health check
+// 🩺 Health Check للـ Koyeb
 // =================================================================
 app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        koyeb: {
-            app_url: process.env.KOYEB_APP_URL,
-            service_name: process.env.KOYEB_SERVICE_NAME
-        }
+        memory: process.memoryUsage().heapUsed / 1024 / 1024,
+        corpses: darkUptimeSystem.corpsesCollected
     });
 });
 
+app.get('/healthz', (req, res) => {
+    res.status(200).send('OK');
+});
+
 // =================================================================
-// 🚀 تشغيل الخادم
+// 🚀 تشغيل الخادم مع معالجة الأخطاء
 // =================================================================
-app.listen(port, () => {
-    console.log(chalk.hex('#ff0000').bold(`
+
+// معالجة الأخطاء لمنع إيقاف الخادم
+process.on('uncaughtException', (err) => {
+    console.error('💀 خطأ غير معالج:', err.message);
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('💀 خطأ في الوعد:', err.message);
+});
+
+const server = app.listen(port, () => {
+    console.log(chalk.hex('#8b0000').bold(`
     ╔═══════════════════════════════════════════════════════╗
     ║                                                       ║
-    ║   🎭 KIRA UPTIME DAEMON v2.0 ON KOYEB 🎭           ║
+    ║   ⚰️  KIRA UPTIME المظلم على KOYEB ⚰️              ║
     ║                                                       ║
     ║   🔗 رابط النظام: http://localhost:${port}            ${port < 10 ? ' ' : ''}
     ║   ☁️  مستضاف على: Koyeb Cloud                       ║
     ║   ⏳  وقت البدء: ${moment().tz("Asia/Riyadh").format("HH:mm:ss")}              ║
-    ║   🎯  الحالة: نشط وجاهز                            ║
+    ║   💀  الحالة: الجثث تتكاثر                           ║
     ║                                                       ║
     ╚═══════════════════════════════════════════════════════╝
     `));
     
     // معلومات Koyeb
     if (process.env.KOYEB_APP_URL) {
-        console.log(chalk.hex('#0066ff').bold(`
+        console.log(chalk.hex('#000000').bold(`
     ╔═══════════════════════════════════════════════════════╗
     ║                                                       ║
-    ║   ☁️  KOYEB DEPLOYMENT INFORMATION                  ║
+    ║   ☁️  معلومات النشر على KOYEB                       ║
     ║                                                       ║
     ║   🔗 الرابط العام: ${process.env.KOYEB_APP_URL}      ║
-    ║   📦 الخدمة: ${process.env.KOYEB_SERVICE_NAME || 'N/A'}          ║
-    ║   📍 المنطقة: ${process.env.KOYEB_REGION || 'N/A'}              ║
-    ║   🆔 المثيل: ${process.env.KOYEB_INSTANCE_ID || 'N/A'}         ║
+    ║   📦 الخدمة: ${process.env.KOYEB_SERVICE_NAME || 'kira-dark-uptime'} ║
+    ║   💀 الجثث المجمعة: ${darkUptimeSystem.corpsesCollected}              ║
     ║                                                       ║
     ╚═══════════════════════════════════════════════════════╝
         `));
     }
 });
 
-// =================================================================
-// 🎭 رسالة البدء المخيفة
-// =================================================================
-setTimeout(() => {
-    console.log(chalk.hex('#00ff00').bold(`
-    ═══════════════════════════════════════════════════
-          SYSTEM UPTIME MONITORING INITIATED
-          KOYEB CLOUD DEPLOYMENT ACTIVE
-          ALL HAIL THE ETERNAL UPTIME!
-    ═══════════════════════════════════════════════════
-    `));
-}, 2000);
+// Keep-Alive للمنفذ
+server.keepAliveTimeout = 120 * 1000;
+server.headersTimeout = 120 * 1000;
 
 // =================================================================
-// ⚠️ معالجة الأخطاء
-// =================================================================
-process.on('unhandledRejection', (err) => {
-    console.error(chalk.red('⚠️  خطأ غير معالج:', err.message));
-});
-
-// =================================================================
-// 🔄 تحديث معلومات النظام كل دقيقة
+// 🔄 تحديث النظام كل دقيقة
 // =================================================================
 cron.schedule('* * * * *', () => {
-    const uptime = uptimeSystem.getUptime();
-    console.log(chalk.hex('#ff69b4')(`⏳ وقت التشغيل: ${uptime.days} يوم ${uptime.hours} ساعة ${uptime.minutes} دقيقة`));
+    const uptime = darkUptimeSystem.getUptime();
+    console.log(chalk.hex('#8b0000')(`⚰️  عداد الجثث: ${uptime.days} يوم ${uptime.hours} ساعة ${uptime.minutes} دقيقة`));
     
-    // زيادة عدد الأرواح بشكل عشوائي
-    if (Math.random() > 0.5) {
-        uptimeSystem.soulsCollected += Math.floor(Math.random() * 10);
+    // زيادة الجثث بشكل عشوائي
+    if (Math.random() > 0.3) {
+        darkUptimeSystem.corpsesCollected += Math.floor(Math.random() * 5) + 1;
     }
     
-    // زيادة الطقوس
-    if (Math.random() > 0.7) {
-        uptimeSystem.ritualsPerformed++;
+    // زيادة الطقوس المظلمة
+    if (Math.random() > 0.8) {
+        darkUptimeSystem.darkRituals++;
     }
 });
 
 // =================================================================
-// 🎉 اكتمال النظام
+// 🎉 رسالة البدء
 // =================================================================
-console.log(chalk.hex('#ffff00')(`
-╔═══════════════════════════════════════════════════════╗
-║                                                       ║
-║   🎉 SYSTEM READY FOR KOYEB DEPLOYMENT 🎉           ║
-║                                                       ║
-║   • نظام Uptime المخيف نشط                          ║
-║   • واجهة ويب جاهزة                                 ║
-║   • API نقاط نهاية نشطة                             ║
-║   • معلومات Koyeb متاحة                             ║
-║   • النظام جاهز للبوت                               ║
-║                                                       ║
-╚═══════════════════════════════════════════════════════╝
-`));
+setTimeout(() => {
+    console.log(chalk.hex('#000000').bold(`
+    ═══════════════════════════════════════════════════
+          النظام المظلم يعمل... الجثث تتكاثر...
+          KOYEB يحمل الظلام... العداد يدور...
+    ═══════════════════════════════════════════════════
+    `));
+}, 1000);
