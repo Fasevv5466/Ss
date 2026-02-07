@@ -1,85 +1,74 @@
-<div align="center" id="top">
-
-# <img src="https://readme-typing-svg.demolab.com?font=Nosifer&size=85&duration=3500&pause=800&color=8B0000&center=true&vCenter=true&width=1100&height=140&lines=☠+KIRA+BOT+☠;✒+DEATH+NOTE+PROTOCOL+✒;⚖+لا+هروب+من+الحكم+⚖" />
-
-<img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif">
-
-</div>
-
----
-
 <div align="center">
 
-## ◈ ───『 ☠ التحذير ☠ 』─── ◈
+◈ ───『 𝙆 𝙄 𝙍 𝘼 』─── ◈
 
-**هذا المستودع ليس أداة.**  
-**إنه نظام حكم.**
+<img src="https://readme-typing-svg.demolab.com?font=Montserrat&size=28&duration=4000&pause=1200&color=8A8A8A&center=true&vCenter=true&width=700&lines=Silence+is+Watching.;Justice+Needs+No+Voice.;You+Were+Already+Seen." />
 
-أي محاولة للاستخدام الخاطئ  
-أي عبث  
-أي فضول أعمى  
+<br>
 
-⬅️ **سيُسجَّل**
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:0A0A0A,100:1A1A1A&height=3"/>
 
-</div>
-
----
-
-<div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=wave&color=0:000000,50:4B0000,100:8B0000&height=250&section=header"/>
+<br>
 
 </div>
 
 ---
 
-## ◈ ───『 🩸 ما هو KIRA BOT ؟ 🩸 』─── ◈
+## ◈ ───『 Overview 』─── ◈
 
-**KIRA**  
-ليس بوت فيسبوك عادي  
-بل **كيان رقمي**  
-يراقب  
-يحلل  
-ويصدر الحكم
+> **KIRA** is not loud.  
+> It does not announce itself.  
+> It reacts only when necessary.
 
-- ✒ يقرأ الأسماء
-- ⏳ يراقب النشاط
-- ⚖ يقرر المصير
-- ☠ لا يخطئ
+A silent Facebook automation bot,  
+designed with restraint, precision, and control.
 
----
-
-## ◈ ───『 ⚙ الجوهر التقني ⚙ 』─── ◈
-
-| العنصر | الوصف |
-|------|-------|
-| 🩸 Core | Node.js (LTS) |
-| ✒ Engine | JavaScript |
-| ☠ API | Facebook Automation |
-| ⚖ Mode | Silent / Aggressive |
-| 🕯 State | AppState Only |
-
-> **لا تسجيل دخول تقليدي**  
-> **لا OAuth**  
-> **فقط جلسة مسروقة من الزمن**
+No noise.  
+No mercy.  
+No randomness.
 
 ---
 
-## ◈ ───『 🩸 القدرات 🩸 』─── ◈
+## ◈ ───『 Philosophy 』─── ◈
 
-- ☠ أكثر من **70 أمر**  
-- 🩸 ألعاب نفسية تفاعلية  
-- ⚖ تحكم كامل بالمحادثات  
-- 👁 ردود تلقائية مظلمة  
-- ✒ رسائل بزخرفة طقسية  
-- 🕯 استقرار صامت بدون ضجيج  
+- Silence is authority  
+- Minimal actions, maximum impact  
+- Logs instead of words  
+- Execution without explanation  
+
+KIRA does not warn.  
+It **records**.
 
 ---
 
-## ◈ ───『 🩸 طقوس التشغيل 🩸 』─── ◈
+## ◈ ───『 Core Characteristics 』─── ◈
+
+| Aspect | Description |
+|------|------------|
+| Presence | Invisible |
+| Behavior | Predictable |
+| Style | Minimal |
+| Voice | None |
+| Control | Absolute |
+
+---
+
+## ◈ ───『 Environment 』─── ◈
+
+- **Runtime:** Node.js (LTS recommended)
+- **Platform:** Facebook Messenger
+- **Architecture:** Modular / Event-driven
+- **State:** Persistent (AppState based)
+
+Designed to run quietly in the background  
+for long periods without drawing attention.
+
+---
+
+## ◈ ───『 Installation 』─── ◈
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/kira-bot.git
+git clone https://github.com/yourname/kira-bot.git
 cd kira-bot
 npm install
 node index.js
