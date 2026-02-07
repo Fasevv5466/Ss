@@ -1,0 +1,35 @@
+# ملفات حساسة
+appstate.json
+config.json
+.env
+*.log
+
+# تبعيات
+node_modules/
+package-lock.json
+npm-debug.log
+
+# قاعدة البيانات
+*.sqlite
+*.db
+Fca_Database/
+
+# مجلدات مؤقتة
+.cache/
+tmp/
+temp/
+script/commands/cache/*
+script/commands/data/*
+script/commands/tad/*
+
+# ملفات النظام
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
+
+# نسخ احتياطية
+*.backup
+*.bak
+config.json.temp
