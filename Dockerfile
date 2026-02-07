@@ -26,7 +26,7 @@ WORKDIR /app
 COPY package.json .
 
 # تثبيت التبعيات
-RUN npm install --production --no-audit --legacy-peer-deps
+RUN npm install ----no-audit --legacy-peer-deps
 
 # نسخ باقي الملفات
 COPY . .
