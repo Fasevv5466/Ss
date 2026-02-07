@@ -1,32 +1,42 @@
 # Dependencies
 node_modules/
-package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Sensitive Files - NEVER COMMIT
-appstate.json
-*.log
+# Optional npm cache directory
+.npm
 
-# Database
-*.sqlite
-*.db
-Fca_Database/
+# Optional eslint cache
+.eslintcache
 
-# Cache & Temp
-script/commands/cache/*
-script/commands/data/*
-script/commands/tad/*
-.cache/
-tmp/
-temp/
-
-# OS Files
-.DS_Store
-Thumbs.db
+# dotenv environment variables file
 .env
+.env.test
+
+# Build outputs
+dist/
+build/
+out/
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# Backups
-*.backup
-*.bak
-config.json.temp
+# Logs
+logs/
+*.log
