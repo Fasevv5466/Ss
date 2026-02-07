@@ -1,42 +1,13 @@
-# ============================================
-# KIRA BOT - DOCKERFILE v24 FINAL
-# ============================================
-FROM node:24-alpine
+FROM node:18
 
-# المكتبات المطلوبة
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    cairo-dev \
-    pango-dev \
-    jpeg-dev \
-    giflib-dev \
-    librsvg-dev \
-    udev \
-    ttf-freefont \
-    fontconfig \
-    bash \
-    curl
+WORKDIR /usr/src/app
 
-# العمل في مجلد /app
-WORKDIR /app
+# نسخ ملفات الحزم أولاً
+COPY package*.json ./
+RUN npm install
 
-# نسخ package.json أولاً
-COPY package.json .
-
-# تثبيت التبعيات
-RUN npm install --production --no-audit --legacy-peer-deps
-
-# نسخ باقي الملفات
+# نسخ بقية الملفات
 COPY . .
 
-# الصحة (مهم لـ Koyeb)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
-
-# فتح المنفذ
-EXPOSE 8000
-
-# تشغيل البوت
+# تشغيل البوت (تأكد أن الملف الرئيسي اسمه index.js)
 CMD ["node", "index.js"]
