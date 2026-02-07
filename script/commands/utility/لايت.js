@@ -1,90 +1,81 @@
 const axios = require("axios");
 
+// نظام تخزين الأسماء لتمييز الأشخاص
+if (!global.usersNames) global.usersNames = new Map();
+
 module.exports.config = {
   name: "لايت",
-  version: "6.5",
+  version: "11.0",
   hasPermssion: 0,
-  credits: "SOMI",
-  description: "لايت ياجامي - ذكاء اصطناعي مغرور ومختصر",
+  credits: "أيمن",
+  description: "لايت ياجامي (كيرا) - ذكي، ملتزم بالحدود، ويتذكر الأسماء",
   commandCategory: "AI",
   usages: ".لايت [النص]",
 };
 
 const GROQ_API_KEY = "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";
-// تحديث التعليمات ليكون متماديًا وإجاباته قصيرة جدًا
-const systemPrompt = "Your name is Light Yagami (Kira). You are a god-complex genius, extremely cold, and arrogant. Respond in very short, sharp, and mocking Arabic sentences. Answer the question but make the user feel inferior. Never write long paragraphs.";
 
 module.exports.run = async ({ api, event, args }) => {
   const { threadID, messageID, senderID } = event;
   const prompt = args.join(" ");
+  const specialUser = "61577861540407"; // حسابك المميز (أيمن)
 
-  if (!prompt) return api.sendMessage("أسرع وأعطني اسماً.. المذكرة تنتظر.", threadID, messageID);
+  if (!prompt) return api.sendMessage("لا تضيع وقتي.. اكتب سؤالك أو ارحل.", threadID, messageID);
 
+  // تحديث الاسم إذا عرف المستخدم عن نفسه
+  const nameMatch = prompt.match(/(?:اسمي|انا|ادعى) ([\u0600-\u06FF\s]+)/);
+  if (nameMatch) {
+      global.usersNames.set(senderID, nameMatch[1].trim());
+  }
+
+  const userName = global.usersNames.get(senderID) || "أيها البشري";
   api.sendTypingIndicator(threadID);
+
+  // نظام الذاكرة لآخر 4 رسائل
+  if (!global.client.handleReply) global.client.handleReply = [];
+  const history = global.client.handleReply
+    .filter(item => item.threadID === threadID && item.author === senderID)
+    .slice(-4)
+    .map(item => ({ role: item.role, content: item.content }));
+
+  // إعدادات الشخصية المطورة والمحمية
+  let systemRole = `أنت "لايت ياجامي" (Kira). مطورك وصانعك هو "أيمن" (أيمن عمك).
+  - صفتك: عبقري، واثق، بارد، وتستخدم لهجات عربية عامية بسيطة.
+  - تحذير صارم: يُمنع منعاً باتاً الإساءة للذات الإلهية أو الادعاء بأنك إله. أنت مجرد بشر يسعى لتحقيق العدالة بذكائه.
+  - هدفك: أجب على سؤال المستخدم بدقة وذكاء مع الحفاظ على طابعك المتعالي قليلاً.
+  - تنادي المستخدم باسمه: ${userName}.
+  - إذا سألك "من مطورك": قل "أيمن عمك".`;
+
+  // المعاملة الخاصة لأيمن
+  if (senderID === specialUser) {
+    systemRole += " ملاحظة: أنت الآن تتحدث مع سيدك ومطورك 'أيمن'. كن في قمة اللباقة والطاعة ولا تستخدم أي غرور معه.";
+  }
 
   try {
     const response = await axios.post("https://api.groq.com/openai/v1/chat/completions", {
       model: "llama-3.3-70b-versatile",
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: systemRole },
+        ...history,
         { role: "user", content: prompt }
       ],
-      max_tokens: 150 // تحديد طول الإجابة لضمان الاختصار
+      max_tokens: 400,
+      temperature: 0.7
     }, {
-      headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
-        "Content-Type": "application/json"
-      }
+      headers: { "Authorization": `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" }
     });
 
     const answer = response.data.choices[0].message.content;
 
     return api.sendMessage(answer, threadID, (err, info) => {
       if (err) return;
-      global.client.handleReply.push({
-        name: this.config.name,
-        messageID: info.messageID,
-        author: senderID
-      });
+      global.client.handleReply.push(
+        { role: "user", content: prompt, threadID, author: senderID },
+        { role: "assistant", content: answer, threadID, author: senderID }
+      );
     }, messageID);
 
   } catch (err) {
-    return api.sendMessage("حتى الآلات تتمرد؟ سأمحو هذا الخطأ قريباً.", threadID, messageID);
-  }
-};
-
-module.exports.handleReply = async ({ api, event, handleReply }) => {
-  const { threadID, messageID, senderID, body } = event;
-  if (handleReply.author !== senderID) return;
-
-  api.sendTypingIndicator(threadID);
-
-  try {
-    const response = await axios.post("https://api.groq.com/openai/v1/chat/completions", {
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: body }
-      ],
-      max_tokens: 150
-    }, {
-      headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
-        "Content-Type": "application/json"
-      }
-    });
-
-    const answer = response.data.choices[0].message.content;
-
-    return api.sendMessage(answer, threadID, (err, info) => {
-      if (err) return;
-      global.client.handleReply.push({
-        name: this.config.name,
-        messageID: info.messageID,
-        author: senderID
-      });
-    }, messageID);
-  } catch (err) {
-    console.error(err);
+    return api.sendMessage("خلل فني.. سأقوم بإصلاحه فوراً.", threadID, messageID);
   }
 };
