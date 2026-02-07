@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "login": "node login.js",
+    "login": "echo 'Use npm start instead'",
     "dev": "nodemon index.js",
     "docker:build": "docker build -t kira-bot .",
     "docker:run": "docker run -p 8000:8000 kira-bot",
@@ -16,9 +16,6 @@
     "npm": ">=10.0.0"
   },
   "dependencies": {
-    "@xaviabot/fca-unofficial": "github:xaviabot/fca-unofficial",
-    "fca-unofficial": "github:ntkhang03/fb-chat-api",
-    "facebook-chat-api": "^1.8.0",
     "chalk": "^4.1.2",
     "gradient-string": "^2.0.2",
     "moment-timezone": "^0.5.45",
