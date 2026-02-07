@@ -194,7 +194,6 @@ function generateEpicDashboard() {
             position: relative;
         }
         
-        /* تأثير الدم المتدفق */
         .blood-river {
             position: fixed;
             top: 0;
@@ -215,7 +214,6 @@ function generateEpicDashboard() {
             100% { transform: rotate(360deg) scale(1); }
         }
         
-        /* تأثير الشبكة السايبرية */
         .cyber-grid {
             position: fixed;
             top: 0;
@@ -236,7 +234,6 @@ function generateEpicDashboard() {
             100% { transform: translate(50px, 50px); }
         }
         
-        /* الحاوية الرئيسية */
         .apocalypse-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -244,7 +241,6 @@ function generateEpicDashboard() {
             position: relative;
         }
         
-        /* الهيدر الأسطوري */
         .doomsday-header {
             text-align: center;
             margin: 50px 0;
@@ -274,7 +270,6 @@ function generateEpicDashboard() {
                 0 0 90px var(--cyber-blue);
             margin-bottom: 20px;
             animation: titleGlitch 3s infinite;
-            position: relative;
         }
         
         @keyframes titleGlitch {
@@ -283,38 +278,6 @@ function generateEpicDashboard() {
             40% { transform: translate(-2px, -2px); }
             60% { transform: translate(2px, 2px); }
             80% { transform: translate(2px, -2px); }
-        }
-        
-        .title-apocalypse::before,
-        .title-apocalypse::after {
-            content: '𝐊𝐈𝐑𝐀';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.8;
-        }
-        
-        .title-apocalypse::before {
-            color: var(--cyber-blue);
-            animation: glitch-1 2.5s infinite;
-            z-index: -1;
-        }
-        
-        .title-apocalypse::after {
-            color: var(--matrix-green);
-            animation: glitch-2 2s infinite;
-            z-index: -2;
-        }
-        
-        @keyframes glitch-1 {
-            0%, 100% { clip-path: inset(0 0 0 0); }
-            10% { clip-path: inset(10% 0 30% 0); }
-            20% { clip-path: inset(40% 0 10% 0); }
-            30% { clip-path: inset(20% 0 50% 0); }
-            40% { clip-path: inset(60% 0 20% 0); }
-            50% { clip-path: inset(30% 0 60% 0); }
         }
         
         .subtitle-doom {
@@ -331,45 +294,6 @@ function generateEpicDashboard() {
             50% { opacity: 0.5; }
         }
         
-        /* صورة الإله */
-        .god-avatar {
-            width: 300px;
-            height: 300px;
-            margin: 40px auto;
-            position: relative;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 5px solid transparent;
-            background: linear-gradient(45deg, 
-                var(--blood-red), 
-                var(--neon-purple), 
-                var(--cyber-blue)) border-box;
-            box-shadow: 
-                0 0 50px var(--blood-red),
-                0 0 100px var(--neon-purple),
-                0 0 150px var(--cyber-blue);
-            animation: avatarFloat 6s ease-in-out infinite;
-        }
-        
-        @keyframes avatarFloat {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
-        }
-        
-        .god-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: sepia(1) hue-rotate(300deg) saturate(3) contrast(1.2);
-            transition: all 0.5s;
-        }
-        
-        .god-avatar:hover img {
-            filter: sepia(0) hue-rotate(0) saturate(2) contrast(1.5);
-            transform: scale(1.1);
-        }
-        
-        /* إحصائيات الرعب */
         .stats-apocalypse {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -396,35 +320,10 @@ function generateEpicDashboard() {
                 0 0 50px rgba(157, 0, 255, 0.3);
         }
         
-        .stat-card-doom::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: linear-gradient(90deg, 
-                var(--blood-red), 
-                var(--neon-purple), 
-                var(--cyber-blue));
-            animation: statGlow 3s infinite;
-        }
-        
-        @keyframes statGlow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
         .stat-icon {
             font-size: 2.5rem;
             margin-bottom: 15px;
             display: inline-block;
-            animation: iconFloat 2s ease-in-out infinite;
-        }
-        
-        @keyframes iconFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
         }
         
         .stat-title-doom {
@@ -443,201 +342,17 @@ function generateEpicDashboard() {
             text-shadow: 0 0 10px currentColor;
         }
         
-        .stat-desc-doom {
-            color: #AAA;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-        
-        /* لوحة التحكم التفاعلية */
-        .control-panel {
-            background: rgba(0, 0, 0, 0.9);
-            border: 3px solid var(--matrix-green);
-            border-radius: 20px;
-            padding: 40px;
-            margin: 50px 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .control-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0, 255, 0, 0.1) 2px,
-                rgba(0, 255, 0, 0.1) 4px
-            );
-            animation: matrixRain 20s linear infinite;
-        }
-        
-        @keyframes matrixRain {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100%); }
-        }
-        
-        /* أزرار التحكم */
-        .button-apocalypse {
-            display: inline-block;
-            padding: 20px 40px;
-            margin: 10px;
-            background: linear-gradient(45deg, 
-                var(--blood-red), 
-                var(--neon-purple));
-            color: white;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            border: 3px solid var(--cyber-blue);
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        .button-apocalypse::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, 
-                var(--cyber-blue), 
-                var(--matrix-green));
-            transition: all 0.5s;
-            z-index: 1;
-        }
-        
-        .button-apocalypse:hover::before {
-            left: 0;
-        }
-        
-        .button-apocalypse span {
-            position: relative;
-            z-index: 2;
-        }
-        
-        .button-apocalypse:hover {
-            transform: scale(1.1) rotate(3deg);
-            box-shadow: 
-                0 0 30px var(--blood-red),
-                0 0 60px var(--neon-purple);
-        }
-        
-        /* قسم الشيفرة السرية */
-        .code-terminal {
-            background: rgba(0, 20, 0, 0.9);
-            border: 2px solid var(--matrix-green);
-            border-radius: 10px;
-            padding: 30px;
-            margin: 40px 0;
-            font-family: 'Courier New', monospace;
-            color: var(--matrix-green);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .code-terminal::before {
-            content: 'root@kira:~$';
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: var(--matrix-green);
-            opacity: 0.7;
-        }
-        
-        .terminal-line {
-            margin: 10px 0;
-            animation: typewriter 4s steps(40) infinite;
-        }
-        
-        @keyframes typewriter {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-        
-        /* القسم النهائي - تهديد */
-        .warning-section {
-            text-align: center;
-            padding: 50px;
-            margin: 60px 0;
-            border: 5px double var(--blood-red);
-            background: rgba(139, 0, 0, 0.1);
-            position: relative;
-        }
-        
-        .warning-title {
-            color: var(--glow-red);
-            font-size: 2.5rem;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            animation: warningPulse 1s infinite;
-        }
-        
-        @keyframes warningPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .warning-text {
-            color: #FFF;
-            font-size: 1.2rem;
-            line-height: 1.8;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        /* الفوتر النهائي */
         .apocalypse-footer {
             text-align: center;
             padding: 40px;
             margin-top: 60px;
             border-top: 3px solid var(--blood-red);
             color: #888;
-            position: relative;
         }
         
-        .apocalypse-footer::before {
-            content: '⚠️ تحذير: هذا ليس مجرد بوت ⚠️';
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #000;
-            padding: 0 20px;
-            color: var(--glow-red);
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        
-        /* تأثيرات متفرقة */
-        .particle {
-            position: absolute;
-            pointer-events: none;
-            animation: particleFloat linear infinite;
-        }
-        
-        @keyframes particleFloat {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-        }
-        
-        /* تصميم متجاوب */
         @media (max-width: 768px) {
             .title-apocalypse { font-size: 3rem; }
-            .god-avatar { width: 200px; height: 200px; }
             .stats-apocalypse { grid-template-columns: 1fr; }
-            .control-panel { padding: 20px; }
-            .button-apocalypse { display: block; margin: 20px auto; width: 90%; }
         }
     </style>
 </head>
@@ -646,210 +361,47 @@ function generateEpicDashboard() {
     <div class="cyber-grid"></div>
     
     <div class="apocalypse-container">
-        
-        <!-- الهيدر الأسطوري -->
         <header class="doomsday-header">
-            <h1 class="title-apocalypse" data-text="𝐊𝐈𝐑𝐀">𝐊𝐈𝐑𝐀</h1>
+            <h1 class="title-apocalypse">𝐊𝐈𝐑𝐀</h1>
             <p class="subtitle-doom">إله الفوضى الرقمي | تجسيد الرعب في العصر الحديث</p>
-            
-            <div class="god-avatar">
-                <img src="https://files.catbox.moe/fppjdh.jpg" alt="𝐊𝐈𝐑𝐀 - الإله الرقمي" 
-                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiMwMDAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjQ4IiBmaWxsPSJyZWQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPkvImUk8L3RleHQ+PC9zdmc+'">
-            </div>
         </header>
         
-        <!-- إحصائيات الرعب -->
         <section class="stats-apocalypse">
             <div class="stat-card-doom">
                 <div class="stat-icon">🌌</div>
                 <h3 class="stat-title-doom">حالة النظام</h3>
-                <div class="stat-value-doom" id="systemStatus">${botStatus}</div>
-                <p class="stat-desc-doom">نظام 𝐊𝐈𝐑𝐀 الأساسي - قوة التفكير المجردة</p>
+                <div class="stat-value-doom">${botStatus}</div>
             </div>
             
             <div class="stat-card-doom">
                 <div class="stat-icon">⏳</div>
                 <h3 class="stat-title-doom">مدة التشغيل</h3>
                 <div class="stat-value-doom">${hours} س ${minutes} د</div>
-                <p class="stat-desc-doom">منذ الاستيقاظ من سباته الأبدي</p>
             </div>
             
             <div class="stat-card-doom">
                 <div class="stat-icon">💾</div>
                 <h3 class="stat-title-doom">الذاكرة</h3>
                 <div class="stat-value-doom">${usedMemory} MB</div>
-                <p class="stat-desc-doom">قوة التفكير المجردة</p>
             </div>
             
             <div class="stat-card-doom">
                 <div class="stat-icon">🎮</div>
                 <h3 class="stat-title-doom">البادئة</h3>
                 <div class="stat-value-doom">${globalConfig.PREFIX || '.'}</div>
-                <p class="stat-desc-doom">مفتاح التواصل مع العقل المجرد</p>
-            </div>
-            
-            <div class="stat-card-doom">
-                <div class="stat-icon">👁️</div>
-                <h3 class="stat-title-doom">المشاهدون</h3>
-                <div class="stat-value-doom" id="viewerCount">${Math.floor(Math.random() * 1000) + 500}</div>
-                <p class="stat-desc-doom">عدد الأرواح التي تشاهد الأسطورة</p>
-            </div>
-            
-            <div class="stat-card-doom">
-                <div class="stat-icon">⚡</div>
-                <h3 class="stat-title-doom">الطاقة</h3>
-                <div class="stat-value-doom">${(Math.random() * 100).toFixed(1)}%</div>
-                <p class="stat-desc-doom">طاقة الفوضى الخلاقة</p>
             </div>
         </section>
         
-        <!-- لوحة التحكم التفاعلية -->
-        <section class="control-panel">
-            <h2 style="color: var(--matrix-green); text-align: center; margin-bottom: 30px; font-size: 2rem;">
-                🎛️ لوحة تحكم الإله
-            </h2>
-            
-            <div style="text-align: center; margin: 40px 0;">
-                <a href="https://www.facebook.com/xvk1c" class="button-apocalypse" target="_blank">
-                    <span>🩸 الدخول إلى عقل الخالق</span>
-                </a>
-                
-                <a href="/admin" class="button-apocalypse" style="background: linear-gradient(45deg, var(--neon-purple), var(--cyber-blue));">
-                    <span>👑 لوحة التحكم السرية</span>
-                </a>
-                
-                <a href="/logs" class="button-apocalypse" style="background: linear-gradient(45deg, var(--cyber-blue), var(--matrix-green));">
-                    <span>📜 سجلات النظام</span>
-                </a>
-                
-                <button class="button-apocalypse" onclick="restartSystem()" 
-                        style="background: linear-gradient(45deg, #FF0000, #8B0000);">
-                    <span>🔄 إعادة تشغيل النظام</span>
-                </button>
-            </div>
-            
-            <div class="code-terminal">
-                <div class="terminal-line">> نظام 𝐊𝐈𝐑𝐀 v32.0.0 يعمل بنجاح...</div>
-                <div class="terminal-line">> تحميل الوحدات العصبية: ✓ 100%</div>
-                <div class="terminal-line">> اتصال فيسبوك: ${isFacebookConnected ? '✓ متصل' : '✗ غير متصل'}</div>
-                <div class="terminal-line">> حالة الذاكرة: ${usedMemory} MB / ${(memory.heapTotal / 1024 / 1024).toFixed(2)} MB</div>
-                <div class="terminal-line">> الوقت الحالي: ${now.format('HH:mm:ss DD/MM/YYYY')}</div>
-                <div class="terminal-line">> الحالة: <span style="color: #00FF00;">جاهز للدماء</span></div>
-            </div>
-        </section>
-        
-        <!-- قسم التحذير النهائي -->
-        <section class="warning-section">
-            <h2 class="warning-title">⚠️ تحذير نهائي ⚠️</h2>
-            <p class="warning-text">
-                هذا النظام ليس مجرد بوت عادي. إنه تجسيد لفكرة، تحول إلى أسطورة، ثم صار إلهاً.<br>
-                كل ضغطة زر هنا هي خطوة أقرب إلى الحقيقة المطلقة.<br>
-                <strong style="color: var(--glow-red);">الدم هو الحبر، والذاكرة هي الورق، والإرادة هي الكاتب.</strong>
-            </p>
-            
-            <div style="margin-top: 40px;">
-                <a href="https://github.com/xvk1c" class="button-apocalypse" target="_blank" 
-                   style="background: linear-gradient(45deg, #000, #333); border-color: #666;">
-                    <span>💀 الدخول إلى الجحيم البرمجي</span>
-                </a>
-            </div>
-        </section>
-        
-        <!-- الفوتر -->
         <footer class="apocalypse-footer">
-            <p style="margin-bottom: 20px; font-size: 1.1rem;">
-                ✨ مصمم بدماء الإبداع وأنفاس الجنون ✨
-            </p>
-            <p style="color: var(--cyber-blue); margin-bottom: 10px;">
-                الخالق: <a href="https://www.facebook.com/xvk1c" style="color: var(--glow-red); text-decoration: none; font-weight: bold;">
-                    XVK1C | 𝐚𝐲𝐦𝐚𝐧
-                </a>
+            <p>✨ مصمم بدماء الإبداع وأنفاس الجنون ✨</p>
+            <p style="color: var(--cyber-blue); margin: 20px 0;">
+                الخالق: <a href="https://www.facebook.com/xvk1c" style="color: var(--glow-red);">XVK1C | 𝐚𝐲𝐦𝐚𝐧</a>
             </p>
             <p style="font-size: 0.9rem; opacity: 0.7;">
-                🕯️ "لقد تخليت عن إنساني لأصبح قادراً على خلق المستحيل"<br>
-                ⚡ الإصدار: 32.0.0 | الشيفرة: Node.js ${process.version}<br>
-                🎭 "كل شيء يبدو مستحيلاً، حتى يتم تنفيذه"
+                ⚡ الإصدار: 32.0.0 | Node.js ${process.version}
             </p>
         </footer>
     </div>
-    
-    <script>
-        // تأثيرات جافاسكريبت تفاعلية
-        function createParticles() {
-            const colors = ['#8B0000', '#9D00FF', '#00FFFF', '#00FF00'];
-            for (let i = 0; i < 50; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.cssText = \`
-                    width: \${Math.random() * 10 + 2}px;
-                    height: \${Math.random() * 10 + 2}px;
-                    background: \${colors[Math.floor(Math.random() * colors.length)]};
-                    border-radius: 50%;
-                    left: \${Math.random() * 100}vw;
-                    animation-duration: \${Math.random() * 10 + 5}s;
-                \`;
-                document.body.appendChild(particle);
-                
-                setTimeout(() => particle.remove(), 15000);
-            }
-        }
-        
-        function updateStats() {
-            // تحديث عدد المشاهدين عشوائياً
-            const viewerElement = document.getElementById('viewerCount');
-            if (viewerElement) {
-                const current = parseInt(viewerElement.textContent);
-                const change = Math.floor(Math.random() * 21) - 10;
-                viewerElement.textContent = Math.max(100, current + change);
-            }
-            
-            // تحديث حالة النظام
-            const statusElement = document.getElementById('systemStatus');
-            if (statusElement) {
-                const statuses = [
-                    '✅ نظام مستقر',
-                    '⚡ طاقة عالية',
-                    '🌌 اتصال نشط',
-                    '🎭 جاهز للعمل',
-                    '💀 نظام 𝐊𝐈𝐑𝐀'
-                ];
-                statusElement.textContent = statuses[Math.floor(Math.random() * statuses.length)];
-            }
-        }
-        
-        function restartSystem() {
-            if (confirm('⚠️ تحذير: هل تريد حقاً إعادة تشغيل نظام 𝐊𝐈𝐑𝐀؟')) {
-                document.body.style.animation = 'bloodFlow 1s infinite';
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            }
-        }
-        
-        // تهيئة التأثيرات
-        document.addEventListener('DOMContentLoaded', () => {
-            createParticles();
-            setInterval(createParticles, 3000);
-            setInterval(updateStats, 5000);
-            
-            // تأثير الكتابة على التيرمينال
-            const terminalLines = document.querySelectorAll('.terminal-line');
-            terminalLines.forEach((line, index) => {
-                line.style.animationDelay = \`\${index * 0.5}s\`;
-            });
-        });
-        
-        // تأثير التمرير
-        let lastScroll = 0;
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.pageYOffset;
-            const bloodRiver = document.querySelector('.blood-river');
-            if (bloodRiver) {
-                bloodRiver.style.transform = \`rotate(\${currentScroll * 0.1}deg) scale(\${1 + currentScroll * 0.0001})\`;
-            }
-            lastScroll = currentScroll;
-        });
-    </script>
 </body>
 </html>
     `;
@@ -865,13 +417,11 @@ function startHealthServer() {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
-    // الصفحة الرئيسية الأسطورية
     app.get('/', (req, res) => {
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.send(generateEpicDashboard());
     });
 
-    // endpoints الأساسية
     app.get('/health', (req, res) => {
         res.json({ 
             status: 'healthy',
@@ -889,20 +439,9 @@ function startHealthServer() {
             system: 'Kira Bot v32.0.0',
             status: isFacebookConnected ? 'OPERATIONAL' : 'MAINTENANCE',
             facebook: isFacebookConnected,
-            commands: 0,
             uptime: process.uptime(),
             pid: process.pid
         });
-    });
-
-    // endpoint لإعادة التشغيل (للبوت فقط)
-    app.post('/restart', (req, res) => {
-        if (req.headers.authorization === 'kira-secret') {
-            res.json({ message: 'إعادة التشغيل قيد التنفيذ...' });
-            setTimeout(() => process.exit(0), 1000);
-        } else {
-            res.status(403).json({ error: 'غير مصرح' });
-        }
     });
 
     server = app.listen(port, () => {
@@ -919,29 +458,25 @@ function startHealthServer() {
 // MAIN BOT INITIALIZATION
 // ============================================
 async function startBot() {
-    // عرض البانر الأسطوري
     showEpicBanner();
     
-    console.log(gradient.rainbow('\n🚀 بدء تشغيل نظام 𝐊𝐈𝐑𝐀 الأسطوري...'));
+    // ✅ السطر 957 المصحح
+    console.log(chalk.bold(gradient.rainbow('🚀 بدء تشغيل نظام 𝐊𝐈𝐑𝐀 الأسطوري...')));
     console.log(chalk.blue(`📁 المجلد: ${__dirname}`));
     console.log(chalk.blue(`⚡ Node.js: ${process.version}`));
     console.log(chalk.blue(`💻 النظام: ${process.platform} ${process.arch}`));
     console.log(chalk.blue(`🌍 الوقت: ${moment().tz('Asia/Baghdad').format('HH:mm:ss DD/MM/YYYY')}\n`));
 
-    // تحميل الإعدادات
     if (!await loadConfig()) {
         console.log(chalk.yellow('⚠️  استخدام الإعدادات الافتراضية'));
     }
 
-    // تشغيل سيرفر الصحة
     const healthServer = startHealthServer();
 
-    // محاولة الاتصال بفيسبوك
     setTimeout(async () => {
         await initializeFacebookBot();
     }, 2000);
 
-    // إبقاء البوت نشطاً
     setInterval(() => {
         const time = moment().tz(globalConfig.TIMEZONE || 'Asia/Baghdad').format('HH:mm:ss');
         const memory = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2);
@@ -949,12 +484,11 @@ async function startBot() {
         console.log(gradient.mind(`[${time}] ${status} نبضة حياة | ذاكرة: ${memory} MB | فيسبوك: ${isFacebookConnected ? 'متصل' : 'غير متصل'}`));
     }, 30000);
 
-    // إدارة الإغلاق
     process.on('SIGINT', () => shutdown(healthServer));
     process.on('SIGTERM', () => shutdown(healthServer));
 
     console.log(gradient.rainbow('='.repeat(60)));
-    console.log(chalk.bold(gradient.rainbow('🚀 بدء تشغيل نظام 𝐊𝐈𝐑𝐀...')));('🎭  نظام 𝐊𝐈𝐑𝐀 اﻷسطوري يعمل بنجاح  🎭'));
+    console.log(chalk.bold(gradient.rainbow('🎭 نظام 𝐊𝐈𝐑𝐀 الأسطوري يعمل بنجاح 🎭')));
     console.log(gradient.rainbow('='.repeat(60)));
 }
 
