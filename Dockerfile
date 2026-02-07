@@ -1,27 +1,55 @@
-FROM node:20-alpine
+FROM node:20.11.0-alpine
 
 LABEL maintainer="Ayman <ayman@kira.com>"
-LABEL version="11.0.0"
-LABEL description="Kira Supreme Bot - Node.js 20"
+LABEL version="24.11.0"
+LABEL description="KIRA Supreme Bot - Node.js 20.11.0"
 
-# تحديث النظام وتثبيت أدوات بناء أساسية
-RUN apk update && apk add --no-cache \
+# تعيين متغيرات البيئة
+ENV NODE_ENV=production \
+    NODE_VERSION=20.11.0 \
+    NPM_VERSION=10.9.0 \
+    TZ=Asia/Baghdad \
+    PORT=8000
+
+# تحديث النظام وتثبيت أدوات أساسية
+RUN apk update && apk upgrade --no-cache && \
+    apk add --no-cache \
     python3 \
     make \
     g++ \
     git \
     curl \
-    openssl
+    wget \
+    openssl \
+    ca-certificates \
+    bash \
+    tzdata \
+    fontconfig \
+    freetype \
+    libpng \
+    libjpeg-turbo \
+    librsvg \
+    imagemagick \
+    && rm -rf /var/cache/apk/*
+
+# تعيين المنطقة الزمنية
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # إنشاء مجلد التطبيق
 WORKDIR /usr/src/app
 
-# نسخ ملفات التبعيات
+# التحقق من إصدار Node.js
+RUN node --version && npm --version
+
+# نسخ ملفات التبعيات أولاً (للاستفادة من كاش Docker)
 COPY package*.json ./
 
-# تثبيت التبعيات مع إنشاء package-lock.json
-RUN npm install --production --legacy-peer-deps --force \
-    && npm cache clean --force
+# تثبيت التبعيات بشكل آمن
+RUN npm config set fund false && \
+    npm config set audit false && \
+    npm config set update-notifier false && \
+    npm ci --only=production --legacy-peer-deps --no-audit --prefer-offline && \
+    npm cache clean --force
 
 # نسخ باقي الملفات
 COPY . .
@@ -32,22 +60,27 @@ RUN mkdir -p \
     script/commands/data \
     script/commands/cache \
     backup \
-    logs
+    logs \
+    includes/database \
+    && chmod -R 755 . \
+    && chmod +x start.sh
 
-# تعيين أذونات للملفات
-RUN chmod 755 start.sh
-
-# تعيين المستخدم غير الجذر
+# إنشاء مستخدم غير جذر
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S kira -u 1001 -G nodejs
+    adduser -S kira -u 1001 -G nodejs && \
+    chown -R kira:nodejs /usr/src/app
+
 USER kira
 
 # المنفذ
 EXPOSE 8000
 
-# الصحة تشيك
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+# فحص الصحة لـ Koyeb
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
+# متغيرات البيئة الافتراضية
+ENV NODE_OPTIONS="--max-old-space-size=1024 --trace-warnings --enable-source-maps"
+
 # تشغيل التطبيق
-CMD [ "node", "index.js" ]
+CMD ["sh", "-c", "echo '🚀 KIRA Supreme v24.11.0' && echo 'Node.js $(node --version)' && npm start"]
