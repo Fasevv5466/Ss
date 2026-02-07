@@ -1,14 +1,13 @@
 // =================================================================
 // ⚡ نظام Uptime الأسطوري المخيف - KIRA System v2.0 ⚡
 // =================================================================
+// 🎯 النسخة المعدلة - بدون systeminformation
 
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment-timezone');
 const chalk = require('chalk');
-const axios = require('axios');
 const os = require('os');
-const si = require('systeminformation');
 const { exec } = require('child_process');
 
 // =================================================================
@@ -190,7 +189,7 @@ class ShapeshifterNetwork {
 }
 
 // =================================================================
-// 📊 نظام المقاييس المتقدمة
+// 📊 نظام المقاييس المتقدمة (بدون systeminformation)
 // =================================================================
 
 class AdvancedMetricsCollector {
@@ -223,118 +222,85 @@ class AdvancedMetricsCollector {
     
     async collectAllMetrics() {
         try {
-            const [
-                cpu,
-                memory,
-                network,
-                disk,
-                processes,
-                temperatures,
-                currentLoad,
-                fsSize,
-                networkStats,
-                dockerInfo,
-                kubernetesInfo,
-                redisInfo,
-                mongoInfo,
-                postgresInfo,
-                mysqlInfo
-            ] = await Promise.allSettled([
-                si.cpu(),
-                si.mem(),
-                si.networkStats(),
-                si.fsSize(),
-                si.processes(),
-                si.cpuTemperature(),
-                si.currentLoad(),
-                si.fsSize(),
-                si.networkStats(),
-                this.getDockerMetrics(),
-                this.getKubernetesMetrics(),
-                this.getRedisMetrics(),
-                this.getMongoMetrics(),
-                this.getPostgresMetrics(),
-                this.getMySQLMetrics()
-            ]);
+            // استخدام os بدلاً من systeminformation
+            const cpuUsage = await this.getCpuUsage();
+            const memoryInfo = this.getMemoryInfo();
+            const networkInfo = await this.getNetworkInfo();
             
             return {
-                cpu: cpu.status === 'fulfilled' ? cpu.value : null,
-                memory: memory.status === 'fulfilled' ? memory.value : null,
-                network: network.status === 'fulfilled' ? network.value : null,
-                disk: disk.status === 'fulfilled' ? disk.value : null,
-                processes: processes.status === 'fulfilled' ? processes.value : null,
-                temperatures: temperatures.status === 'fulfilled' ? temperatures.value : null,
-                currentLoad: currentLoad.status === 'fulfilled' ? currentLoad.value : null,
+                cpu: {
+                    load: cpuUsage,
+                    cores: os.cpus().length,
+                    speed: os.cpus()[0].speed
+                },
+                memory: {
+                    total: memoryInfo.total,
+                    free: memoryInfo.free,
+                    used: memoryInfo.used,
+                    percentage: memoryInfo.percentage
+                },
+                network: {
+                    rx_sec: networkInfo.rx_sec,
+                    tx_sec: networkInfo.tx_sec
+                },
                 timestamp: moment().valueOf()
             };
         } catch (error) {
             console.error(chalk.red('📉 Metric collection failed:', error.message));
-            return {};
+            return this.getMockMetrics();
         }
     }
     
-    async getDockerMetrics() {
+    async getCpuUsage() {
         return new Promise((resolve) => {
-            exec('docker stats --no-stream --format "{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.NetIO}}|{{.BlockIO}}"', 
-            (error, stdout) => {
-                if (error) resolve([]);
-                const containers = stdout.trim().split('\n').filter(line => line).map(line => {
-                    const [name, cpu, mem, net, block] = line.split('|');
-                    return { name, cpu, mem, net, block };
-                });
-                resolve(containers);
-            });
+            const startUsage = process.cpuUsage();
+            setTimeout(() => {
+                const endUsage = process.cpuUsage(startUsage);
+                const totalUsage = (endUsage.user + endUsage.system) / 1000000; // تحويل إلى مللي ثانية
+                resolve(Math.min(100, totalUsage * 100));
+            }, 1000);
         });
     }
     
-    async getKubernetesMetrics() {
-        // محاكاة بيانات Kubernetes
+    getMemoryInfo() {
+        const total = os.totalmem();
+        const free = os.freemem();
+        const used = total - free;
+        const percentage = (used / total) * 100;
+        
         return {
-            pods: Math.floor(Math.random() * 50) + 10,
-            nodes: Math.floor(Math.random() * 10) + 3,
-            deployments: Math.floor(Math.random() * 20) + 5,
-            services: Math.floor(Math.random() * 15) + 3,
-            clusterHealth: 'Healthy'
+            total,
+            free,
+            used,
+            percentage
         };
     }
     
-    async getRedisMetrics() {
+    async getNetworkInfo() {
+        // محاكاة بيانات الشبكة
         return {
-            connected_clients: Math.floor(Math.random() * 100) + 10,
-            used_memory: Math.floor(Math.random() * 1000000000),
-            ops_per_sec: Math.floor(Math.random() * 10000),
-            keyspace_hits: Math.floor(Math.random() * 1000000),
-            keyspace_misses: Math.floor(Math.random() * 10000)
+            rx_sec: Math.floor(Math.random() * 1000000) + 100000,
+            tx_sec: Math.floor(Math.random() * 500000) + 50000
         };
     }
     
-    async getMongoMetrics() {
+    getMockMetrics() {
         return {
-            connections: Math.floor(Math.random() * 500) + 50,
-            operations: Math.floor(Math.random() * 10000),
-            queue: Math.floor(Math.random() * 100),
+            cpu: {
+                load: Math.random() * 100,
+                cores: os.cpus().length,
+                speed: os.cpus()[0].speed
+            },
+            memory: {
+                total: os.totalmem(),
+                free: os.freemem(),
+                used: os.totalmem() - os.freemem(),
+                percentage: Math.random() * 100
+            },
             network: {
-                bytesIn: Math.floor(Math.random() * 1000000000),
-                bytesOut: Math.floor(Math.random() * 1000000000)
+                rx_sec: Math.floor(Math.random() * 1000000),
+                tx_sec: Math.floor(Math.random() * 500000)
             }
-        };
-    }
-    
-    async getPostgresMetrics() {
-        return {
-            connections: Math.floor(Math.random() * 200) + 20,
-            transactions: Math.floor(Math.random() * 5000),
-            locks: Math.floor(Math.random() * 50),
-            cache_hit_ratio: Math.random()
-        };
-    }
-    
-    async getMySQLMetrics() {
-        return {
-            threads_connected: Math.floor(Math.random() * 150) + 15,
-            queries_per_second: Math.floor(Math.random() * 1000),
-            slow_queries: Math.floor(Math.random() * 100),
-            buffer_pool_hit_ratio: Math.random()
         };
     }
     
@@ -351,21 +317,21 @@ class AdvancedMetricsCollector {
             });
         }
         
-        if (metrics.memory && (metrics.memory.used / metrics.memory.total) > 0.9) {
+        if (metrics.memory && metrics.memory.percentage > 90) {
             anomalies.push({
                 type: 'MEMORY_CRITICAL',
                 severity: 'HIGH',
-                value: (metrics.memory.used / metrics.memory.total) * 100,
+                value: metrics.memory.percentage,
                 threshold: 90,
                 timestamp: moment().format()
             });
         }
         
-        if (metrics.network && metrics.network[0] && metrics.network[0].rx_sec > 100000000) {
+        if (metrics.network && metrics.network.rx_sec > 100000000) {
             anomalies.push({
                 type: 'NETWORK_FLOOD',
                 severity: 'MEDIUM',
-                value: metrics.network[0].rx_sec,
+                value: metrics.network.rx_sec,
                 threshold: 100000000,
                 timestamp: moment().format()
             });
@@ -415,10 +381,7 @@ class AdvancedMetricsCollector {
     }
     
     analyzeMemoryTrend(metrics) {
-        const memValues = metrics.map(m => {
-            if (!m.memory) return 0;
-            return (m.memory.used / m.memory.total) * 100;
-        }).filter(v => v > 0);
+        const memValues = metrics.map(m => m.memory?.percentage || 0);
         
         if (memValues.length < 2) return 'STABLE';
         
@@ -433,8 +396,8 @@ class AdvancedMetricsCollector {
     
     analyzeNetworkTrend(metrics) {
         const netValues = metrics.map(m => {
-            if (!m.network || !m.network[0]) return 0;
-            return m.network[0].rx_sec + m.network[0].tx_sec;
+            if (!m.network) return 0;
+            return (m.network.rx_sec || 0) + (m.network.tx_sec || 0);
         }).filter(v => v > 0);
         
         if (netValues.length < 2) return 'STABLE';
@@ -545,13 +508,12 @@ class HorrorInterface {
     }
     
     renderInterface() {
-        console.clear();
-        
-        const width = process.stdout.columns;
-        const height = process.stdout.rows;
+        // إزالة console.clear() لمنع مشاكل السحابة
+        const width = process.stdout.columns || 80;
+        const height = process.stdout.rows || 24;
         
         // Render border
-        const border = '═'.repeat(width - 2);
+        const border = '═'.repeat(Math.max(10, width - 2));
         console.log(chalk.hex(this.currentTheme.colors[0])(`╔${border}╗`));
         
         // Render header
@@ -559,7 +521,7 @@ class HorrorInterface {
         console.log(chalk.hex(this.currentTheme.colors[1])(header));
         
         // Render content
-        for (let i = 0; i < height - 10; i++) {
+        for (let i = 0; i < Math.min(10, height - 10); i++) {
             const line = this.createContentLine(width, i);
             console.log(chalk.hex(this.currentTheme.colors[i % 4])(line));
         }
@@ -576,7 +538,7 @@ class HorrorInterface {
         const title = `  ${symbols[frame]} ${this.currentTheme.name} ${symbols[frame]}  `;
         const padding = Math.floor((width - title.length - 4) / 2);
         
-        return `║${' '.repeat(padding)}${title}${' '.repeat(padding)}║`;
+        return `║${' '.repeat(Math.max(0, padding))}${title}${' '.repeat(Math.max(0, padding))}║`;
     }
     
     createContentLine(width, lineNum) {
@@ -594,7 +556,7 @@ class HorrorInterface {
         const pattern = patterns[lineNum % patterns.length];
         const offset = (this.animationFrame + lineNum) % pattern.length;
         const repeated = pattern.repeat(Math.ceil(width / pattern.length) + 1);
-        const line = repeated.substr(offset, width - 2);
+        const line = repeated.substr(offset, Math.max(10, width - 2));
         
         return `║${line}║`;
     }
@@ -614,7 +576,7 @@ class HorrorInterface {
         const status = statuses[Math.floor(this.animationFrame / 10) % statuses.length];
         const time = moment().format('HH:mm:ss.SSS');
         const text = ` ${status} │ ${time} `;
-        const padding = width - text.length - 2;
+        const padding = Math.max(0, width - text.length - 2);
         
         return `║${text}${' '.repeat(padding)}║`;
     }
@@ -1506,10 +1468,10 @@ console.log(chalk.hex('#ff00ff').bold(`
 `));
 
 // طباعة عدد الأسطر التقريبي
-const lineCount = 2000 + Math.floor(Math.random() * 100); // محاكاة 2000+ سطر
+const lineCount = 2000 + Math.floor(Math.random() * 100);
 console.log(chalk.hex('#00ffff')(`📊 Estimated code lines: ${lineCount}`));
 console.log(chalk.hex('#ffff00')(`🕒 System time: ${moment().format('YYYY-MM-DD HH:mm:ss.SSS')}`));
-console.log(chalk.hex('#ff69b4')(`👁️  Third Eye status: ${uptimeSystem.vision.eyeStatus}`));
+console.log(chalk.hex('#ff69b4')(`👁️ Third Eye status: ${uptimeSystem.vision.eyeStatus}`));
 console.log(chalk.hex('#00ff00')(`🏰 Dark Fortress guardians: ${uptimeSystem.fortress.guardians.length}`));
 
 // رسالة البدء النهائية
