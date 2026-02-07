@@ -1,14 +1,14 @@
-const express = require('express'); // إضافة Express
+const express = require('express');
 const app = express();
 const chalk = require('chalk');
 const cron = require("node-cron");
 const { exec } = require("child_process");
-const moment = require("moment-timezone"); // تعريف moment في البداية
+const moment = require("moment-timezone");
 
 const timerestart = 120;
-const port = process.env.PORT || 8000; // المنفذ الذي يطلبه Koyeb
+const port = process.env.PORT || 8000;
 
-// سيرفر صغير للـ Health Check والـ Uptime
+// سيرفر الـ Health Check
 app.get('/', (req, res) => {
     res.send('📓 نظام كيرا يعمل بنجاح! | Kira Bot is Online');
 });
@@ -23,12 +23,8 @@ exec("rm -rf script/commands/data && mkdir -p script/commands/data && rm -rf scr
     console.log(chalk.bold.hex("#00FA9A")("[ AUTO CLEAR CACHE ] 🪽❯ ") + chalk.hex("#00FA9A")("Successfully delete cache"))
 });
 
-const DateAndTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }); 
-console.log(chalk.bold.hex("#059242").bold(DateAndTime));
-
 const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } = require("fs-extra");
 const { join, resolve } = require("path");
-const { execSync } = require('child_process');
 const logger = require("./utils/log.js");
 const login = require("hut-chat-api");
 const axios = require("axios");
@@ -87,7 +83,7 @@ try {
 const { Sequelize, sequelize } = require("./includes/database/index.js");
 writeFileSync(global.client.configPath + ".temp", JSON.stringify(global.config, null, 4), 'utf8');
 
-// تحميل اللغات - إضافة فحص لتجنب خطأ newUser
+// تحميل اللغات
 try {
     const langFile = (readFileSync(`${__dirname}/languages/${global.config.language || "en"}.lang`, { encoding: 'utf-8' })).split(/\r?\n|\r/);
     const langData = langFile.filter(item => item.indexOf('#') != 0 && item != '');
@@ -109,7 +105,7 @@ global.getText = function (...args) {
     try {
         const langText = global.language;    
         var text = langText[args[0]][args[1]];
-        if (!text) return `[${args[1]}]`; // حل مؤقت لتجنب انهيار البوت إذا نقص نص
+        if (!text) return `[${args[1]}]`;
         for (var i = args.length - 1; i > 0; i--) {
             const regEx = RegExp(`%${i}`, 'g');
             text = text.replace(regEx, args[i + 1]);
@@ -118,62 +114,74 @@ global.getText = function (...args) {
     } catch (e) { return `[${args[1]}]`; }
 }
 
-try {
-    var appStateFile = resolve(join(global.client.mainPath, global.config.APPSTATEPATH || "appstate.json"));
-    var appState = require(appStateFile);
-    logger.loader("💌 ───『 تم العثور على ملف تسجيل الدخول 』─── 💌")
-} catch { return logger.loader("لم يتم العثور على ملف تسجيل الدخول!", "error") }
+// --- نظام تسجيل الدخول المطور لـ Koyeb ---
+var appStateFile = resolve(join(global.client.mainPath, global.config.APPSTATEPATH || "appstate.json"));
+var appState;
+
+if (process.env.APPSTATE) {
+    try {
+        appState = JSON.parse(process.env.APPSTATE);
+        logger.loader("💌 ───『 تم العثور على APPSTATE في إعدادات السيرفر 』─── 💌");
+    } catch (e) {
+        return logger.loader("خطأ في تنسيق JSON الخاص بـ APPSTATE!", "error");
+    }
+} else {
+    try {
+        appState = require(appStateFile);
+        logger.loader("💌 ───『 تم العثور على ملف appstate.json محلياً 』─── 💌");
+    } catch { 
+        return logger.loader("لم يتم العثور على ملف تسجيل الدخول أو متغير البيئة APPSTATE!", "error");
+    }
+}
 
 function onBot({ models: botModel }) {
     const loginData = { appState };
     login(loginData, async(loginError, loginApiData) => {
-        if (loginError) return logger(JSON.stringify(loginError), `ERROR`);
+        if (loginError) {
+            console.error(loginError);
+            return logger("حدث خطأ أثناء تسجيل الدخول، تأكد من صحة الـ AppState", `ERROR`);
+        }
 
         loginApiData.setOptions(global.config.FCAOption);
-        writeFileSync(appStateFile, JSON.stringify(loginApiData.getAppState(), null, '\x09'));
+        
+        // تحديث الملف المحلي إذا كان مسموحاً بالكتابة
+        try { writeFileSync(appStateFile, JSON.stringify(loginApiData.getAppState(), null, '\x09')); } catch(e) {}
+
         global.config.version = '1.2.14';
         global.client.timeStart = new Date().getTime();
 
         // تحميل الأوامر
-        (function () {
-            const commandsPath = join(global.client.mainPath, 'script', 'commands');
-            const categories = readdirSync(commandsPath).filter(item => {
-                return require('fs').statSync(join(commandsPath, item)).isDirectory();
-            });
+        const commandsPath = join(global.client.mainPath, 'script', 'commands');
+        const categories = readdirSync(commandsPath).filter(item => require('fs').statSync(join(commandsPath, item)).isDirectory());
+        
+        for (const category of categories) {
+            const categoryPath = join(commandsPath, category);
+            const listCommand = readdirSync(categoryPath).filter(command => command.endsWith('.js') && !global.config.commandDisabled.includes(command));
             
-            for (const category of categories) {
-                const categoryPath = join(commandsPath, category);
-                const listCommand = readdirSync(categoryPath).filter(command => 
-                    command.endsWith('.js') && !global.config.commandDisabled.includes(command)
-                );
-                
-                for (const command of listCommand) {
-                    try {
-                        const module = require(join(categoryPath, command));
-                        if (!module.config || !module.run) throw new Error("Format error");
-                        
+            for (const command of listCommand) {
+                try {
+                    const module = require(join(categoryPath, command));
+                    if (module.config && module.run) {
                         global.client.commands.set(module.config.name, module);
                         logger.loader(`🌸『 تـم تحميل: ${module.config.name} 』🌸`);
-                    } catch (error) {
-                        logger.loader(`Fail load command: ${command}`, 'error');
                     }
+                } catch (error) {
+                    logger.loader(`Fail load command: ${command}`, 'error');
                 }
             }
-        })();
+        }
 
         // تحميل الأحداث
-        (function() {
-            const eventsPath = join(global.client.mainPath, 'script', 'events');
-            if (existsSync(eventsPath)) {
-                const events = readdirSync(eventsPath).filter(ev => ev.endsWith('.js'));
-                for (const ev of events) {
-                    try {
-                        const event = require(join(eventsPath, ev));
-                        global.client.events.set(event.config.name, event);
-                    } catch (err) { logger.loader("Fail load event: " + ev, "error"); }
-                }
+        const eventsPath = join(global.client.mainPath, 'script', 'events');
+        if (existsSync(eventsPath)) {
+            const events = readdirSync(eventsPath).filter(ev => ev.endsWith('.js'));
+            for (const ev of events) {
+                try {
+                    const event = require(join(eventsPath, ev));
+                    global.client.events.set(event.config.name, event);
+                } catch (err) { logger.loader("Fail load event: " + ev, "error"); }
             }
-        })();
+        }
 
         logger.loader(`Loaded ${global.client.commands.size} commands and ${global.client.events.size} events`);
         if (existsSync(global.client.configPath + '.temp')) unlinkSync(global.client.configPath + '.temp');        
@@ -188,22 +196,18 @@ function onBot({ models: botModel }) {
         global.client.api = loginApiData;
         logger(`KIRA ✨`, '[ by ayman ]');
 
-        // إشعار التشغيل
         const timeNow = moment().tz("Africa/Casablanca").format("HH:mm:ss");
         if (global.config.ADMINBOT && global.config.ADMINBOT[0]) {
             loginApiData.sendMessage(`لـقـد تـم تـشـغـيـل الـبـوت فـي ${timeNow} ✅`, global.config.ADMINBOT[0]);
         }
 
-        // تحديث السيرة الذاتية
         cron.schedule(`0 0 */1 * * *`, () => {
             const dateStr = moment().tz("Asia/Manila").format("MM/DD/YYYY");
             loginApiData.changeBio(`Prefix: ${global.config.PREFIX}\n\nBot Name: ${global.config.BOTNAME}\nDate: ${dateStr}`);
         }, { scheduled: true, timezone: "Africa/Casablanca" });
-
     });
 }
 
-// الاتصال بقاعدة البيانات والتشغيل
 (async() => {
     try {
         await sequelize.authenticate();
