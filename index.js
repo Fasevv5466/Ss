@@ -1,122 +1,148 @@
 // =================================================================
-// 🎭 نظام KIRA UPTIME الأسطوري المظلم - النسخة المعدلة
+// 🖥️ نظام KIRA UPTIME - النسخة المطابقة للصورة
 // =================================================================
 
 const express = require('express');
 const app = express();
 const chalk = require('chalk');
-const cron = require("node-cron");
-const moment = require("moment-timezone");
+const moment = require('moment-timezone');
 
 // =================================================================
-// ⚡ نظام Uptime المظلم
+// ⚡ نظام Uptime المطابق للصورة
 // =================================================================
-class DarkUptimeSystem {
+class KiraUptimeSystem {
     constructor() {
-        this.startTime = Date.now();
-        this.corpsesCollected = 0;
-        this.darkRituals = 0;
-        this.shadowEntities = [
-            { name: "الظل الأول", power: 999, domain: "الذاكرة المظلمة", status: "نشط" },
-            { name: "الهاوية", power: 888, domain: "النسيان الأبدي", status: "نشط" },
-            { name: "الليل الدائم", power: 777, domain: "السكون المخيف", status: "نشط" },
-            { name: "الصمت القاتل", power: 666, domain: "الفراغ", status: "نشط" },
-            { name: "العدم", power: 555, domain: "اللاشيء", status: "نشط" }
-        ];
-        this.darkProphecies = [];
-        this.soulFragments = [];
+        this.startTime = new Date();
+        this.startTime.setDate(this.startTime.getDate() - 1);
+        this.startTime.setHours(this.startTime.getHours() - 12);
+        this.startTime.setMinutes(this.startTime.getMinutes() - 34);
+        this.startTime.setSeconds(this.startTime.getSeconds() - 56);
         
-        this.initDarkSystem();
+        this.services = [
+            {
+                name: "محال",
+                id: "2.0666",
+                type: 'Spoler "calor" Cpector ARCOHOVI',
+                status: "عطل",
+                memory: { used: 125.67, total: 32.00 },
+                temperature: 55.78,
+                url: "https://locabst:8000"
+            },
+            {
+                name: "البندير",
+                id: "8888",
+                version: "D04 5.0.84",
+                status: "أحميل",
+                identifier: "669",
+                type: "SDAK 0.20"
+            },
+            {
+                name: "الحجر",
+                id: "779",
+                version: "D04 A 1.0.84",
+                status: "أحميل",
+                identifier: "669",
+                type: "SDAK 0.20"
+            },
+            {
+                name: "الحجر",
+                id: "78888",
+                version: "D04 A 1.0.84",
+                status: "أحميل",
+                identifier: "669",
+                type: "SDAK 0.20"
+            },
+            {
+                name: "الحجر",
+                id: "789",
+                version: "D04 A 1.0.84",
+                status: "أحميل",
+                identifier: "669",
+                type: "SDAK 0.20"
+            }
+        ];
+        
+        this.systemInfo = {
+            version: "v2.0",
+            title: "kira uptime slâm",
+            subtitle: "الغان مالوبايد يفيض - الرملي الخفقر الله"
+        };
+        
+        this.initSystem();
     }
     
-    initDarkSystem() {
-        console.log(chalk.hex('#000000').bold(`
+    initSystem() {
+        console.log(chalk.hex('#ff6b6b').bold(`
         ╔═══════════════════════════════════════════════════════╗
         ║                                                       ║
-        ║  ⚰️  نظام KIRA UPTIME المظلم ⚰️                     ║
+        ║   🖥️  KIRA UPTIME SYSTEM - مطابق للصورة             ║
         ║                                                       ║
         ╚═══════════════════════════════════════════════════════╝
         `));
         
-        // بدء النبوءات المظلمة
-        this.startDarkProphecies();
-    }
-    
-    startDarkProphecies() {
+        // تحديث البيانات تلقائياً
         setInterval(() => {
-            if (Math.random() > 0.7) {
-                this.addDarkProphecy();
-            }
-        }, 30000);
-    }
-    
-    addDarkProphecy() {
-        const prophecies = [
-            "الجثث تتكاثر في الظلام...",
-            "الذاكرة تنسى لكن الألم يبقى...",
-            "الوقت يتجمد عند منتصف الليل...",
-            "الأصوات تختفي في الفراغ...",
-            "الأرواح تبحث عن جثثها المفقودة...",
-            "الظلام يلتهم النور قطعة قطعة...",
-            "الصمت يصبح أصدع من الصراخ..."
-        ];
-        
-        const prophecy = prophecies[Math.floor(Math.random() * prophecies.length)];
-        this.darkProphecies.push({
-            id: this.darkProphecies.length + 1,
-            text: prophecy,
-            timestamp: moment().format('HH:mm:ss'),
-            intensity: Math.floor(Math.random() * 100)
-        });
-        
-        if (this.darkProphecies.length > 10) this.darkProphecies.shift();
+            this.updateDynamicData();
+        }, 5000);
     }
     
     getUptime() {
-        const uptimeMs = Date.now() - this.startTime;
-        const days = Math.floor(uptimeMs / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((uptimeMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((uptimeMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((uptimeMs % (1000 * 60)) / 1000);
+        const now = new Date();
+        const diff = now - this.startTime;
         
-        return { days, hours, minutes, seconds, ms: uptimeMs };
-    }
-    
-    getSystemInfo() {
-        const uptime = this.getUptime();
-        
-        // معلومات النظام
-        const os = require('os');
-        const usedMemory = process.memoryUsage().heapUsed / 1024 / 1024;
-        const totalMemory = os.totalmem() / 1024 / 1024 / 1024;
-        const freeMemory = os.freemem() / 1024 / 1024 / 1024;
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
         
         return {
-            version: "2.0.666",
-            status: "نشط في الظلام",
-            intensity: ['عالية', 'متوسطة', 'منخفضة'][Math.floor(Math.random() * 3)],
-            uptime: `${uptime.days} يوم ${uptime.hours} ساعة ${uptime.minutes} دقيقة ${uptime.seconds} ثانية`,
-            memory: {
-                used: usedMemory.toFixed(2) + ' MB',
-                total: totalMemory.toFixed(2) + ' GB',
-                free: freeMemory.toFixed(2) + ' GB',
-                corruption: ((usedMemory / (totalMemory * 1024)) * 100).toFixed(2) + '%'
-            },
-            cpu: {
-                cores: os.cpus().length,
-                temperature: (Math.random() * 80 + 20).toFixed(2) + '°C'
-            },
-            entities: this.shadowEntities.length,
-            prophecies: this.darkProphecies.length,
-            corpsesCollected: this.corpsesCollected,
-            darkRituals: this.darkRituals,
-            fragments: Math.floor(Math.random() * 1000)
+            days: days.toString().padStart(2, '0'),
+            hours: hours.toString().padStart(2, '0'),
+            minutes: minutes.toString().padStart(2, '0'),
+            seconds: seconds.toString().padStart(2, '0'),
+            full: `${days} يوم ${hours} ساعة ${minutes} دقيقة ${seconds} ثانية`
+        };
+    }
+    
+    updateDynamicData() {
+        // تحديث الحرارة بشكل عشوائي
+        this.services[0].temperature = 55.78 + (Math.random() - 0.5) * 0.5;
+        
+        // تحديث الذاكرة المستخدمة
+        this.services[0].memory.used = 125.67 + (Math.random() - 0.5) * 0.3;
+        
+        // تحديث حالة الخدمات عشوائياً (باستثناء الأولى)
+        for (let i = 1; i < this.services.length; i++) {
+            if (Math.random() > 0.95) {
+                this.services[i].status = this.services[i].status === "أحميل" ? "عطل" : "أحميل";
+            }
+        }
+    }
+    
+    getServiceStatusClass(status) {
+        return status === "أحميل" ? "status-active" : "status-inactive";
+    }
+    
+    formatTemperature(temp) {
+        return temp.toFixed(2).replace('.', 'S') + '°C';
+    }
+    
+    formatMemory(memory) {
+        return `${memory.used.toFixed(2)} mb / ${memory.total.toFixed(2)} gb`;
+    }
+    
+    getAllData() {
+        return {
+            system: this.systemInfo,
+            uptime: this.getUptime(),
+            services: this.services,
+            timestamp: moment().tz("Asia/Riyadh").format("HH:mm:ss")
         };
     }
 }
 
-// إنشاء نظام Uptime المظلم
-const darkUptimeSystem = new DarkUptimeSystem();
+// إنشاء النظام
+const kiraSystem = new KiraUptimeSystem();
 
 // =================================================================
 // ⚙️ الإعدادات
@@ -124,14 +150,10 @@ const darkUptimeSystem = new DarkUptimeSystem();
 const port = process.env.PORT || 8000;
 
 // =================================================================
-// 🎭 واجهة الـ Uptime المظلمة
+// 🎭 واجهة الويب المطابقة للصورة
 // =================================================================
 app.get('/', (req, res) => {
-    const uptime = darkUptimeSystem.getUptime();
-    const systemInfo = darkUptimeSystem.getSystemInfo();
-    
-    // الحصول على عنوان URL من Koyeb
-    const koyebUrl = process.env.KOYEB_APP_URL || `http://localhost:${port}`;
+    const data = kiraSystem.getAllData();
     
     const html = `
     <!DOCTYPE html>
@@ -139,465 +161,461 @@ app.get('/', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>⚰️ KIRA UPTIME المظلم</title>
+        <title>Kira Uptime System</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap');
             
             * {
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
+                font-family: 'Cairo', sans-serif;
             }
             
             body {
-                background: #000000;
-                color: #8b0000;
-                font-family: 'Cairo', sans-serif;
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                color: #e0e0e0;
                 min-height: 100vh;
-                background-image: url('https://i.ibb.co/V4s8YDV/temp-1770486919518.jpg');
-                background-size: cover;
-                background-position: center;
-                background-attachment: fixed;
-                background-blend-mode: multiply;
-                overflow-x: hidden;
-            }
-            
-            .overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.85);
-                z-index: -1;
+                padding: 20px;
+                direction: rtl;
             }
             
             .container {
-                max-width: 1200px;
+                max-width: 1000px;
                 margin: 0 auto;
-                padding: 20px;
-                position: relative;
-                z-index: 1;
+                background: rgba(10, 10, 10, 0.95);
+                border-radius: 15px;
+                padding: 30px;
+                border: 1px solid #333;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             }
             
             .header {
                 text-align: center;
-                padding: 40px 0;
-                margin-bottom: 40px;
-                border-bottom: 3px solid #8b0000;
-                position: relative;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #333;
             }
             
-            .header h1 {
-                font-size: 4rem;
-                color: #8b0000;
-                text-shadow: 0 0 20px #ff0000, 0 0 40px #8b0000;
-                margin-bottom: 20px;
-                letter-spacing: 3px;
+            .title {
+                color: #ff6b6b;
+                font-size: 2.8rem;
                 font-weight: 900;
-            }
-            
-            .header p {
-                font-size: 1.4rem;
-                color: #a52a2a;
-            }
-            
-            .corpse-counter {
-                background: rgba(0, 0, 0, 0.9);
-                border: 3px solid #8b0000;
-                border-radius: 20px;
-                padding: 30px;
-                margin-bottom: 30px;
-                box-shadow: 0 0 50px rgba(139, 0, 0, 0.5);
-                backdrop-filter: blur(10px);
-            }
-            
-            .corpse-title {
-                font-size: 2.5rem;
-                color: #8b0000;
-                margin-bottom: 25px;
-                text-align: center;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 15px;
-            }
-            
-            .corpse-numbers {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 25px;
-                margin-bottom: 30px;
-            }
-            
-            .corpse-unit {
-                background: linear-gradient(145deg, #1a0000, #000000);
-                border: 2px solid #8b0000;
-                border-radius: 15px;
-                padding: 25px;
-                text-align: center;
-                transition: all 0.3s;
-                position: relative;
-                overflow: hidden;
-            }
-            
-            .corpse-unit::before {
-                content: '⚰️';
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                font-size: 1.5rem;
-                opacity: 0.3;
-            }
-            
-            .corpse-unit:hover {
-                transform: translateY(-10px);
-                box-shadow: 0 15px 30px rgba(139, 0, 0, 0.4);
-                border-color: #ff0000;
-            }
-            
-            .corpse-value {
-                font-size: 4rem;
-                font-weight: bold;
-                color: #ffffff;
-                text-shadow: 0 0 15px #8b0000;
-                margin-bottom: 10px;
-                font-family: monospace;
-            }
-            
-            .corpse-label {
-                font-size: 1.4rem;
-                color: #a52a2a;
-                text-transform: uppercase;
+                margin-bottom: 5px;
+                text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
                 letter-spacing: 2px;
             }
             
-            .system-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-                gap: 30px;
-                margin-bottom: 40px;
+            .subtitle {
+                color: #888;
+                font-size: 1.2rem;
+                font-weight: 300;
             }
             
-            .dark-card {
-                background: rgba(0, 0, 0, 0.9);
-                border: 2px solid #333;
-                border-radius: 15px;
-                padding: 25px;
-                transition: all 0.3s;
-                backdrop-filter: blur(10px);
+            .divider {
+                height: 2px;
+                background: linear-gradient(to left, transparent, #444, transparent);
+                margin: 25px 0;
             }
             
-            .dark-card:hover {
-                border-color: #8b0000;
-                box-shadow: 0 0 30px rgba(139, 0, 0, 0.3);
+            .uptime-section {
+                background: rgba(20, 20, 20, 0.8);
+                border-radius: 10px;
+                padding: 20px;
+                margin-bottom: 25px;
+                border: 1px solid #333;
             }
             
-            .dark-title {
+            .section-title {
+                color: #4dabf7;
                 font-size: 1.8rem;
-                color: #8b0000;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
-                border-bottom: 2px solid #333;
+                margin-bottom: 15px;
                 display: flex;
                 align-items: center;
                 gap: 10px;
             }
             
-            .dark-content {
-                color: #a52a2a;
-                font-size: 1.1rem;
-                line-height: 1.8;
+            .section-title i {
+                color: #ff6b6b;
             }
             
-            .status-badge {
-                display: inline-block;
-                padding: 8px 20px;
-                border-radius: 20px;
-                font-weight: bold;
-                font-size: 0.9rem;
-                margin: 5px;
-                background: rgba(139, 0, 0, 0.2);
-                color: #8b0000;
-                border: 1px solid #8b0000;
+            .uptime-numbers {
+                display: flex;
+                justify-content: center;
+                gap: 30px;
+                flex-wrap: wrap;
             }
             
-            .entities-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-                gap: 20px;
-                margin-top: 15px;
-            }
-            
-            .entity {
-                background: rgba(26, 0, 0, 0.8);
-                border: 1px solid #333;
-                border-radius: 10px;
-                padding: 15px;
+            .uptime-unit {
                 text-align: center;
+                background: rgba(30, 30, 30, 0.9);
+                padding: 15px 25px;
+                border-radius: 8px;
+                border: 1px solid #444;
+                min-width: 120px;
+            }
+            
+            .uptime-value {
+                font-size: 2.8rem;
+                font-weight: 700;
+                color: #fff;
+                font-family: 'Courier New', monospace;
+                letter-spacing: 3px;
+            }
+            
+            .uptime-label {
+                color: #aaa;
+                font-size: 1rem;
+                margin-top: 5px;
+            }
+            
+            .services-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px;
+                margin-top: 30px;
+            }
+            
+            .service-card {
+                background: rgba(25, 25, 25, 0.9);
+                border-radius: 10px;
+                padding: 20px;
+                border: 1px solid #333;
                 transition: all 0.3s;
             }
             
-            .entity:hover {
-                border-color: #8b0000;
-                transform: scale(1.05);
+            .service-card:hover {
+                border-color: #4dabf7;
+                transform: translateY(-5px);
+                box-shadow: 0 5px 15px rgba(77, 171, 247, 0.2);
             }
             
-            .entity-name {
-                color: #8b0000;
-                font-size: 1.3rem;
-                font-weight: bold;
-                margin-bottom: 8px;
+            .service-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #333;
             }
             
-            .entity-power {
-                color: #d2691e;
+            .service-name {
+                color: #4dabf7;
+                font-size: 1.4rem;
+                font-weight: 600;
+            }
+            
+            .service-id {
+                background: #333;
+                color: #aaa;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+            }
+            
+            .service-info {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .info-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px 0;
+                border-bottom: 1px dashed #333;
+            }
+            
+            .info-label {
+                color: #aaa;
+                font-size: 0.95rem;
+            }
+            
+            .info-value {
+                color: #fff;
+                font-weight: 500;
                 font-size: 1rem;
             }
             
-            .footer {
-                text-align: center;
-                padding: 40px 0;
-                margin-top: 40px;
-                color: #a52a2a;
-                font-size: 1.1rem;
-                border-top: 2px solid #333;
+            .status-active {
+                color: #51cf66;
+                background: rgba(81, 207, 102, 0.1);
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 0.9rem;
             }
             
-            .blood-drip {
-                position: fixed;
-                width: 2px;
-                height: 100px;
-                background: linear-gradient(to bottom, #8b0000, transparent);
-                animation: drip 3s linear infinite;
-                z-index: 0;
+            .status-inactive {
+                color: #ff6b6b;
+                background: rgba(255, 107, 107, 0.1);
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 0.9rem;
             }
             
-            @keyframes drip {
-                0% {
-                    transform: translateY(-100px);
-                    opacity: 0;
-                }
-                10% {
-                    opacity: 1;
-                }
-                90% {
-                    opacity: 1;
-                }
-                100% {
-                    transform: translateY(100vh);
-                    opacity: 0;
-                }
-            }
-            
-            .skull {
-                position: fixed;
-                font-size: 2rem;
-                opacity: 0.05;
-                animation: float 30s linear infinite;
-                pointer-events: none;
-                z-index: 0;
-            }
-            
-            @keyframes float {
-                0% { transform: translateY(100vh) rotate(0deg); }
-                100% { transform: translateY(-100vh) rotate(360deg); }
-            }
-            
-            @media (max-width: 768px) {
-                .header h1 { font-size: 2.8rem; }
-                .corpse-numbers { grid-template-columns: repeat(2, 1fr); }
-                .corpse-value { font-size: 3rem; }
-                .system-grid { grid-template-columns: 1fr; }
-            }
-            
-            .link {
-                color: #8b0000;
+            .url-link {
+                color: #4dabf7;
                 text-decoration: none;
-                transition: color 0.3s;
+                font-size: 0.95rem;
+                word-break: break-all;
             }
             
-            .link:hover {
-                color: #ff0000;
+            .url-link:hover {
                 text-decoration: underline;
             }
             
-            .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-                margin-top: 15px;
+            .temperature {
+                color: #ff922b;
+                font-weight: bold;
             }
             
-            .stat-item {
-                padding: 10px;
-                background: rgba(26, 0, 0, 0.5);
-                border-radius: 8px;
+            .memory {
+                color: #51cf66;
+            }
+            
+            .footer {
+                margin-top: 40px;
                 text-align: center;
+                color: #666;
+                font-size: 0.9rem;
+                padding-top: 20px;
+                border-top: 1px solid #333;
+            }
+            
+            .version {
+                color: #4dabf7;
+                font-weight: bold;
+            }
+            
+            @media (max-width: 768px) {
+                .container {
+                    padding: 15px;
+                }
+                
+                .title {
+                    font-size: 2rem;
+                }
+                
+                .uptime-numbers {
+                    gap: 15px;
+                }
+                
+                .uptime-unit {
+                    min-width: 100px;
+                    padding: 10px 15px;
+                }
+                
+                .uptime-value {
+                    font-size: 2.2rem;
+                }
+                
+                .services-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+            
+            .heart {
+                color: #ff6b6b;
+                animation: heartbeat 1.5s infinite;
+            }
+            
+            @keyframes heartbeat {
+                0% { transform: scale(1); }
+                5% { transform: scale(1.1); }
+                10% { transform: scale(1); }
+                15% { transform: scale(1.1); }
+                20% { transform: scale(1); }
+                100% { transform: scale(1); }
             }
         </style>
     </head>
     <body>
-        <div class="overlay"></div>
-        
-        <div id="bloodContainer"></div>
-        <div id="skullContainer"></div>
-        
         <div class="container">
+            <!-- العنوان الرئيسي -->
             <div class="header">
-                <h1>⚰️ KIRA UPTIME المظلم</h1>
-                <p>عداد الجثث والميتات - النظام يعمل في الظلام</p>
+                <h1 class="title">${data.system.title}</h1>
+                <p class="subtitle">${data.system.subtitle}</p>
             </div>
             
-            <div class="corpse-counter">
-                <div class="corpse-title">⚰️ عداد الجثث الميتة ⚰️</div>
-                <div class="corpse-numbers">
-                    <div class="corpse-unit">
-                        <div class="corpse-value">${uptime.days}</div>
-                        <div class="corpse-label">جثث أيام</div>
+            <!-- مدة التشغيل -->
+            <div class="uptime-section">
+                <h2 class="section-title"><i class="fas fa-heartbeat"></i> محال الذكي كونه <span class="heart">❤️</span></h2>
+                <div class="uptime-numbers">
+                    <div class="uptime-unit">
+                        <div class="uptime-value">${data.uptime.days}</div>
+                        <div class="uptime-label">يوم</div>
                     </div>
-                    <div class="corpse-unit">
-                        <div class="corpse-value">${uptime.hours}</div>
-                        <div class="corpse-label">جثث ساعات</div>
+                    <div class="uptime-unit">
+                        <div class="uptime-value">${data.uptime.hours}</div>
+                        <div class="uptime-label">ساعة</div>
                     </div>
-                    <div class="corpse-unit">
-                        <div class="corpse-value">${uptime.minutes}</div>
-                        <div class="corpse-label">جثث دقائق</div>
+                    <div class="uptime-unit">
+                        <div class="uptime-value">${data.uptime.minutes}</div>
+                        <div class="uptime-label">دقيقة</div>
                     </div>
-                    <div class="corpse-unit">
-                        <div class="corpse-value">${uptime.seconds}</div>
-                        <div class="corpse-label">جثث ثواني</div>
-                    </div>
-                </div>
-                
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div style="color:#8b0000; font-weight:bold;">⚰️ الجثث المجمعة</div>
-                        <div style="color:#ffffff; font-size:1.5rem;">${systemInfo.corpsesCollected}</div>
-                    </div>
-                    <div class="stat-item">
-                        <div style="color:#8b0000; font-weight:bold;">🔥 الطقوس المظلمة</div>
-                        <div style="color:#ffffff; font-size:1.5rem;">${systemInfo.darkRituals}</div>
-                    </div>
-                    <div class="stat-item">
-                        <div style="color:#8b0000; font-weight:bold;">💀 شظايا الأرواح</div>
-                        <div style="color:#ffffff; font-size:1.5rem;">${systemInfo.fragments}</div>
-                    </div>
-                    <div class="stat-item">
-                        <div style="color:#8b0000; font-weight:bold;">👁️ النبوءات</div>
-                        <div style="color:#ffffff; font-size:1.5rem;">${systemInfo.prophecies}</div>
+                    <div class="uptime-unit">
+                        <div class="uptime-value">${data.uptime.seconds}</div>
+                        <div class="uptime-label">ثانية</div>
                     </div>
                 </div>
             </div>
             
-            <div class="system-grid">
-                <div class="dark-card">
-                    <div class="dark-title">💀 النظام المظلم</div>
-                    <div class="dark-content">
-                        <p>⚡ الإصدار: ${systemInfo.version}</p>
-                        <p>🎯 الحالة: <span class="status-badge">${systemInfo.status}</span></p>
-                        <p>🔥 الشدة: ${systemInfo.intensity}</p>
-                        <p>💾 الذاكرة: ${systemInfo.memory.used} / ${systemInfo.memory.total}</p>
-                        <p>🧠 الفساد: ${systemInfo.memory.corruption}</p>
-                        <p>🌡️ الحرارة: ${systemInfo.cpu.temperature}</p>
-                        <p>🔗 الرابط: <a href="${koyebUrl}" class="link">${koyebUrl}</a></p>
-                    </div>
-                </div>
-                
-                <div class="dark-card">
-                    <div class="dark-title">👻 الكيانات الظليلة</div>
-                    <div class="dark-content">
-                        <div class="entities-grid">
-                            ${darkUptimeSystem.shadowEntities.map(e => `
-                                <div class="entity">
-                                    <div class="entity-name">${e.name}</div>
-                                    <div class="entity-power">قوة: ${e.power}</div>
-                                    <div style="color:#666;">مملكة: ${e.domain}</div>
-                                    <div style="color:#008000;">الحالة: ${e.status}</div>
+            <!-- الفاصل -->
+            <div class="divider"></div>
+            
+            <!-- الخدمات -->
+            <div class="services-grid">
+                ${data.services.map(service => `
+                    <div class="service-card">
+                        <div class="service-header">
+                            <h3 class="service-name">${service.name}</h3>
+                            <span class="service-id">${service.id}</span>
+                        </div>
+                        <div class="service-info">
+                            ${service.type ? `
+                                <div class="info-row">
+                                    <span class="info-label">النوع</span>
+                                    <span class="info-value">${service.type}</span>
                                 </div>
-                            `).join('')}
+                            ` : ''}
+                            
+                            ${service.version ? `
+                                <div class="info-row">
+                                    <span class="info-label">الإصدار</span>
+                                    <span class="info-value">${service.version}</span>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="info-row">
+                                <span class="info-label">الحالة</span>
+                                <span class="${kiraSystem.getServiceStatusClass(service.status)}">${service.status}</span>
+                            </div>
+                            
+                            ${service.memory ? `
+                                <div class="info-row">
+                                    <span class="info-label">الذاكرة</span>
+                                    <span class="info-value memory">${kiraSystem.formatMemory(service.memory)}</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${service.temperature ? `
+                                <div class="info-row">
+                                    <span class="info-label">الحرارة</span>
+                                    <span class="info-value temperature">${kiraSystem.formatTemperature(service.temperature)}</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${service.url ? `
+                                <div class="info-row">
+                                    <span class="info-label">الرابط</span>
+                                    <a href="${service.url}" class="info-value url-link">${service.url}</a>
+                                </div>
+                            ` : ''}
+                            
+                            ${service.identifier ? `
+                                <div class="info-row">
+                                    <span class="info-label">المعرف</span>
+                                    <span class="info-value">${service.identifier}</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${service.type && !service.url ? `
+                                <div class="info-row">
+                                    <span class="info-label">النوع</span>
+                                    <span class="info-value">${service.type}</span>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
-                </div>
-                
-                <div class="dark-card">
-                    <div class="dark-title">🔮 النبوءات المظلمة</div>
-                    <div class="dark-content">
-                        ${darkUptimeSystem.darkProphecies.slice(-3).map(p => `
-                            <p style="margin-bottom: 15px; padding: 15px; background: rgba(139, 0, 0, 0.1); border-radius: 10px; border-left: 3px solid #8b0000;">
-                                <span style="color:#8b0000; font-weight:bold;">
-                                    #${p.id} [شدة: ${p.intensity}%]
-                                </span>
-                                <br>${p.text}
-                                <br><small style="color:#666;">${p.timestamp}</small>
-                            </p>
-                        `).join('')}
-                        ${darkUptimeSystem.darkProphecies.length === 0 ? 
-                            '<p style="color:#666; text-align:center; padding:20px;">⚰️ جاري استقبال النبوءات من العالم الآخر...</p>' : ''}
-                    </div>
-                </div>
+                `).join('')}
             </div>
             
+            <!-- الفاصل -->
+            <div class="divider"></div>
+            
+            <!-- التذييل -->
             <div class="footer">
-                <p>⚰️ نظام KIRA UPTIME المظلم v2.0</p>
-                <p>☁️ مستضاف على Koyeb | 🕒 ${moment().tz("Asia/Riyadh").format("HH:mm:ss")}</p>
-                <p>📅 ${moment().tz("Asia/Riyadh").format("DD/MM/YYYY")} | 💀 العداد: ${systemInfo.corpsesCollected} جثة</p>
-                <p>"الجثث تتكاثر... الظلام يزداد... النظام يعمل..."</p>
+                <p><i class="fas fa-server"></i> kira uptime system</p>
+                <p class="version">kira uptime ${data.system.version}</p>
+                <p>⏱️ ${data.timestamp} | 🖥️ ${data.services.length} خدمات</p>
             </div>
         </div>
-        
+
         <script>
-            // إنشاء قطرات الدم
-            for (let i = 0; i < 10; i++) {
-                const drip = document.createElement('div');
-                drip.className = 'blood-drip';
-                drip.style.left = Math.random() * 100 + 'vw';
-                drip.style.animationDelay = Math.random() * 5 + 's';
-                drip.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                document.getElementById('bloodContainer').appendChild(drip);
-            }
-            
-            // إنشاء جماجم عائمة
-            for (let i = 0; i < 20; i++) {
-                const skull = document.createElement('div');
-                skull.className = 'skull';
-                skull.textContent = '💀';
-                skull.style.left = Math.random() * 100 + 'vw';
-                skull.style.animationDuration = (Math.random() * 40 + 20) + 's';
-                skull.style.animationDelay = Math.random() * 10 + 's';
-                document.getElementById('skullContainer').appendChild(skull);
-            }
-            
-            // تحديث العداد كل ثانية
-            function updateCounter() {
+            // تحديث عداد التشغيل كل ثانية
+            function updateUptime() {
                 fetch('/api/uptime')
-                    .then(r => r.json())
+                    .then(response => response.json())
                     .then(data => {
-                        const values = document.querySelectorAll('.corpse-value');
-                        if (values.length === 4) {
-                            values[0].textContent = data.days;
-                            values[1].textContent = data.hours;
-                            values[2].textContent = data.minutes;
-                            values[3].textContent = data.seconds;
-                        }
-                        
-                        // تحديث الجثث عشوائياً
-                        const corpseCount = document.querySelector('.stat-item:nth-child(1) div:nth-child(2)');
-                        if (corpseCount && Math.random() > 0.8) {
-                            const current = parseInt(corpseCount.textContent) || 0;
-                            corpseCount.textContent = current + 1;
-                        }
+                        document.querySelector('.uptime-unit:nth-child(1) .uptime-value').textContent = 
+                            data.days;
+                        document.querySelector('.uptime-unit:nth-child(2) .uptime-value').textContent = 
+                            data.hours;
+                        document.querySelector('.uptime-unit:nth-child(3) .uptime-value').textContent = 
+                            data.minutes;
+                        document.querySelector('.uptime-unit:nth-child(4) .uptime-value').textContent = 
+                            data.seconds;
                     });
             }
-            setInterval(updateCounter, 1000);
             
-            // تأثير الكتابة المتلألئة
-            const title = document.querySelector('.header h1');
-            let hue = 0;
+            // تحديث البيانات كل 5 ثواني
+            function updateServices() {
+                fetch('/api/services')
+                    .then(response => response.json())
+                    .then(services => {
+                        services.forEach((service, index) => {
+                            const card = document.querySelectorAll('.service-card')[index];
+                            if (card) {
+                                // تحديث الحالة
+                                const statusElement = card.querySelector('.status-active, .status-inactive');
+                                if (statusElement) {
+                                    statusElement.textContent = service.status;
+                                    statusElement.className = service.status === "أحميل" ? 
+                                        "status-active" : "status-inactive";
+                                }
+                                
+                                // تحديث الحرارة
+                                if (service.temperature) {
+                                    const tempElement = card.querySelector('.temperature');
+                                    if (tempElement) {
+                                        tempElement.textContent = service.temperature.toFixed(2).replace('.', 'S') + '°C';
+                                    }
+                                }
+                                
+                                // تحديث الذاكرة
+                                if (service.memory) {
+                                    const memoryElement = card.querySelector('.memory');
+                                    if (memoryElement) {
+                                        memoryElement.textContent = service.memory.used.toFixed(2) + ' mb / ' + 
+                                                                     service.memory.total.toFixed(2) + ' gb';
+                                    }
+                                }
+                            }
+                        });
+                    });
+            }
+            
+            // بدء التحديثات
+            setInterval(updateUptime, 1000);
+            setInterval(updateServices, 5000);
+            
+            // تأثير النبض للقلب
+            const heart = document.querySelector('.heart');
             setInterval(() => {
-                hue = (hue + 1) % 360;
-                title.style.textShadow = \`0 0 20px hsl(\${hue}, 100%, 50%), 0 0 40px hsl(\${hue}, 100%, 30%)\`;
-            }, 100);
+                heart.style.animation = 'none';
+                setTimeout(() => {
+                    heart.style.animation = 'heartbeat 1.5s infinite';
+                }, 10);
+            }, 3000);
+            
+            // تأثيرات تفاعلية للبطاقات
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+            });
         </script>
     </body>
     </html>
@@ -607,138 +625,77 @@ app.get('/', (req, res) => {
 });
 
 // =================================================================
-// 📡 API نقاط نهاية
+// 📡 نقاط نهاية API
 // =================================================================
 
 app.get('/api/uptime', (req, res) => {
-    res.json(darkUptimeSystem.getUptime());
+    res.json(kiraSystem.getUptime());
+});
+
+app.get('/api/services', (req, res) => {
+    res.json(kiraSystem.services);
 });
 
 app.get('/api/system', (req, res) => {
-    res.json(darkUptimeSystem.getSystemInfo());
+    res.json(kiraSystem.getAllData());
 });
 
-app.get('/api/prophecies', (req, res) => {
-    res.json(darkUptimeSystem.darkProphecies);
-});
-
-app.get('/api/entities', (req, res) => {
-    res.json(darkUptimeSystem.shadowEntities);
-});
-
-app.get('/uptime', (req, res) => {
-    const systemInfo = darkUptimeSystem.getSystemInfo();
-    const koyebUrl = process.env.KOYEB_APP_URL || `http://localhost:${port}`;
-    
-    res.json({
-        success: true,
-        data: {
-            uptime: systemInfo.uptime,
-            version: systemInfo.version,
-            status: systemInfo.status,
-            corpses: systemInfo.corpsesCollected,
-            rituals: systemInfo.darkRituals,
-            koyeb: {
-                url: koyebUrl,
-                online: true
-            },
-            entities: systemInfo.entities,
-            prophecies: systemInfo.prophecies,
-            timestamp: moment().tz("Asia/Riyadh").format("HH:mm:ss")
-        }
-    });
-});
-
-// =================================================================
-// 🩺 Health Check للـ Koyeb
-// =================================================================
 app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: process.memoryUsage().heapUsed / 1024 / 1024,
-        corpses: darkUptimeSystem.corpsesCollected
+        system: 'Kira Uptime System',
+        version: '2.0',
+        uptime: kiraSystem.getUptime().full
     });
 });
 
-app.get('/healthz', (req, res) => {
-    res.status(200).send('OK');
-});
-
 // =================================================================
-// 🚀 تشغيل الخادم مع معالجة الأخطاء
+// 🚀 تشغيل الخادم
 // =================================================================
-
-// معالجة الأخطاء لمنع إيقاف الخادم
-process.on('uncaughtException', (err) => {
-    console.error('💀 خطأ غير معالج:', err.message);
-});
-
-process.on('unhandledRejection', (err) => {
-    console.error('💀 خطأ في الوعد:', err.message);
-});
-
 const server = app.listen(port, () => {
-    console.log(chalk.hex('#8b0000').bold(`
+    console.log(chalk.hex('#ff6b6b').bold(`
     ╔═══════════════════════════════════════════════════════╗
     ║                                                       ║
-    ║   ⚰️  KIRA UPTIME المظلم على KOYEB ⚰️              ║
+    ║   🖥️  KIRA UPTIME SYSTEM - مطابق للصورة             ║
     ║                                                       ║
     ║   🔗 رابط النظام: http://localhost:${port}            ${port < 10 ? ' ' : ''}
-    ║   ☁️  مستضاف على: Koyeb Cloud                       ║
-    ║   ⏳  وقت البدء: ${moment().tz("Asia/Riyadh").format("HH:mm:ss")}              ║
-    ║   💀  الحالة: الجثث تتكاثر                           ║
+    ║   ⏱️  وقت البدء: ${moment().tz("Asia/Riyadh").format("HH:mm:ss")}             ║
+    ║   📊  عدد الخدمات: ${kiraSystem.services.length}                       ║
     ║                                                       ║
     ╚═══════════════════════════════════════════════════════╝
     `));
-    
-    // معلومات Koyeb
-    if (process.env.KOYEB_APP_URL) {
-        console.log(chalk.hex('#000000').bold(`
-    ╔═══════════════════════════════════════════════════════╗
-    ║                                                       ║
-    ║   ☁️  معلومات النشر على KOYEB                       ║
-    ║                                                       ║
-    ║   🔗 الرابط العام: ${process.env.KOYEB_APP_URL}      ║
-    ║   📦 الخدمة: ${process.env.KOYEB_SERVICE_NAME || 'kira-dark-uptime'} ║
-    ║   💀 الجثث المجمعة: ${darkUptimeSystem.corpsesCollected}              ║
-    ║                                                       ║
-    ╚═══════════════════════════════════════════════════════╝
-        `));
-    }
-});
-
-// Keep-Alive للمنفذ
-server.keepAliveTimeout = 120 * 1000;
-server.headersTimeout = 120 * 1000;
-
-// =================================================================
-// 🔄 تحديث النظام كل دقيقة
-// =================================================================
-cron.schedule('* * * * *', () => {
-    const uptime = darkUptimeSystem.getUptime();
-    console.log(chalk.hex('#8b0000')(`⚰️  عداد الجثث: ${uptime.days} يوم ${uptime.hours} ساعة ${uptime.minutes} دقيقة`));
-    
-    // زيادة الجثث بشكل عشوائي
-    if (Math.random() > 0.3) {
-        darkUptimeSystem.corpsesCollected += Math.floor(Math.random() * 5) + 1;
-    }
-    
-    // زيادة الطقوس المظلمة
-    if (Math.random() > 0.8) {
-        darkUptimeSystem.darkRituals++;
-    }
 });
 
 // =================================================================
-// 🎉 رسالة البدء
+// 📦 package.json المطلوب
 // =================================================================
-setTimeout(() => {
-    console.log(chalk.hex('#000000').bold(`
-    ═══════════════════════════════════════════════════
-          النظام المظلم يعمل... الجثث تتكاثر...
-          KOYEB يحمل الظلام... العداد يدور...
-    ═══════════════════════════════════════════════════
-    `));
-}, 1000);
+/*
+{
+  "name": "kira-uptime-system",
+  "version": "2.0.0",
+  "description": "نظام Kira Uptime مطابق للصورة",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "chalk": "^4.1.2",
+    "moment-timezone": "^0.5.43"
+  }
+}
+*/
+
+// =================================================================
+// 💡 ملاحظات التركيب
+// =================================================================
+/*
+1. قم بتثبيت الحزم المطلوبة:
+   npm install express chalk moment-timezone
+
+2. قم بتشغيل الخادم:
+   node index.js
+
+3. افتح المتصفح على:
+   http://localhost:8000
+*/
