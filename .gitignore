@@ -3,7 +3,7 @@ node_modules/
 package-lock.json
 
 # Sensitive Files - NEVER COMMIT
-appstate.json
+
 *.log
 
 # Database
