@@ -1,33 +1,35 @@
 #!/bin/bash
 
-# 🚀 Kira Supreme Bot - Node.js 24
-# الإصدار: 11.0.0
+# 🚀 Kira Supreme Bot - Node.js 24.11.0
+# الإصدار: 24.11.0
 
 echo ""
-echo "╔══════════════════════════════════════╗"
-echo "║        KIRA SUPREME v11.0           ║"
-echo "║        Node.js 24                   ║"
-echo "║        أقوى نظام في العالم          ║"
-echo "╚══════════════════════════════════════╝"
+echo "╔══════════════════════════════════════════════════╗"
+echo "║           𝐊𝐈𝐑𝐀 𝐒𝐔𝐏𝐑𝐄𝐌𝐄 v24.11.0                ║"
+echo "║           Node.js 20.11.0                        ║"
+echo "║           أقوى نظام في العالم                   ║
+echo "╚══════════════════════════════════════════════════╝"
 echo ""
-echo "🤖 البوت: 𝐤𝐢𝐫𝐚 𝐒𝐮𝐩𝐫𝐞𝐦𝐞"
+echo "🤖 البوت: 𝐊𝐈𝐑𝐀 𝐒𝐔𝐏𝐑𝐄𝐌𝐄"
 echo "🔧 Node.js: $(node --version)"
 echo "📦 npm: $(npm --version)"
 echo "💾 الذاكرة: $(free -h | awk '/^Mem:/ {print $2}')"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "💻 النظام: $(uname -srm)"
+echo "⏰ الوقت: $(date '+%Y-%m-%d %H:%M:%S')"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# فحص إصدار Node.js
+# التحقق من إصدار Node.js
 NODE_VERSION=$(node --version | cut -d'v' -f2)
 NODE_MAJOR=$(echo $NODE_VERSION | cut -d'.' -f1)
 
 if [ $NODE_MAJOR -lt 20 ]; then
-    echo "❌ خطأ: Node.js 20 أو أعلى مطلوب"
+    echo "❌ خطأ: Node.js 20.11.0+ مطلوب"
     echo "📌 لديك: Node.js $NODE_VERSION"
-    echo "💡 قم بالترقية: nvm install 20 && nvm use 20"
+    echo "💡 قم بالترقية ثم حاول مرة أخرى"
     exit 1
 fi
 
-echo "✅ Node.js $NODE_VERSION متوافق"
+echo "✅ Node.js $NODE_VERSION متوافق مع KIRA Supreme"
 
 # إنشاء المجلدات
 mkdir -p systems script/commands/data script/commands/cache backup logs
@@ -35,7 +37,7 @@ mkdir -p systems script/commands/data script/commands/cache backup logs
 # تثبيت التبعيات إذا لزم
 if [ ! -d "node_modules" ]; then
     echo "📦 جاري تثبيت التبعيات..."
-    npm install --production
+    npm install --production --legacy-peer-deps
     if [ $? -ne 0 ]; then
         echo "❌ فشل تثبيت التبعيات"
         exit 1
@@ -57,12 +59,19 @@ echo "💾 نسخة احتياطية: $BACKUP_DIR"
 
 # متغيرات النظام
 RESTART_COUNT=0
-MAX_RESTARTS=10
+MAX_RESTARTS=15
 START_TIME=$(date +%s)
 
 # دالة التسجيل
 log() {
-    echo "[$(date '+%H:%M:%S')] $1" | tee -a logs/system.log
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] $1" | tee -a logs/system.log
+}
+
+# دالة فحص الصحة
+health_check() {
+    curl -f http://localhost:8000/health > /dev/null 2>&1
+    return $?
 }
 
 # حلقة التشغيل الرئيسية
@@ -70,7 +79,7 @@ while true; do
     RESTART_COUNT=$((RESTART_COUNT + 1))
     
     log ""
-    log "🚀 بدء التشغيل (المحاولة: $RESTART_COUNT)"
+    log "🚀 بدء التشغيل (المحاولة: $RESTART_COUNT/$MAX_RESTARTS)"
     log "⏰ الوقت: $(date '+%H:%M:%S')"
     
     # إحصائيات النظام
@@ -79,10 +88,24 @@ while true; do
         log "⏱️  وقت التشغيل: $((UPTIME / 3600))h:$(( (UPTIME % 3600) / 60 ))m:$((UPTIME % 60))s"
     fi
     
-    # تشغيل البوت مع مراقبة الذاكرة
-    NODE_OPTIONS="--max-old-space-size=2048 --trace-warnings" node index.js
+    # تشغيل البوت
+    log "⚡ تشغيل KIRA Supreme..."
+    NODE_OPTIONS="--max-old-space-size=1024 --trace-warnings" node index.js &
+    BOT_PID=$!
     
-    EXIT_CODE=$?
+    # الانتظار 10 ثوان للتحقق من الصحة
+    sleep 10
+    
+    # التحقق من أن البوت يعمل
+    if ! kill -0 $BOT_PID 2>/dev/null; then
+        log "❌ البوت توقف فوراً"
+    else
+        log "✅ البوت يعمل (PID: $BOT_PID)"
+        
+        # مراقبة البوت
+        wait $BOT_PID
+        EXIT_CODE=$?
+    fi
     
     log "⚠️  البوت توقف. كود الخروج: $EXIT_CODE"
     
@@ -101,6 +124,7 @@ while true; do
         log "💤 توقف لمدة 5 دقائق..."
         sleep 300
         RESTART_COUNT=0
+        START_TIME=$(date +%s)
     fi
     
     log "🔄 إعادة التشغيل بعد 3 ثوان..."
