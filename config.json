@@ -1,41 +1,121 @@
 {
-  "PREFIX": ".",
-  "BOTNAME": "𝐤𝐢𝐫𝐚",
-  "ADMINBOT": ["61577861540407"],
-  "APPSTATEPATH": "appstate.json",
-  "FCAOption": {
-    "forceLogin": true,
-    "listenEvents": true,
-    "selfListen": false,
-    "online": true,
-    "logLevel": "error",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-  },
-  "language": "ar",
-  "commandDisabled": [],
-  "version": "31.7.2",
-  "TIMEZONE": "Asia/Baghdad",
-  "BOT_NAME": "Kira",
-  "ADMIN_NAME": "𝐚𝐲𝐦𝐚𝐧",
-  "FACEBOOK_ADMIN": "https://facebook.com/profile.php?id=61577861540407",
-  "MODERATOR": ["61577861540407"],
-  "AUTO_READ": true,
-  "AUTO_RECONNECT": true,
-  "MAX_ATTACHMENT": 50,
-  
-  // ===== نظام تقييد البوت الجديد =====
-  "BOT_RESTRICTED": false,
-  
-  // ===== إعدادات إضافية =====
-  "allowInbox": true,
-  "autoCreateDB": true,
-  "DeveloperMode": false,
-  "adminOnly": false,
-  "YASSIN": "false",
-  
-  // ===== إعدادات التحديث =====
-  "NOTIFICATION": false,
-  "log": {
-    "enable": true
-  }
+    "language": "ar",
+    "DeveloperMode": false,
+    "autoCreateDB": true,
+    "iconUnsend": {
+        "status": true,
+        "icon": "💓"
+    },
+    "notiGroup": false,
+    "NOTIFICATION": true,
+    "allowInbox": true,
+    "commandDisabled": [],
+    "eventDisabled": [],
+    "BOTNAME": "𝐤𝐢𝐫𝐚",
+    "BOT_NAME": "Kira",
+    "ADMIN_NAME": "𝐚𝐲𝐦𝐚𝐧",
+    "FACEBOOK_ADMIN": "https://facebook.com/profile.php?id=61577861540407",
+    "PREFIX": ".",
+    "ADMINBOT": [
+        "61577861540407"
+    ],
+    "MODERATOR": [
+        "61577861540407"
+    ],
+    "AUTO_READ": true,
+    "AUTO_RECONNECT": true,
+    "MAX_ATTACHMENT": 50,
+    "TIMEZONE": "Asia/Baghdad",
+    "NDH": [],
+    "DATABASE": {
+        "sqlite": {
+            "storage": "data.sqlite"
+        }
+    },
+    "APPSTATEPATH": "appstate.json",
+    "FCAOption": {
+        "forceLogin": true,
+        "listenEvents": true,
+        "pauseLog": true,
+        "logLevel": "error",
+        "selfListen": false,
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Mobile/15E148 Safari/604.1"
+    },
+    "version": "1.2.14",
+    "cave": {
+        "cooldownTime": 100000
+    },
+    "daily": {
+        "cooldownTime": 540000,
+        "rewardCoin": 500
+    },
+    "math": {
+        "WOLFRAM": "T8J8YV-H265UQ762K"
+    },
+    "menu": {
+        "autoUnsend": {
+            "status": true,
+            "timeOut": 60
+        },
+        "sendAttachments": {
+            "status": true,
+            "random": true,
+            "url": "https://i.imgur.com/LKkw8SL.jpg"
+        }
+    },
+    "minecraft": {
+        "APIKEY": ""
+    },
+    "randomname": {
+        "APIKEY": "mi451266190"
+    },
+    "subnau": {
+        "APIKEY": ""
+    },
+    "tikinfo": {
+        "apikey": "fOeckmtu"
+    },
+    "xidach": {
+        "maxPlayers": 5,
+        "normalWinBonus": 1,
+        "superWinBonus": 2,
+        "epicWinBonus": 4
+    },
+    "log": {
+        "enable": true
+    },
+    "spam": {
+        "spamDelay": 2
+    },
+    "subnautica": {
+        "APIKEY": ""
+    },
+    "adminOnly": false,
+    "اوامر": {
+        "autoUnsend": true,
+        "delayUnsend": 20
+    },
+    "بنك": {
+        "APIKEY": "chinhdz"
+    },
+    "هلب": {
+        "autoUnsend": true,
+        "delayUnsend": 300
+    },
+    "تاريخ": {
+        "cooldownTime": 200000000
+    },
+    "الرانك": {
+        "autoUnsend": true,
+        "unsendMessageAfter": 5
+    },
+    "كهف": {
+        "cooldown": 2000000000
+    },
+    "لقب": {
+        "APIKEY": "mi451266190"
+    },
+    "طقس": {
+        "OPEN_WEATHER": "c4ef85b93982d6627681b056e24bd438"
+    }
 }
