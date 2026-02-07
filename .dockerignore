@@ -1,0 +1,22 @@
+# الملفات التي لن ترفع
+node_modules
+npm-debug.log
+yarn-error.log
+.git
+.gitignore
+.DS_Store
+.vscode
+.idea
+*.md
+*.txt
+backup/*
+logs/*
+script/commands/cache/*
+script/commands/data/*
+*.tmp
+*.temp
+config.json.temp
+.env
+*.pem
+*.key
+*.cert
