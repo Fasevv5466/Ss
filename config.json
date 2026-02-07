@@ -22,18 +22,12 @@
   "AUTO_READ": true,
   "AUTO_RECONNECT": true,
   "MAX_ATTACHMENT": 50,
-  
-  // ===== نظام تقييد البوت الجديد =====
   "BOT_RESTRICTED": false,
-  
-  // ===== إعدادات إضافية =====
   "allowInbox": true,
   "autoCreateDB": true,
   "DeveloperMode": false,
   "adminOnly": false,
   "YASSIN": "false",
-  
-  // ===== إعدادات التحديث =====
   "NOTIFICATION": false,
   "log": {
     "enable": true
