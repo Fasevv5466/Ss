@@ -1,35 +1,32 @@
-# ملفات حساسة
-appstate.json
-config.json
-.env
-*.log
-
-# تبعيات
+# Dependencies
 node_modules/
 package-lock.json
-npm-debug.log
 
-# قاعدة البيانات
+# Sensitive Files - NEVER COMMIT
+appstate.json
+*.log
+
+# Database
 *.sqlite
 *.db
 Fca_Database/
 
-# مجلدات مؤقتة
-.cache/
-tmp/
-temp/
+# Cache & Temp
 script/commands/cache/*
 script/commands/data/*
 script/commands/tad/*
+.cache/
+tmp/
+temp/
 
-# ملفات النظام
+# OS Files
 .DS_Store
 Thumbs.db
+.env
 .vscode/
 .idea/
-*.code-workspace
 
-# نسخ احتياطية
+# Backups
 *.backup
 *.bak
 config.json.temp
