@@ -461,7 +461,11 @@ async function startBot() {
     showEpicBanner();
     
     // ✅ السطر 957 المصحح
-    console.log(chalk.bold(gradient.rainbow('🚀 بدء تشغيل نظام 𝐊𝐈𝐑𝐀 الأسطوري...')));
+    async function startBot() {
+    showEpicBanner();
+    
+    // ✅ تصحيح السطر 957
+    console.log(chalk.bold.blue('🚀 بدء تشغيل نظام 𝐊𝐈𝐑𝐀 الأسطوري...'));
     console.log(chalk.blue(`📁 المجلد: ${__dirname}`));
     console.log(chalk.blue(`⚡ Node.js: ${process.version}`));
     console.log(chalk.blue(`💻 النظام: ${process.platform} ${process.arch}`));
@@ -481,17 +485,16 @@ async function startBot() {
         const time = moment().tz(globalConfig.TIMEZONE || 'Asia/Baghdad').format('HH:mm:ss');
         const memory = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2);
         const status = isFacebookConnected ? '✅' : '⚠️';
-        console.log(gradient.mind(`[${time}] ${status} نبضة حياة | ذاكرة: ${memory} MB | فيسبوك: ${isFacebookConnected ? 'متصل' : 'غير متصل'}`));
+        console.log(chalk.cyan(`[${time}] ${status} نبضة حياة | ذاكرة: ${memory} MB | فيسبوك: ${isFacebookConnected ? 'متصل' : 'غير متصل'}`));
     }, 30000);
 
     process.on('SIGINT', () => shutdown(healthServer));
     process.on('SIGTERM', () => shutdown(healthServer));
 
-    console.log(gradient.rainbow('='.repeat(60)));
-    console.log(chalk.bold(gradient.rainbow('🎭 نظام 𝐊𝐈𝐑𝐀 الأسطوري يعمل بنجاح 🎭')));
-    console.log(gradient.rainbow('='.repeat(60)));
+    console.log(chalk.green('='.repeat(60)));
+    console.log(chalk.bold.green('🎭 نظام 𝐊𝐈𝐑𝐀 الأسطوري يعمل بنجاح 🎭'));
+    console.log(chalk.green('='.repeat(60)));
 }
-
 // ============================================
 // SHUTDOWN FUNCTION
 // ============================================
