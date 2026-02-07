@@ -17,7 +17,7 @@ RUN apk add --no-cache --virtual .build-deps \
 
 COPY package*.json ./
 
-RUN npm install --only=production
+RUN npm ci --only=production
 
 # إزالة متطلبات البناء للحفاظ على صورة صغيرة
 RUN apk del .build-deps
