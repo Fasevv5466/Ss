@@ -4,7 +4,8 @@ const axios = require("axios");
 const semver = require("semver");
 const logger = require("./utils/log");
 const express = require("express");
-const gradient = require("gradient-string")
+const gradient = require("gradient-string"); // ✅ المكتبة موجودة الآن
+
 const logo = `
 ██╗  ██╗ ██╗ ██████╗   ██╗  
 ██║ ██╔╝ ██║ ██╔══██╗ ███║  
@@ -13,6 +14,7 @@ const logo = `
 ██║  ██╗ ██║ ██║  ██║  ██║  
 ╚═╝  ╚═╝ ╚═╝ ╚═╝  ╚═╝  ╚═╝  
 `;
+
 const c = ["cyan", "#7D053F"];
 const redToGreen = gradient("red", "cyan");
 console.log(redToGreen("━".repeat(50), { interpolation: "hsv" }));
@@ -20,10 +22,9 @@ const text = gradient(c).multiline(logo);
 console.log(text);
 console.log(redToGreen("━".repeat(50), { interpolation: "hsv" }));
 
-
-
 const app = express();
 const port = process.env.PORT || 3078; 
+
 app.get("/", (req, res) => {
   res.send(`Hello im KIRA Bot..🤖`);
 });
@@ -48,12 +49,10 @@ function startBot(message) {
   child.on("error", function(error) {
     logger("An error occurred: " + JSON.stringify(error), "[ Starting ]");
   });
-};
+}
 
-
-  logger('KIRA BOT', "[ NAME ]");
-  logger("Version: 1.2.14", "[ VERSION ]");
-
+logger('KIRA BOT', "[ NAME ]");
+logger("Version: 1.2.14", "[ VERSION ]");
 
 startBot();
 
