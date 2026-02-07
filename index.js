@@ -954,7 +954,7 @@ async function startBot() {
     process.on('SIGTERM', () => shutdown(healthServer));
 
     console.log(gradient.rainbow('='.repeat(60)));
-    console.log(gradient.rainbow.bold('🎭  نظام 𝐊𝐈𝐑𝐀 اﻷسطوري يعمل بنجاح  🎭'));
+    console.log(chalk.bold(gradient.rainbow('🚀 بدء تشغيل نظام 𝐊𝐈𝐑𝐀...')));('🎭  نظام 𝐊𝐈𝐑𝐀 اﻷسطوري يعمل بنجاح  🎭'));
     console.log(gradient.rainbow('='.repeat(60)));
 }
 
