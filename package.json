@@ -1,84 +1,67 @@
 {
   "name": "kira-supreme-bot",
   "version": "24.11.0",
-  "description": "KIRA Supreme - أقوى بوت فيسبوك مع Node.js 24.11.0",
+  "description": "KIRA Supreme - أقوى بوت فيسبوك (الإصدار 24)",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node --max-old-space-size=1024 index.js",
     "dev": "nodemon index.js",
-    "test": "node --test",
-    "setup": "npm install",
-    "clean": "rm -rf node_modules package-lock.json",
-    "update": "npm update --save",
-    "version": "echo 'Node.js v24.11.0 | KIRA Supreme v24.11.0'",
-    "docker:build": "docker build -t kira-supreme .",
-    "docker:run": "docker run -p 8000:8000 -d kira-supreme",
-    "health": "curl -f http://localhost:8000/health || echo 'Server not running'"
+    "login": "node login",
+    "test": "node --trace-warnings --async-stack-traces test.js",
+    "setup": "npm install && mkdir -p systems script/commands/data",
+    "clean": "rm -rf node_modules && npm cache clean --force",
+    "build": "npm install --only=production --legacy-peer-deps"
   },
   "engines": {
-    "node": "24.11.0",
-    "npm": "10.9.0"
+    "node": ">=24.0.0",
+    "npm": ">=10.0.0"
   },
-  "dependencies": {
-    "express": "^4.18.3",
-    "axios": "^1.7.2",
-    "chalk": "^5.3.0",
-    "moment-timezone": "^0.5.45",
-    "fs-extra": "^11.2.0",
-    "node-cron": "^3.0.3",
-    "sequelize": "^6.37.3",
-    "sqlite3": "^5.1.7",
-    "string-similarity": "^4.0.4",
-    "gradient-string": "^2.0.2",
-    "crypto-js": "^4.2.0",
-    "dotenv": "^16.4.5",
-    "winston": "^3.13.0",
-    "socket.io": "^4.7.5",
-    "openai": "^4.47.1",
-    "tesseract.js": "^5.0.5",
-    "qrcode": "^1.5.4",
-    "uuid": "^10.0.0",
-    "joi": "^17.12.2",
-    "cheerio": "^1.0.0-rc.12",
-    "ytdl-core": "^4.11.5",
-    "form-data": "^4.0.0",
-    "node-fetch": "^3.3.2",
-    "compression": "^1.7.4",
-    "helmet": "^7.1.0",
-    "rate-limiter-flexible": "^3.0.7",
-    "puppeteer": "^22.10.0",
-    "sharp": "^0.33.4",
-    "canvas": "^2.11.2",
-    "archiver": "^7.0.1",
-    "exceljs": "^4.4.0",
-    "pdfkit": "^0.14.0",
-    "nodemailer": "^6.9.14"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.4",
-    "@types/node": "^22.10.1"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aymkira/KIRA.git"
   },
   "keywords": [
     "kira",
     "supreme",
     "facebook-bot",
     "arabic-bot",
-    "nodejs-24",
-    "messenger-bot",
-    "ai-bot"
+    "mentions",
+    "node24"
   ],
-  "author": "Ayman <ayman@kira.com>",
+  "author": "Ayman",
   "license": "GPL-3.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ayman/kira-supreme-bot.git"
+  "dependencies": {
+    "hut-chat-api": "^1.0.1",
+    "express": "^4.18.2",
+    "chalk": "^4.1.2",
+    "moment-timezone": "^0.5.43",
+    "fs-extra": "^11.2.0",
+    "axios": "^1.6.2",
+    "node-cron": "^3.0.3",
+    "sequelize": "^6.35.1",
+    "sqlite3": "^5.1.6",
+    "string-similarity": "^4.0.4",
+    "gradient-string": "^2.0.2",
+    "canvas": "^2.11.2",
+    "sharp": "^0.33.2",
+    "cheerio": "^1.0.0-rc.12",
+    "ytdl-core": "^4.11.5",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.2",
+    "crypto-js": "^4.1.1",
+    "openai": "^4.47.1",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0",
+    "nodemon": "^3.0.2",
+    "@google/generative-ai": "^0.21.0",
+    "langchain": "^0.1.33",
+    "replicate": "^0.29.0",
+    "socket.io": "^4.7.5",
+    "redis": "^4.6.14",
+    "mongodb": "^6.5.0",
+    "firebase-admin": "^12.1.1"
   },
-  "homepage": "https://github.com/ayman/kira-supreme-bot#readme",
-  "bugs": {
-    "url": "https://github.com/ayman/kira-supreme-bot/issues"
-  },
-  "funding": {
-    "type": "patreon",
-    "url": "https://patreon.com/ayman"
+  "devDependencies": {
+    "@types/node": "^20.11.0"
   }
 }
