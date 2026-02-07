@@ -1,16 +1,16 @@
-# تنظيف أي بناء سابق
-docker system prune -f
+#!/bin/bash
 
-# البناء مع وضع verbose لرؤية التفاصيل
-docker build --no-cache --progress=plain -t kira-bot .
+# Kira Bot Auto Restart Script
+# المطور: 𝐚𝐲𝐦𝐚𝐧
 
-# التشغيل
-docker run -d \
-  --name kira \
-  -p 8000:8000 \
-  -v $(pwd)/config.json:/app/config.json \
-  -v $(pwd)/appstate.json:/app/appstate.json \
-  kira-bot
+echo "🚀 Starting Kira Bot..."
+echo "المطور: 𝐚𝐲𝐦𝐚𝐧 | البوت: 𝐤𝐢𝐫𝐚"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# مشاهدة السجلات
-docker logs -f kira
+while true; do
+    node index.js
+    echo ""
+    echo "⚠️ Bot stopped. Restarting in 5 seconds..."
+    echo "البوت توقف. إعادة تشغيل بعد 5 ثوان..."
+    sleep 5
+done
