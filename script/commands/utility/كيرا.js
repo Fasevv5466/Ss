@@ -4,14 +4,18 @@ const path = require("path");
 const request = require("request");
 const QRCode = require("qrcode");
 const jimp = require("jimp");
-const QRCodeReader = require("qrcode-reader");
+
+// تأكد من إنشاء مجلد cache إذا لم يكن موجوداً
+if (!fs.existsSync(path.join(__dirname, "cache"))) {
+  fs.mkdirSync(path.join(__dirname, "cache"), { recursive: true });
+}
 
 module.exports.config = {
-  name: "kira",
+  name: "كيرا",  // ✅ تغيير هنا
   version: "3.0.0",
   hasPermssion: 0,
   credits: "Ayman",
-  description: "🧠 كيرا - المساعدة الذكية الشاملة (موسيقى، صور، ترجمة، باركود، سكرين، أفلام، أنمي)",
+  description: "🧠 كيرا - المساعدة الذكية الشاملة",
   commandCategory: "ai",
   usages: "كيرا [الطلب]",
   cooldowns: 5,
@@ -20,8 +24,7 @@ module.exports.config = {
     "fs-extra": "",
     "request": "",
     "qrcode": "",
-    "jimp": "",
-    "qrcode-reader": ""
+    "jimp": ""
   }
 };
 
@@ -58,10 +61,6 @@ const AI_COMMANDS = {
   anime: {
     keywords: ["اقترحلي انمي", "اقترح انمي", "انمي", "أنمي", "anime", "ابحث عن انمي"],
     icon: "🌸"
-  },
-  compress: {
-    keywords: ["ضغط", "صغر", "قلل حجم", "compress", "ضغط الصورة"],
-    icon: "📉"
   }
 };
 
@@ -100,13 +99,13 @@ function extractQuery(message, keyword) {
   return query;
 }
 
-// 🎵 وظيفة الموسيقى (Spotify/Deezer)
+// 🎵 وظيفة الموسيقى
 async function handleMusic(api, event, query) {
   const { threadID, messageID, senderID } = event;
   
   if (!query) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑴𝑼𝑺𝑰𝑪 』─── ◈\n\n🎵 أخبرني ما الأغنية التي تريدها؟\n💡 مثال: كيرا سمعيني عمرو دياب\n\n◈ ────────────── ◈",
+      "🎵 أخبرني ما الأغنية التي تريدها؟\nمثال: كيرا سمعيني عمرو دياب",
       threadID, messageID
     );
   }
@@ -116,31 +115,22 @@ async function handleMusic(api, event, query) {
     
     const res = await axios.get(`https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=1`);
     if (!res.data.data?.length) {
-      return api.sendMessage("❌ لم أجد هذه الأغنية سيدي!", threadID, messageID);
+      return api.sendMessage("❌ لم أجد هذه الأغنية!", threadID, messageID);
     }
     
     const song = res.data.data[0];
-    const cachePath = path.join(__dirname, "../../cache", `music_${Date.now()}_${senderID}.mp3`);
-    await fs.ensureDir(path.dirname(cachePath));
+    const cachePath = path.join(__dirname, "cache", `music_${Date.now()}_${senderID}.mp3`);
     
+    // جلب الصوت
     const audioRes = await axios.get(song.preview, { responseType: "arraybuffer" });
     await fs.writeFile(cachePath, Buffer.from(audioRes.data));
     
-    const coverRes = await axios.get(song.album.cover_big, { responseType: "stream" });
-    
-    api.setMessageReaction("🎵", messageID, () => {}, true);
-    
+    // إرسال النتيجة
     await api.sendMessage({
-      body: `◈ ───『 🎵 』─── ◈\n\n🎤 ${song.artist.name}\n🎼 ${song.title}\n\n◈ ────────────── ◈`,
-      attachment: coverRes.data
-    }, threadID);
-    
-    await api.sendMessage({
-      body: `🎵 تم جلب الأغنية بنجاح!`,
+      body: `🎵 ${song.artist.name} - ${song.title}`,
       attachment: fs.createReadStream(cachePath)
     }, threadID, () => {
       if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
-      api.setMessageReaction("✅", messageID, () => {}, true);
     }, messageID);
     
   } catch (err) {
@@ -149,13 +139,13 @@ async function handleMusic(api, event, query) {
   }
 }
 
-// 🖼️ وظيفة البحث عن الصور (Pinterest)
+// 🖼️ وظيفة البحث عن الصور
 async function handleImages(api, event, query) {
   const { threadID, messageID } = event;
   
   if (!query) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑰𝑴𝑨𝑮𝑬𝑺 』─── ◈\n\n🖼️ ما الصور التي تريدها؟\n💡 مثال: كيرا جيبلي صور قطط\n\n◈ ────────────── ◈",
+      "🖼️ ما الصور التي تريدها؟\nمثال: كيرا جيبلي صور قطط",
       threadID, messageID
     );
   }
@@ -163,50 +153,40 @@ async function handleImages(api, event, query) {
   try {
     api.setMessageReaction("🔍", messageID, () => {}, true);
     
-    const options = {
-      url: `https://www.pinterest.com/search/pins/?q=${encodeURIComponent(query)}&rs=typed`,
-      headers: {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'cookie': 'csrftoken=92c7c57416496066c4cd5a47a2448e28; _auth=1;'
-      }
-    };
+    // طريقة بسيطة لجلب الصور من Unsplash (بدون Pinterest المعقد)
+    const unsplashUrl = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&client_id=YOUR_UNSPLASH_KEY&per_page=5`;
     
-    request(options, async (error, response, body) => {
-      if (error) throw error;
-      
-      const matches = body.match(/https:\/\/i\.pinimg\.com\/originals\/[^.]+\.jpg/g);
-      if (!matches?.length) {
-        return api.sendMessage("❌ لم أجد صور لهذا الموضوع!", threadID, messageID);
-      }
-      
-      const attachments = [];
-      const limit = Math.min(10, matches.length);
-      const cachePath = path.join(__dirname, "../../cache");
-      await fs.ensureDir(cachePath);
-      
-      for (let i = 0; i < limit; i++) {
-        try {
-          const imgRes = await axios.get(matches[i], { responseType: "arraybuffer" });
-          const filePath = path.join(cachePath, `img_${Date.now()}_${i}.jpg`);
-          await fs.writeFile(filePath, Buffer.from(imgRes.data));
-          attachments.push(fs.createReadStream(filePath));
-          
-          setTimeout(() => {
-            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-          }, 5000);
-        } catch (e) { continue; }
-      }
-      
-      if (!attachments.length) {
-        return api.sendMessage("❌ فشل تحميل الصور!", threadID, messageID);
-      }
-      
-      api.setMessageReaction("✅", messageID, () => {}, true);
-      return api.sendMessage({
-        body: `◈ ───『 🖼️ 』─── ◈\n\n✅ ${attachments.length} صورة عن: ${query}\n\n◈ ────────────── ◈`,
-        attachment: attachments
-      }, threadID, messageID);
-    });
+    const res = await axios.get(unsplashUrl);
+    if (!res.data.results?.length) {
+      return api.sendMessage("❌ لم أجد صور لهذا الموضوع!", threadID, messageID);
+    }
+    
+    const attachments = [];
+    const cachePath = path.join(__dirname, "cache");
+    
+    for (let i = 0; i < Math.min(3, res.data.results.length); i++) {
+      try {
+        const imgUrl = res.data.results[i].urls.regular;
+        const imgRes = await axios.get(imgUrl, { responseType: "arraybuffer" });
+        const filePath = path.join(cachePath, `img_${Date.now()}_${i}.jpg`);
+        await fs.writeFile(filePath, Buffer.from(imgRes.data));
+        attachments.push(fs.createReadStream(filePath));
+        
+        // حذف الملف بعد 5 ثواني
+        setTimeout(() => {
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }, 5000);
+      } catch (e) { continue; }
+    }
+    
+    if (!attachments.length) {
+      return api.sendMessage("❌ فشل تحميل الصور!", threadID, messageID);
+    }
+    
+    return api.sendMessage({
+      body: `✅ ${attachments.length} صورة عن: ${query}`,
+      attachment: attachments
+    }, threadID, messageID);
     
   } catch (err) {
     console.error(err);
@@ -221,7 +201,7 @@ async function handleScreenshot(api, event, query) {
   let url = query;
   if (!url?.includes(".")) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑺𝑪𝑹𝑬𝑬𝑵 』─── ◈\n\n📸 أعطني رابط الموقع!\n💡 مثال: كيرا صورلي google.com\n\n◈ ────────────── ◈",
+      "📸 أعطني رابط الموقع!\nمثال: كيرا صورلي google.com",
       threadID, messageID
     );
   }
@@ -231,17 +211,15 @@ async function handleScreenshot(api, event, query) {
   try {
     api.setMessageReaction("⏳", messageID, () => {}, true);
     
-    const cachePath = path.join(__dirname, "../../cache", `screen_${Date.now()}.png`);
-    await fs.ensureDir(path.dirname(cachePath));
+    const cachePath = path.join(__dirname, "cache", `screen_${Date.now()}.png`);
     
-    const screenshotUrl = `https://image.thum.io/get/width/1200/crop/800/noanimate/${url}`;
+    // استخدم خدمة بسيطة
+    const screenshotUrl = `https://image.thum.io/get/width/800/crop/600/noanimate/${url}`;
     const res = await axios.get(screenshotUrl, { responseType: 'arraybuffer' });
     await fs.writeFile(cachePath, Buffer.from(res.data));
     
-    api.setMessageReaction("✅", messageID, () => {}, true);
-    
     await api.sendMessage({
-      body: `◈ ───『 📸 』─── ◈\n\n✅ تم تصوير الموقع\n🔗 ${url}\n\n◈ ────────────── ◈`,
+      body: `✅ تم تصوير الموقع\n🔗 ${url}`,
       attachment: fs.createReadStream(cachePath)
     }, threadID, () => {
       if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
@@ -259,29 +237,22 @@ async function handleQRCode(api, event, query) {
   
   if (!query) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑸𝑹 』─── ◈\n\n📱 ما المحتوى للباركود؟\n💡 مثال: كيرا اعملي باركود google.com\n\n◈ ────────────── ◈",
+      "📱 ما المحتوى للباركود؟\nمثال: كيرا اعملي باركود google.com",
       threadID, messageID
     );
   }
   
   try {
-    const emojis = ["1⃣","2⃣","3⃣","4⃣","5⃣","6⃣","7⃣","8⃣","9⃣","🔟"];
-    for (const emoji of emojis) {
-      await new Promise(r => setTimeout(r, 100));
-      api.setMessageReaction(emoji, messageID, () => {}, true);
-    }
-    
-    const cachePath = path.join(__dirname, "../../cache", `qr_${Date.now()}.png`);
-    await fs.ensureDir(path.dirname(cachePath));
+    const cachePath = path.join(__dirname, "cache", `qr_${Date.now()}.png`);
     
     await QRCode.toFile(cachePath, query, {
       color: { dark: '#000000', light: '#ffffff' },
-      width: 500,
-      margin: 2
+      width: 300,
+      margin: 1
     });
     
     await api.sendMessage({
-      body: `◈ ───『 📱 』─── ◈\n\n✅ تم إنشاء الباركود\n📝 ${query.substring(0,50)}...\n\n◈ ────────────── ◈`,
+      body: `✅ تم إنشاء الباركود\n📝 ${query.substring(0,50)}`,
       attachment: fs.createReadStream(cachePath)
     }, threadID, () => {
       if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
@@ -299,31 +270,28 @@ async function handleTranslate(api, event, query) {
   
   if (!query) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑻𝑹𝑨𝑵𝑺𝑳𝑨𝑻𝑬 』─── ◈\n\n🌐 ما النص للترجمة؟\n💡 مثال: كيرا ترجملي Hello World\n\n◈ ────────────── ◈",
+      "🌐 ما النص للترجمة؟\nمثال: كيرا ترجملي Hello World",
       threadID, messageID
     );
   }
   
   try {
-    api.setMessageReaction("🔄", messageID, () => {}, true);
-    
     const res = await axios.get(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ar&dt=t&q=${encodeURIComponent(query)}`
+      `https://api.popcat.xyz/translate?to=ar&text=${encodeURIComponent(query)}`
     );
     
-    const translation = res.data[0].map(item => item[0]).join("");
-    const fromLang = res.data[2] || "auto";
+    if (res.data.translated) {
+      return api.sendMessage(
+        `🌐 الترجمة:\n${res.data.translated}`,
+        threadID, messageID
+      );
+    }
     
-    api.setMessageReaction("✅", messageID, () => {}, true);
-    
-    return api.sendMessage(
-      `◈ ───『 🌐 』─── ◈\n\n📝 ${translation}\n\n🔤 ${fromLang} ➜ العربية\n\n◈ ────────────── ◈`,
-      threadID, messageID
-    );
+    return api.sendMessage("❌ فشل الترجمة!", threadID, messageID);
     
   } catch (err) {
     console.error(err);
-    return api.sendMessage("❌ فشل الترجمة!", threadID, messageID);
+    return api.sendMessage("❌ حدث خطأ في الترجمة!", threadID, messageID);
   }
 }
 
@@ -333,23 +301,20 @@ async function handleTTS(api, event, query) {
   
   if (!query) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑻𝑻𝑺 』─── ◈\n\n🎤 ما النص للقراءة؟\n💡 مثال: كيرا قولي مرحبا\n\n◈ ────────────── ◈",
+      "🎤 ما النص للقراءة؟\nمثال: كيرا قولي مرحبا",
       threadID, messageID
     );
   }
   
   try {
-    api.setMessageReaction("🎤", messageID, () => {}, true);
-    
-    const cachePath = path.join(__dirname, "../../cache", `tts_${Date.now()}_${senderID}.mp3`);
-    await fs.ensureDir(path.dirname(cachePath));
+    const cachePath = path.join(__dirname, "cache", `tts_${Date.now()}_${senderID}.mp3`);
     
     const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(query)}&tl=ar&client=tw-ob`;
     const res = await axios.get(ttsUrl, { responseType: 'arraybuffer' });
     await fs.writeFile(cachePath, Buffer.from(res.data));
     
     await api.sendMessage({
-      body: `◈ ───『 🎤 』─── ◈\n\n✅ تم قراءة النص\n📝 ${query.substring(0,100)}...\n\n◈ ────────────── ◈`,
+      body: `✅ تم قراءة النص\n📝 ${query.substring(0,50)}`,
       attachment: fs.createReadStream(cachePath)
     }, threadID, () => {
       if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
@@ -365,55 +330,27 @@ async function handleTTS(api, event, query) {
 async function handleMovies(api, event, query) {
   const { threadID, messageID } = event;
   
-  const categories = {
-    "اكشن": ["John Wick", "Mad Max: Fury Road", "The Dark Knight"],
-    "دراما": ["The Shawshank Redemption", "Forrest Gump", "Joker"],
-    "رعب": ["The Conjuring", "The Exorcist", "It"],
-    "كوميديا": ["The Hangover", "Deadpool", "Superbad"],
-    "خيال": ["Interstellar", "Inception", "The Matrix"]
-  };
-  
-  let movieName = query;
-  if (categories[query]) {
-    const list = categories[query];
-    movieName = list[Math.floor(Math.random() * list.length)];
-  }
-  
-  if (!movieName) {
+  if (!query) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑴𝑶𝑽𝑰𝑬𝑺 』─── ◈\n\n🎬 أخبرني نوع الفلم أو الاسم!\n💡 مثال: كيرا اقترحلي فلم اكشن\n\n◈ ────────────── ◈",
+      "🎬 أخبرني نوع الفلم أو الاسم!\nمثال: كيرا اقترحلي فلم اكشن",
       threadID, messageID
     );
   }
   
   try {
-    api.setMessageReaction("🔍", messageID, () => {}, true);
-    
-    const res = await axios.get(`https://api.popcat.xyz/imdb?q=${encodeURIComponent(movieName)}`);
+    const res = await axios.get(`https://api.popcat.xyz/imdb?q=${encodeURIComponent(query)}`);
     if (res.data.error) {
       return api.sendMessage("❌ لم أجد هذا الفلم!", threadID, messageID);
     }
     
     const data = res.data;
-    const translateRes = await axios.get(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ar&dt=t&q=${encodeURIComponent(data.plot)}`
-    );
-    const plotAr = translateRes.data[0].map(x => x[0]).join("");
+    const message = `🎬 ${data.title}
+📅 ${data.year}
+⭐ ${data.rating}/10
+🎭 ${data.genres}
+📖 ${data.plot.substring(0,200)}...`;
     
-    const cachePath = path.join(__dirname, "../../cache", `movie_${Date.now()}.jpg`);
-    await fs.ensureDir(path.dirname(cachePath));
-    
-    const posterRes = await axios.get(data.poster, { responseType: 'arraybuffer' });
-    await fs.writeFile(cachePath, Buffer.from(posterRes.data));
-    
-    api.setMessageReaction("✅", messageID, () => {}, true);
-    
-    await api.sendMessage({
-      body: `◈ ───『 🎬 』─── ◈\n\n🎥 ${data.title}\n📅 ${data.year}\n⭐ ${data.rating}/10\n\n📖 ${plotAr}\n\n◈ ────────────── ◈`,
-      attachment: fs.createReadStream(cachePath)
-    }, threadID, () => {
-      if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
-    }, messageID);
+    return api.sendMessage(message, threadID, messageID);
     
   } catch (err) {
     console.error(err);
@@ -425,54 +362,27 @@ async function handleMovies(api, event, query) {
 async function handleAnime(api, event, query) {
   const { threadID, messageID } = event;
   
-  const categories = {
-    "اكشن": ["Attack on Titan", "Demon Slayer", "Jujutsu Kaisen"],
-    "دراما": ["Your Lie in April", "Violet Evergarden", "Clannad"],
-    "رعب": ["Death Note", "Parasyte", "Another"],
-    "كوميديا": ["Gintama", "Konosuba", "Spy x Family"]
-  };
-  
-  let animeName = query;
-  if (categories[query]) {
-    const list = categories[query];
-    animeName = list[Math.floor(Math.random() * list.length)];
-  }
-  
-  if (!animeName) {
+  if (!query) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑨𝑵𝑰𝑴𝑬 』─── ◈\n\n🌸 أخبرني نوع الأنمي أو الاسم!\n💡 مثال: كيرا اقترحلي انمي اكشن\n\n◈ ────────────── ◈",
+      "🌸 أخبرني نوع الأنمي أو الاسم!\nمثال: كيرا اقترحلي انمي اكشن",
       threadID, messageID
     );
   }
   
   try {
-    api.setMessageReaction("🔍", messageID, () => {}, true);
-    
-    const res = await axios.get(`https://api.popcat.xyz/imdb?q=${encodeURIComponent(animeName)}`);
-    if (res.data.error) {
+    const res = await axios.get(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=1`);
+    if (!res.data.data?.length) {
       return api.sendMessage("❌ لم أجد هذا الأنمي!", threadID, messageID);
     }
     
-    const data = res.data;
-    const translateRes = await axios.get(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ar&dt=t&q=${encodeURIComponent(data.plot)}`
-    );
-    const plotAr = translateRes.data[0].map(x => x[0]).join("");
+    const data = res.data.data[0];
+    const message = `🌸 ${data.title}
+📅 ${data.year || 'غير معروف'}
+⭐ ${data.score || '?'}/10
+🎭 ${data.genres?.map(g => g.name).join(', ') || 'غير معروف'}
+📖 ${data.synopsis?.substring(0,200) || 'لا يوجد وصف'}...`;
     
-    const cachePath = path.join(__dirname, "../../cache", `anime_${Date.now()}.jpg`);
-    await fs.ensureDir(path.dirname(cachePath));
-    
-    const posterRes = await axios.get(data.poster, { responseType: 'arraybuffer' });
-    await fs.writeFile(cachePath, Buffer.from(posterRes.data));
-    
-    api.setMessageReaction("✅", messageID, () => {}, true);
-    
-    await api.sendMessage({
-      body: `◈ ───『 🌸 』─── ◈\n\n📺 ${data.title}\n📅 ${data.year}\n⭐ ${data.rating}/10\n\n📖 ${plotAr}\n\n◈ ────────────── ◈`,
-      attachment: fs.createReadStream(cachePath)
-    }, threadID, () => {
-      if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
-    }, messageID);
+    return api.sendMessage(message, threadID, messageID);
     
   } catch (err) {
     console.error(err);
@@ -484,22 +394,22 @@ async function handleAnime(api, event, query) {
 module.exports.run = async function({ api, event, args }) {
   const { threadID, messageID, body } = event;
   
-  const triggerWords = ["كيرا", "كايرا", "kira"];
-  const startsWithTrigger = triggerWords.some(w => body.toLowerCase().startsWith(w.toLowerCase()));
-  
-  if (!startsWithTrigger) return;
-  
+  const triggerWords = ["كيرا", "كايرا"];
   let userMessage = body;
+  let triggered = false;
+  
   for (const trigger of triggerWords) {
     if (body.toLowerCase().startsWith(trigger.toLowerCase())) {
       userMessage = body.slice(trigger.length).trim();
+      triggered = true;
       break;
     }
   }
   
+  if (!triggered) return;
+  
   if (!userMessage) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑨𝑰 』─── ◈\n\n" +
       "💫 أنا كيرا، مساعدتك الذكية!\n\n" +
       "📚 يمكنني:\n" +
       "🎵 الموسيقى: كيرا سمعيني [أغنية]\n" +
@@ -509,8 +419,7 @@ module.exports.run = async function({ api, event, args }) {
       "📱 الباركود: كيرا اعملي باركود\n" +
       "🌐 الترجمة: كيرا ترجملي [نص]\n" +
       "🎤 النطق: كيرا قولي [نص]\n" +
-      "📸 السكرين: كيرا صورلي [رابط]\n\n" +
-      "◈ ────────────── ◈",
+      "📸 السكرين: كيرا صورلي [رابط]",
       threadID, messageID
     );
   }
@@ -519,14 +428,12 @@ module.exports.run = async function({ api, event, args }) {
   
   if (!intent) {
     return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 』─── ◈\n\n❓ عذراً، لم أفهم طلبك.\n💡 جرب: كيرا سمعيني أغنية\n\n◈ ────────────── ◈",
+      "❓ عذراً، لم أفهم طلبك.\n💡 جرب: كيرا سمعيني أغنية",
       threadID, messageID
     );
   }
   
   try {
-    api.setMessageReaction(intent.icon, messageID, () => {}, true);
-    
     switch(intent.action) {
       case "music":
         return await handleMusic(api, event, intent.query);
@@ -549,22 +456,17 @@ module.exports.run = async function({ api, event, args }) {
     }
   } catch (error) {
     console.error(error);
-    return api.sendMessage(
-      "◈ ───『 𝑲𝑰𝑹𝑨 𝑬𝑹𝑹𝑶𝑹 』─── ◈\n\n❌ حدث خطأ تقني!\n\n◈ ────────────── ◈",
-      threadID, messageID
-    );
+    return api.sendMessage("❌ حدث خطأ تقني!", threadID, messageID);
   }
 };
 
-// 🌟 معالج الأحداث (بدون بادئة)
+// 🌟 معالج الأحداث
 module.exports.handleEvent = async function({ api, event }) {
-  const { body } = event;
+  const { body, threadID } = event;
   if (!body) return;
   
-  const triggerWords = ["كيرا", "كايرا", "kira"];
-  const startsWithTrigger = triggerWords.some(w => body.toLowerCase().startsWith(w.toLowerCase()));
-  
-  if (startsWithTrigger) {
+  // إذا بدأ الكلام بكلمة كيرا
+  if (body.toLowerCase().startsWith("كيرا") || body.toLowerCase().startsWith("كايرا")) {
     return this.run({ api, event, args: [] });
   }
 };
