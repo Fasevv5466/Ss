@@ -1,76 +1,62 @@
-#!/usr/bin/env node
-'use strict';
-
 const { spawn } = require("child_process");
 const { readFileSync } = require("fs-extra");
 const axios = require("axios");
+const semver = require("semver");
 const logger = require("./utils/log");
 const express = require("express");
-const gradient = require("gradient-string");
-
+const gradient = require("gradient-string")
 const logo = `
-╔══════════════════════════════════════════════╗
-║ ██╗  ██╗ ██╗ ██████╗   ██╗   ██████╗  ██████╗║
-║ ██║ ██╔╝ ██║ ██╔══██╗ ███║   ██╔══██╗██╔═══██╗║
-║ █████╔╝  ██║ ██████╔╝ ╚██║   ██████╔╝██║   ██║║
-║ ██╔═██╗  ██║ ██╔══██╗  ██║   ██╔══██╗██║   ██║║
-║ ██║  ██╗ ██║ ██║  ██║  ██║   ██║  ██║╚██████╔╝║
-║ ╚═╝  ╚═╝ ╚═╝ ╚═╝  ╚═╝  ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ║
-║              𝐒𝐔𝐏𝐑𝐄𝐌𝐄 v24.11.0                ║
-╚══════════════════════════════════════════════╝
+██╗  ██╗ ██╗ ██████╗   ██╗  
+██║ ██╔╝ ██║ ██╔══██╗ ███║  
+█████╔╝  ██║ ██████╔╝ ╚██║  
+██╔═██╗  ██║ ██╔══██╗  ██║  
+██║  ██╗ ██║ ██║  ██║  ██║  
+╚═╝  ╚═╝ ╚═╝ ╚═╝  ╚═╝  ╚═╝  
 `;
+const c = ["cyan", "#7D053F"];
+const redToGreen = gradient("red", "cyan");
+console.log(redToGreen("━".repeat(50), { interpolation: "hsv" }));
+const text = gradient(c).multiline(logo);
+console.log(text);
+console.log(redToGreen("━".repeat(50), { interpolation: "hsv" }));
 
-const c = ["#FF0000", "#8B0000"];
-const redGradient = gradient(c);
-console.log(redGradient.multiline(logo));
-console.log(redGradient("━".repeat(55)));
+
 
 const app = express();
-const port = process.env.PORT || 3078;
-
+const port = process.env.PORT || 3078; 
 app.get("/", (req, res) => {
-    res.json({
-        message: "𝐊𝐈𝐑𝐀 𝐒𝐔𝐏𝐑𝐄𝐌𝐄 v24.11.0",
-        node_version: process.version,
-        status: "online",
-        timestamp: new Date().toISOString()
-    });
+  res.send(`Hello im KIRA Bot..🤖`);
 });
 
 function startBot(message) {
-    if (message) logger(message, "[ Starting ]");
+  (message) ? logger(message, "[ Starting ]") : "";
 
-    console.log(`🚀 Starting KIRA Supreme v24.11.0 on Node.js ${process.version}`);
+  const child = spawn("node", ["--trace-warnings", "--async-stack-traces", "index.js"], {
+    cwd: __dirname,
+    stdio: "inherit",
+    shell: true
+  });
 
-    const child = spawn("node", [
-        "--max-old-space-size=1024",
-        "--trace-warnings", 
-        "--async-stack-traces", 
-        "index.js"
-    ], {
-        cwd: __dirname,
-        stdio: "inherit",
-        shell: true
-    });
+  child.on("close", (codeExit) => {
+    if (codeExit != 0 || global.countRestart && global.countRestart < 5) {
+      startBot("Starting up...");
+      global.countRestart += 1;
+      return;
+    } else return;
+  });
 
-    child.on("close", (codeExit) => {
-        console.log(`\n⚠️  Bot stopped with code: ${codeExit}`);
-        if (codeExit !== 0) {
-            console.log("🔄 Restarting in 5 seconds...");
-            setTimeout(() => startBot("Restarting..."), 5000);
-        }
-    });
-
-    child.on("error", function(error) {
-        console.error("❌ An error occurred:", error);
-    });
+  child.on("error", function(error) {
+    logger("An error occurred: " + JSON.stringify(error), "[ Starting ]");
+  });
 };
 
-logger('𝐊𝐈𝐑𝐀 𝐒𝐔𝐏𝐑𝐄𝐌𝐄', "[ NAME ]");
-logger(`Version: 24.11.0 | Node.js ${process.version}`, "[ VERSION ]");
+
+  logger('KIRA BOT', "[ NAME ]");
+  logger("Version: 1.2.14", "[ VERSION ]");
+
 
 startBot();
 
 app.listen(port, () => {
-    console.log(`📡 Health server running on port: ${port}`);
+  console.log(`bot running in port: ${port}`);
 });
