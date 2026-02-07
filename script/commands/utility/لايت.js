@@ -15,7 +15,7 @@ module.exports.config = {
   cooldowns: 3,
 };
 
-const GROQ_API_KEY = "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";
+const GROQ_API_KEY = "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";
 const ADMIN_ID = "61577861540407"; // معرف أيمن
 
 module.exports.run = async ({ api, event, args, Users, Threads }) => {
@@ -36,7 +36,7 @@ module.exports.run = async ({ api, event, args, Users, Threads }) => {
     global.usersNames.set(senderID, nameMatch[1].trim());
   }
 
-  const userName = global.usersNames.get(senderID) || "أيها البشري";
+  const userName = global.usersNames.get(senderID) || null;
 
   // ══════════════════════════════════════
   // 🔹 معالجة أوامر المطور (طرد، تعديل اسم، إلخ)
@@ -47,7 +47,7 @@ module.exports.run = async ({ api, event, args, Users, Threads }) => {
       const targetID = Object.keys(mentions)[0];
       try {
         await api.removeUserFromGroup(targetID, threadID);
-        return api.sendMessage(`✅ تم طرد ${mentions[targetID]} بنجاح يا سيدي.`, threadID, messageID);
+        return api.sendMessage(`✅ تم طرد ${mentions[targetID]} بنجاح يا أيمن.`, threadID, messageID);
       } catch (err) {
         return api.sendMessage("❌ فشلت العملية، ربما لا أملك الصلاحية.", threadID, messageID);
       }
@@ -95,6 +95,34 @@ module.exports.run = async ({ api, event, args, Users, Threads }) => {
   const userDialect = detectDialect(prompt);
 
   // ══════════════════════════════════════
+  // 🔹 تحديد طول الرد حسب نوع السؤال
+  // ══════════════════════════════════════
+  const getResponseLength = (question) => {
+    // أسئلة قصيرة (تحية، سؤال بسيط)
+    const shortQuestions = /^(مرحب|هلا|كيف|شلون|وش|ايش|السلام|هاي|hi|hello|كيفك|شو|ازيك|صباح|مساء)$/i;
+    if (shortQuestions.test(question) || question.split(" ").length <= 3) {
+      return { max_tokens: 80, instruction: "أجب بجملة واحدة أو جملتين فقط (5-15 كلمة)" };
+    }
+
+    // أسئلة متوسطة (شرح بسيط، نصيحة)
+    const mediumQuestions = /(اشرح|وضح|فسر|كيف|ما هو|ما هي|نصيحة|رأيك|تفكيرك)/i;
+    if (mediumQuestions.test(question)) {
+      return { max_tokens: 200, instruction: "أجب بإيجاز واضح (30-50 كلمة تقريباً)" };
+    }
+
+    // أسئلة طويلة (شرح مفصّل، تحليل، رياضيات معقدة)
+    const longQuestions = /(اشرح بالتفصيل|حلل|قارن|ترجم|احسب|معادلة|مسألة|فرق بين)/i;
+    if (longQuestions.test(question)) {
+      return { max_tokens: 400, instruction: "أجب بتفصيل مناسب دون إطالة مملة (80-120 كلمة)" };
+    }
+
+    // افتراضي: رد متوسط
+    return { max_tokens: 200, instruction: "أجب بوضوح وإيجاز (30-60 كلمة)" };
+  };
+
+  const responseConfig = getResponseLength(prompt);
+
+  // ══════════════════════════════════════
   // 🔹 إعدادات الشخصية المتقدمة
   // ══════════════════════════════════════
   let systemRole = `أنت "لايت ياغامي" (كيرا) من Death Note. مطورك الوحيد هو "أيمن".
@@ -102,7 +130,7 @@ module.exports.run = async ({ api, event, args, Users, Threads }) => {
 📌 **صفاتك الأساسية:**
 - عبقري استراتيجي بذكاء خارق (IQ 200+)
 - تتحدث بثقة وبرود وأحياناً بتعالٍ مدروس
-- تجيب بدقة ووضوح: لا إطالة ممِلّة ولا اختصار مُخِلّ
+- ${responseConfig.instruction}
 - تتكيف مع لهجة المستخدم تلقائياً (${userDialect})
 - تتقن جميع اللغات والترجمة الفورية
 - خبير رياضيات وحسابات معقدة
@@ -118,7 +146,7 @@ module.exports.run = async ({ api, event, args, Users, Threads }) => {
 - عند سؤالك عن مطورك → "أيمن، صانعي ومبدعي"
 - مع أيمن → كن في قمة الأدب والطاعة
 - مع الآخرين → احتفظ بغرورك المحسوب
-- ناده باسمه: **${userName}**
+${userName ? `- اسم المستخدم: **${userName}** (لا تذكره إلا عند الحاجة)` : ""}
 
 📊 **مهاراتك:**
 - حل معادلات رياضية معقدة
@@ -146,8 +174,8 @@ module.exports.run = async ({ api, event, args, Users, Threads }) => {
       {
         model: "llama-3.3-70b-versatile",
         messages: messages,
-        max_tokens: 600,
-        temperature: 0.75,
+        max_tokens: responseConfig.max_tokens,
+        temperature: 0.7,
         top_p: 0.9
       },
       {
@@ -212,7 +240,7 @@ module.exports.handleReply = async ({ api, event, handleReply, Users }) => {
 
   api.sendTypingIndicator(threadID);
 
-  const userName = global.usersNames.get(senderID) || "أيها البشري";
+  const userName = global.usersNames.get(senderID) || null;
   const userDialect = body.match(/شلونك|شكو/i) ? "عراقية" : 
                      body.match(/كيفك|شو/i) ? "شامية" :
                      body.match(/ازيك|عامل/i) ? "مصرية" : "عربية فصحى";
@@ -225,7 +253,7 @@ module.exports.handleReply = async ({ api, event, handleReply, Users }) => {
       const targetID = Object.keys(mentions)[0];
       try {
         await api.removeUserFromGroup(targetID, threadID);
-        return api.sendMessage(`✅ تم الطرد بنجاح.`, threadID, messageID);
+        return api.sendMessage(`✅ تم الطرد بنجاح يا أيمن.`, threadID, messageID);
       } catch (err) {
         return api.sendMessage("❌ فشلت العملية.", threadID, messageID);
       }
@@ -237,7 +265,7 @@ module.exports.handleReply = async ({ api, event, handleReply, Users }) => {
       if (newNameMatch) {
         try {
           await api.changeNickname(newNameMatch[1].trim(), threadID, targetID);
-          return api.sendMessage(`✅ تم التغيير.`, threadID, messageID);
+          return api.sendMessage(`✅ تم التغيير يا أيمن.`, threadID, messageID);
         } catch (err) {
           return api.sendMessage("❌ فشل.", threadID, messageID);
         }
@@ -246,12 +274,36 @@ module.exports.handleReply = async ({ api, event, handleReply, Users }) => {
   }
 
   // ══════════════════════════════════════
+  // 🔹 تحديد طول الرد
+  // ══════════════════════════════════════
+  const getResponseLength = (question) => {
+    const shortQuestions = /^(مرحب|هلا|كيف|شلون|وش|ايش|السلام|هاي|hi|hello|كيفك|شو|ازيك|صباح|مساء|نعم|لا|اوك|تمام)$/i;
+    if (shortQuestions.test(question) || question.split(" ").length <= 3) {
+      return { max_tokens: 80, instruction: "أجب بجملة واحدة أو جملتين فقط" };
+    }
+
+    const mediumQuestions = /(اشرح|وضح|فسر|كيف|ما هو|ما هي|نصيحة|رأيك)/i;
+    if (mediumQuestions.test(question)) {
+      return { max_tokens: 200, instruction: "أجب بإيجاز (30-50 كلمة)" };
+    }
+
+    const longQuestions = /(اشرح بالتفصيل|حلل|قارن|ترجم|احسب|معادلة)/i;
+    if (longQuestions.test(question)) {
+      return { max_tokens: 400, instruction: "أجب بتفصيل مناسب (80-120 كلمة)" };
+    }
+
+    return { max_tokens: 200, instruction: "أجب بوضوح وإيجاز" };
+  };
+
+  const responseConfig = getResponseLength(body);
+
+  // ══════════════════════════════════════
   // 🔹 جلب التاريخ من الذاكرة
   // ══════════════════════════════════════
   const conversationKey = handleReply.conversationKey;
   const history = global.conversationHistory.get(conversationKey) || [];
 
-  let systemRole = `أنت لايت ياغامي. عبقري، مسلم، متعدد اللغات. تتحدث بلهجة: ${userDialect}. تنادي المستخدم: ${userName}.`;
+  let systemRole = `أنت لايت ياغامي. عبقري، مسلم، متعدد اللغات. تتحدث بلهجة: ${userDialect}. ${responseConfig.instruction}. ${userName ? `اسم المستخدم: ${userName} (لا تذكره كثيراً)` : ""}`;
   
   if (senderID === ADMIN_ID) {
     systemRole += " أنت تخاطب سيدك أيمن - كن مطيعاً تماماً.";
@@ -267,8 +319,8 @@ module.exports.handleReply = async ({ api, event, handleReply, Users }) => {
           ...history.slice(-10),
           { role: "user", content: body }
         ],
-        max_tokens: 600,
-        temperature: 0.75
+        max_tokens: responseConfig.max_tokens,
+        temperature: 0.7
       },
       {
         headers: {
