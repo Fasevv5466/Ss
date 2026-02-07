@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "login": "node login",
+    "dev": "nodemon index.js",
     "test": "node --trace-warnings --use_strict --async-stack-traces mirai"
   },
   "author": "Y-ANBU",
@@ -55,7 +56,7 @@
     "semver": "^7.5.4",
     "sequelize": "^6.35.2",
     "sharp": "latest",
-    "sqlite3": "^5.1.2",
+    "sqlite3": "^5.1.6",
     "string-similarity": "^4.0.4",
     "totp-generator": "^0.0.14",
     "unofficial-fb-chat-api": "^1.0.0",
@@ -68,5 +69,14 @@
     "canvas": "^2.11.2",
     "moment": "^2.29.4",
     "qs": "^6.12.0"
-  }
+  },
+  "keywords": [
+    "bot",
+    "uptime",
+    "monitor",
+    "scary",
+    "system",
+    "facebook",
+    "messenger"
+  ]
 }
