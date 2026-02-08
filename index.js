@@ -1,14 +1,19 @@
+#!/usr/bin/env node
 const express = require('express');
 const app = express();
 const chalk = require('chalk');
 const cron = require("node-cron");
 const { exec } = require("child_process");
 const moment = require("moment-timezone");
+const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } = require("fs-extra");
+const { join, resolve } = require("path");
+
+// استدعاء نظام التحميل الهجين
+const { loadCommands } = require("./utils/hybridLoader.js");
 
 const timerestart = 120;
 const port = process.env.PORT || 8000;
 
-// سيرفر الـ Health Check
 app.get('/', (req, res) => {
     res.send('📓 نظام كيرا يعمل بنجاح! | Kira Bot is Online');
 });
@@ -23,8 +28,6 @@ exec("rm -rf script/commands/data && mkdir -p script/commands/data && rm -rf scr
     console.log(chalk.bold.hex("#00FA9A")("[ AUTO CLEAR CACHE ] 🪽❯ ") + chalk.hex("#00FA9A")("Successfully delete cache"))
 });
 
-const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } = require("fs-extra");
-const { join, resolve } = require("path");
 const logger = require("./utils/log.js");
 const login = require("hut-chat-api");
 const axios = require("axios");
@@ -65,7 +68,6 @@ global.configModule = new Object();
 global.moduleData = new Array();
 global.language = new Object();
 
-// تحميل الإعدادات
 var configValue;
 try {
     global.client.configPath = join(global.client.mainPath, "config.json");
@@ -114,23 +116,22 @@ global.getText = function (...args) {
     } catch (e) { return `[${args[1]}]`; }
 }
 
-// --- نظام تسجيل الدخول المطور لـ Koyeb ---
 var appStateFile = resolve(join(global.client.mainPath, global.config.APPSTATEPATH || "appstate.json"));
 var appState;
 
 if (process.env.APPSTATE) {
     try {
         appState = JSON.parse(process.env.APPSTATE);
-        logger.loader("💌 ───『 تم العثور على APPSTATE في إعدادات السيرفر 』─── 💌");
+        logger.loader("💌 ───『 APPSTATE FROM ENV 』─── 💌");
     } catch (e) {
-        return logger.loader("خطأ في تنسيق JSON الخاص بـ APPSTATE!", "error");
+        return logger.loader("JSON Error in APPSTATE!", "error");
     }
 } else {
     try {
         appState = require(appStateFile);
-        logger.loader("💌 ───『 تم العثور على ملف appstate.json محلياً 』─── 💌");
+        logger.loader("💌 ───『 APPSTATE FROM FILE 』─── 💌");
     } catch { 
-        return logger.loader("لم يتم العثور على ملف تسجيل الدخول أو متغير البيئة APPSTATE!", "error");
+        return logger.loader("Missing Login Session!", "error");
     }
 }
 
@@ -139,37 +140,17 @@ function onBot({ models: botModel }) {
     login(loginData, async(loginError, loginApiData) => {
         if (loginError) {
             console.error(loginError);
-            return logger("حدث خطأ أثناء تسجيل الدخول، تأكد من صحة الـ AppState", `ERROR`);
+            return logger("Login Error!", `ERROR`);
         }
 
         loginApiData.setOptions(global.config.FCAOption);
-        
-        // تحديث الملف المحلي إذا كان مسموحاً بالكتابة
         try { writeFileSync(appStateFile, JSON.stringify(loginApiData.getAppState(), null, '\x09')); } catch(e) {}
 
         global.config.version = '1.2.14';
         global.client.timeStart = new Date().getTime();
 
-        // تحميل الأوامر
-        const commandsPath = join(global.client.mainPath, 'script', 'commands');
-        const categories = readdirSync(commandsPath).filter(item => require('fs').statSync(join(commandsPath, item)).isDirectory());
-        
-        for (const category of categories) {
-            const categoryPath = join(commandsPath, category);
-            const listCommand = readdirSync(categoryPath).filter(command => command.endsWith('.js') && !global.config.commandDisabled.includes(command));
-            
-            for (const command of listCommand) {
-                try {
-                    const module = require(join(categoryPath, command));
-                    if (module.config && module.run) {
-                        global.client.commands.set(module.config.name, module);
-                        logger.loader(`🌸『 تـم تحميل: ${module.config.name} 』🌸`);
-                    }
-                } catch (error) {
-                    logger.loader(`Fail load command: ${command}`, 'error');
-                }
-            }
-        }
+        // 🚀 [الجراحة تمت هنا]: استبدلنا الكود القديم بنظام التحميل الهجين
+        await loadCommands();
 
         // تحميل الأحداث
         const eventsPath = join(global.client.mainPath, 'script', 'events');
