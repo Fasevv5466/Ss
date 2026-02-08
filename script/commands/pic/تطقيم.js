@@ -27,7 +27,7 @@ module.exports.run = async function({ api, event, args, Users, Threads, Currenci
         const groupImages = res.data?.group || [];
 
         if (!groupImages.length) {
-            return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\nلم يتم العثور على صور", threadID, messageID);
+            return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\nلم يتم العثور على تطقيم", threadID, messageID);
         }
 
         const streamAttachments = [];
@@ -45,7 +45,7 @@ module.exports.run = async function({ api, event, args, Users, Threads, Currenci
         }
 
         return api.sendMessage({
-            body: "⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\nصور أنمي عشوائية",
+            body: "⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\تطقيم أنمي عشوائية",
             attachment: streamAttachments
         }, threadID, messageID);
 
@@ -56,12 +56,12 @@ module.exports.run = async function({ api, event, args, Users, Threads, Currenci
 };
 
 module.exports.config = {
-    name: "صور",
+    name: "تطقيم",
     version: "2.0.0",
     hasPermssion: 0,
     credits: "ايمن",
-    description: "صور أنمي عشوائية للبروفايل",
+    description: "تطقيم أنمي عشوائية للبروفايل",
     commandCategory: "pic",
-    usages: "صور",
+    usages: "تطقيم",
     cooldowns: 5
 };
