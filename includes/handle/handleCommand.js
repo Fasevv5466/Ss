@@ -22,7 +22,10 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
     threadID = String(threadID);
     const threadSetting = threadData.get(threadID) || {};
     const prefix = threadSetting.hasOwnProperty("PREFIX") ? threadSetting.PREFIX : PREFIX;
-    const prefixRegex = new RegExp(`^(<@!?${senderID}>|${escapeRegex(prefix)})\\s*`);
+    
+    // ✅ إصلاح: استخدام Bot ID بدلاً من senderID للمنشن
+    const botID = api.getCurrentUserID();
+    const prefixRegex = new RegExp(`^(<@!?${botID}>|${escapeRegex(prefix)})\\s*`);
 
     const [matchedPrefix] = body.match(prefixRegex) || [null];
     if (!matchedPrefix) return;
@@ -44,11 +47,9 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
 
         const closestMatch = checker.bestMatch.target;
         const funnyReplies = [
-          `📓 ───────────────\n  ┝  خطأ: "${commandName}" غير مسجل\n  ┝  قصدك: '${closestMatch}'؟\n📓 ───────────────`,
-          `📓 ───────────────\n  ┝  ابحث عن اسم آخر..\n  ┝  جرب: '${closestMatch}'\n📓 ───────────────`,
-          `📓 ───────────────\n  ┝  خطأ في العنوان!\n  ┝  ربما تقصد: '${closestMatch}'؟\n📓 ───────────────`,
-          `📓 ───────────────\n  ┝  نظامي لا يدعم هراءك\n  ┝  استخدم: '${closestMatch}'\n📓 ───────────────`,
-          `📓 ───────────────\n  ┝  توقف عن العبث\n  ┝  الأمر الصحيح: '${closestMatch}'\n📓 ───────────────`
+          `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬\n\n❌ خطأ: "${commandName}" غير مسجل\n💡 هل تقصد: '${closestMatch}'؟`,
+          `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬\n\n⚠️ الأمر غير موجود\n🔍 جرب: '${closestMatch}'`,
+          `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬\n\n🚫 أمر خاطئ\n✨ ربما تقصد: '${closestMatch}'`,
         ];
 
         return api.sendMessage(
@@ -64,15 +65,15 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
         const banThreads = commandBanned.get(threadID) || [];
         const banUsers = commandBanned.get(senderID) || [];
         if (banThreads.includes(command.config.name)) {
-          return api.sendMessage(`📓 ───────────────\n  ┝  تنبيه: محظور هنا!\n  ┝  الأمر: ${command.config.name}\n📓 ───────────────`, threadID, messageID);
+          return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗔𝗗𝗠𝗜𝗡 ━━ ⌬\n\n🚫 الأمر محظور في هذه المجموعة\nالأمر: ${command.config.name}`, threadID, messageID);
         } else if (banUsers.includes(command.config.name)) {
-          return api.sendMessage(`📓 ───────────────\n  ┝  تنبيه: أنت محظور!\n  ┝  القرار: قطعي\n📓 ───────────────`, threadID, messageID);
+          return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗔𝗗𝗠𝗜𝗡 ━━ ⌬\n\n⛔ أنت محظور من استخدام هذا الأمر`, threadID, messageID);
         }
       }
     }
 
     if (command.config.commandCategory.toLowerCase() == "nsfw" && !global.data.threadAllowNSFW.includes(threadID) && !ADMINBOT.includes(senderID)) {
-      return api.sendMessage(`📓 ───────────────\n  ┝  تنبيه: محتوى مقيد\n  ┝  الحالة: غير مسموح\n📓 ───────────────`, threadID, messageID);
+      return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬\n\n🔞 محتوى محظور في هذه المجموعة`, threadID, messageID);
     }
 
     var permssion = 0;
@@ -82,7 +83,7 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
     else if (find) permssion = 1;
 
     if (command.config.hasPermssion > permssion) {
-      return api.sendMessage(`📓 ───────────────\n  ┝  تنبيه: الصلاحية!\n  ┝  الحالة: لا تملك حق العبث\n📓 ───────────────`, event.threadID, event.messageID);
+      return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗔𝗗𝗠𝗜𝗡 ━━ ⌬\n\n⚠️ ليس لديك صلاحية لتنفيذ هذا الأمر`, event.threadID, event.messageID);
     }
 
     if (!client.cooldowns.has(command.config.name)) {
@@ -100,7 +101,8 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
       timestamps.set(senderID, dateNow);
       return;
     } catch (e) {
-      return api.sendMessage(`📓 ───────────────\n  ┝  تنبيه: خطأ تقني\n  ┝  السبب: معالجة الطلب\n📓 ───────────────`, threadID);
+      console.error(e);
+      return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗗𝗘𝗩𝗘𝗟𝗢𝗣𝗘𝗥 ━━ ⌬\n\n❌ حدث خطأ أثناء تنفيذ الأمر\n\n${e.message}`, threadID);
     }
   };
 };
