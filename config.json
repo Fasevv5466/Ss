@@ -1,23 +1,46 @@
 {
-  "BOT_INFO": {
-    "BOTNAME": "𝐤𝐢𝐫𝐚",
-    "BOT_NAME": "Kira",
-    "version": "5.0.0",
-    "PREFIX": ".",
-    "language": "ar",
-    "TIMEZONE": "Asia/Baghdad"
+  "language": "ar",
+  "DeveloperMode": false,
+  "autoCreateDB": true,
+  "iconUnsend": {
+    "status": true,
+    "icon": "💓"
   },
-  "ADMINISTRATION": {
-    "ADMIN_NAME": "𝐚𝐲𝐦𝐚𝐧",
-    "ADMINBOT": ["61577861540407"],
-    "MODERATOR": ["61577861540407"],
-    "FACEBOOK_ADMIN": "https://facebook.com/profile.php?id=61577861540407",
-    "developer": {
-      "name": "Ayman",
-      "id": "61577861540407",
-      "title": "عم الجميع وتاج الرأس 👑"
+  "notiGroup": false,
+  "NOTIFICATION": true,
+  "allowInbox": true,
+  "commandDisabled": [],
+  "eventDisabled": [],
+  "BOTNAME": "𝐤𝐢𝐫𝐚",
+  "BOT_NAME": "Kira",
+  "ADMIN_NAME": "𝐚𝐲𝐦𝐚𝐧",
+  "FACEBOOK_ADMIN": "https://facebook.com/profile.php?id=61577861540407",
+  "PREFIX": ".",
+  "ADMINBOT": [
+    "61577861540407"
+  ],
+  "MODERATOR": [
+    "61577861540407"
+  ],
+  "AUTO_READ": true,
+  "AUTO_RECONNECT": true,
+  "MAX_ATTACHMENT": 50,
+  "TIMEZONE": "Asia/Baghdad",
+  "DATABASE": {
+    "sqlite": {
+      "storage": "data.sqlite"
     }
   },
+  "APPSTATEPATH": "appstate.json",
+  "FCAOption": {
+    "forceLogin": true,
+    "listenEvents": true,
+    "pauseLog": true,
+    "logLevel": "error",
+    "selfListen": false,
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Mobile/15E148 Safari/604.1"
+  },
+  "version": "5.0.0",
   "KIRA_PERSONALITY": {
     "name": "كيرا",
     "age": 17,
@@ -48,131 +71,28 @@
       }
     }
   },
-  "SYSTEM_SETTINGS": {
-    "DeveloperMode": false,
-    "autoCreateDB": true,
-    "NOTIFICATION": true,
-    "notiGroup": false,
-    "allowInbox": true,
-    "AUTO_READ": true,
-    "AUTO_RECONNECT": true,
-    "MAX_ATTACHMENT": 50,
-    "APPSTATEPATH": "appstate.json",
-    "iconUnsend": {
-      "status": true,
-      "icon": "💓"
-    },
-    "DATABASE": {
-      "sqlite": {
-        "storage": "data.sqlite"
-      }
-    },
-    "FCAOption": {
-      "forceLogin": true,
-      "listenEvents": true,
-      "pauseLog": true,
-      "logLevel": "error",
-      "selfListen": false,
-      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Mobile/15E148 Safari/604.1"
-    },
-    "cache_cleanup_interval": 3600000,
-    "log": {
-      "enable": true
-    },
-    "spam": {
-      "spamDelay": 2
-    },
-    "adminOnly": false
-  },
   "APIS_AND_FEATURES": {
-    "music": {
-      "primary": "https://api.deezer.com/search",
-      "fallback": "https://api.spotify.com/v1/search"
-    },
-    "ai_chat": {
-      "primary": "https://hazeyy-gpt4-api.kyrinwu.repl.co/api/gpt4/v-3beta",
-      "fallback": "https://chatgpt.august-api.repl.co/response"
-    },
+    "music": "https://api.deezer.com/search",
+    "ai_chat": "https://hazeyy-gpt4-api.kyrinwu.repl.co/api/gpt4/v-3beta",
     "translate": "https://translate.googleapis.com/translate_a/single",
     "tts": "https://translate.google.com/translate_tts",
-    "weather": {
-      "endpoint": "https://api.openweathermap.org/data/2.5/weather",
-      "OPEN_WEATHER": "c4ef85b93982d6627681b056e24bd438"
-    },
+    "weather": "c4ef85b93982d6627681b056e24bd438",
     "anime": "https://api.jikan.moe/v4/anime",
-    "movie": "https://api.popcat.xyz/imdb",
-    "facts": "https://api.popcat.xyz/facts",
-    "npm": "https://api.popcat.xyz/npm",
-    "element": "https://api.popcat.xyz/periodic-table",
-    "exercise": "https://exercise-api.dreamcorps.repl.co/api/exercises",
-    "math": {
-      "WOLFRAM": "T8J8YV-H265UQ762K"
-    },
-    "tikinfo": {
-      "apikey": "fOeckmtu"
-    }
+    "movie": "https://api.popcat.xyz/imdb"
   },
-  "COMMANDS_CONFIG": {
-    "commandDisabled": [],
-    "eventDisabled": [],
-    "aliases": {
-      "كيرا": ["kira", "ai", "كيرة"],
-      "سمعيني": ["سمعني", "سمع", "music"],
-      "صور": ["صورة", "صوره", "images"],
-      "فيلم": ["فلم", "movie"],
-      "انمي": ["أنمي", "anime"],
-      "ترجم": ["ترجمة", "translate"],
-      "قولي": ["اقرأ", "انطقي", "نطق"]
+  "menu": {
+    "autoUnsend": {
+      "status": true,
+      "timeOut": 60
     },
-    "special": {
-      "help": ["مساعدة", "help"],
-      "stats": ["ذاكرة", "stats"],
-      "clear": ["نسيان", "clear"],
-      "list": ["لاست", "list"]
-    },
-    "modules_custom": {
-      "اوامر": { "autoUnsend": true, "delayUnsend": 20 },
-      "هلب": { "autoUnsend": true, "delayUnsend": 300 },
-      "الرانك": { "autoUnsend": true, "unsendMessageAfter": 5 },
-      "menu": {
-        "autoUnsend": { "status": true, "timeOut": 60 },
-        "sendAttachments": {
-          "status": true,
-          "random": true,
-          "url": "https://i.imgur.com/LKkw8SL.jpg"
-        }
-      }
+    "sendAttachments": {
+      "status": true,
+      "random": true,
+      "url": "https://i.imgur.com/LKkw8SL.jpg"
     }
   },
   "GAMES_AND_ECONOMY": {
     "cave": { "cooldownTime": 100000 },
-    "daily": { "cooldownTime": 540000, "rewardCoin": 500 },
-    "xidach": {
-      "maxPlayers": 5,
-      "normalWinBonus": 1,
-      "superWinBonus": 2,
-      "epicWinBonus": 4
-    }
-  },
-  "RESTRICTIONS": {
-    "religious_topics": false,
-    "deity_claims": false,
-    "explicit_content": false
-  },
-  "EMOJIS": {
-    "music": "🎵",
-    "images": "🖼️",
-    "movie": "🎬",
-    "anime": "🌸",
-    "translate": "🌐",
-    "tts": "🎤",
-    "qr": "📱",
-    "screenshot": "📸",
-    "weather": "🌤️",
-    "facts": "💡",
-    "exercise": "💪",
-    "npm": "📦",
-    "element": "⚛️",
-    "ai": "🤖"
+    "daily": { "cooldownTime": 540000, "rewardCoin": 500 }
   }
 }
