@@ -1,69 +1,82 @@
-const fs = require("fs");
-const path = require("path");
+// ═══════════════════════════════════════════════════════════
+// 👑 KIRA - الاوامر
+// المطور: Ayman ♛
+// الوصف: عرض قائمة الأوامر والمعلومات
+// ═══════════════════════════════════════════════════════════
 
 module.exports.config = {
-  name: "اوامر",
-  version: "2.0.0",
-  hasPermssion: 0,
-  credits: "Ayman",
-  description: "عرض جميع أوامر البوت تلقائياً ومقسّمة حسب الفئات",
-  commandCategory: "system",
-  usages: ".اوامر",
-  cooldowns: 5
+	name: "الاوامر",
+  aliases: [],
+	version: "1.1.1",
+	hasPermssion: 0,
+	credits: "Ayman ♛", // تم التعديل بواسطة تاو تاو
+	description: "عرض قائمة الأوامر والمعلومات",
+	commandCategory: "utility",
+	usages: "[اسم الأمر]",
+	cooldowns: 5
 };
 
-// 📂 قراءة الملفات بشكل递归
-function getAllCommandFiles(dir, fileList = []) {
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const fullPath = path.join(dir, file);
-    if (fs.statSync(fullPath).isDirectory()) {
-      getAllCommandFiles(fullPath, fileList);
-    } else if (file.endsWith(".js")) {
-      fileList.push(fullPath);
-    }
-  }
-  return fileList;
+module.exports.languages = {
+	"ar": {},
+	"en": {}
 }
 
-module.exports.run = async function ({ api, event }) {
-  const { threadID, messageID } = event;
+module.exports.run = async function({
+	api,
+	event,
+	args,
+	Currencies,
+	__GLOBAL
+}) {
+	const { events } = global.client;
+	const time = process.uptime(),
+		hours = Math.floor(time / (60 * 60)),
+		minutes = Math.floor((time % (60 * 60)) / 60),
+		seconds = Math.floor(time % 60);
 
-  const commandsPath = path.join(__dirname, ".."); 
-  const files = getAllCommandFiles(commandsPath);
+	const moment = require("moment-timezone");
+	const timeNow = moment.tz("Asia/Riyadh").format("DD/MM/YYYY || HH:mm:ss");
 
-  const categories = {};
+	const { commands } = global.client;
+	const {
+		threadID: tid,
+		messageID: mid,
+		senderID: sid
+	} = event;
 
-  for (const file of files) {
-    try {
-      delete require.cache[require.resolve(file)];
-      const cmd = require(file);
+	let msg = "", array = [], i = 0;
+	const cmds = global.client.commands;
+	const TIDdata = global.data.threadData.get(tid) || {};
+	const prefix = TIDdata.PREFIX || global.config.PREFIX;
 
-      if (!cmd.config || !cmd.config.name) continue;
+	// Function to display permission levels in a readable format
+	function TextPr(permission) {
+		return permission === 0 ? "User" : permission === 1 ? "Moderator" : "Admin";
+	}
 
-      const category = cmd.config.commandCategory || "غير مصنّف";
+	if (!args[0]) { // عند عدم وجود حجة، عرض جميع الأوامر
+		for (const cmd of cmds.values()) {
+			msg += `💞${++i}. ${cmd.config.name}: ${cmd.config.description}\n`;
+		}
+		return api.sendMessage(msg, tid, mid);
+	}
 
-      if (!categories[category]) {
-        categories[category] = [];
-      }
+	let type = args[0].toLowerCase();
+	for (const cmd of cmds.values()) {
+		array.push(cmd.config.name.toString());
+	}
 
-      categories[category].push(cmd.config.name);
-    } catch (e) {
-      continue;
-    }
-  }
+	if (!array.includes(type)) {
+		const stringSimilarity = require('string-similarity');
+		const checker = stringSimilarity.findBestMatch(type, array);
+		const closestMatch = checker.bestMatch.rating >= 0.5 ? checker.bestMatch.target : null;
 
-  let msg = "◈ ───『 📜 أوامر البوت 』─── ◈\n\n";
+		msg = `=== 『 المساعدة 』 ===\n━━━━━━━━━━━━━━━━\n[⚜️] ➜ لم يتم العثور على الأمر '${type}' في النظام.\n`;
+		if (closestMatch) msg += `[⚜️] ➜ الأمر الأقرب هو '${closestMatch}'`;
+		return api.sendMessage(msg, tid, mid);
+	}
 
-  for (const category of Object.keys(categories).sort()) {
-    msg += `◯ ${category}\n`;
-    for (const name of categories[category].sort()) {
-      msg += `│ • .${name}\n`;
-    }
-    msg += "│\n";
-  }
-
-  msg += "◈ ────────────── ◈";
-
-  return api.sendMessage(msg, threadID, messageID);
-};
+	const cmd = cmds.get(type).config;
+	msg = `[🧸] ➜ الاسم: ${cmd.name} ( ${cmd.version} )\n[🔗] ➜ الصلاحية: ${TextPr(cmd.hasPermssion)}\n[👤] ➜ المؤلف: ${cmd.credits}\n[💬] ➜ الوصف: ${cmd.description}\n[⏳] ➜ وقت التبريد: ${cmd.cooldowns} ثانية\n[📅] ➜ الوقت الآن: ${timeNow}\n`;
+	return api.sendMessage(msg, tid, mid);
+}
