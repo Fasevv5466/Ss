@@ -45,7 +45,7 @@ module.exports.run = async function({ api, event, args, Users, Threads, Currenci
         }
 
         return api.sendMessage({
-            body: "⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\تطقيم أنمي عشوائية",
+            body: "⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\ أنمي عشوائي",
             attachment: streamAttachments
         }, threadID, messageID);
 
