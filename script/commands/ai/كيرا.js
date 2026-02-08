@@ -24,7 +24,6 @@ module.exports.config = {
 // ═══════════════════════════════════════════════════════════
 
 const GROQ_API_KEY = "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";
-const OPENROUTER_API_KEY = "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";
 
 // ═══════════════════════════════════════════════════════════
 // 📁 نظام إدارة الذاكرة
