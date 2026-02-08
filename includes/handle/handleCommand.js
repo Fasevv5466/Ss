@@ -1,75 +1,109 @@
 module.exports = function ({ api, models, Users, Threads, Currencies }) {
-  const axios = require("axios");
+  const fs = require("fs");
+  const path = require("path");
   const stringSimilarity = require("string-similarity"),
-    escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  
-  const GROQ_API_KEY = "Gsk_5xXabJMctRfDGK7i3cc4WGdyb3FYAhrMgglcp5sPAY7N6lOm01fz";
+    escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+    logger = require("../../utils/log.js");
+  const moment = require("moment-timezone");
 
   return async function ({ event }) {
-    const { PREFIX, ADMINBOT } = global.config;
-    const { commands, threadData } = global.client;
+    const dateNow = Date.now();
+    const time = moment.tz("Africa/Casablanca").format("HH:mm:ss DD/MM/YYYY");
+    const { allowInbox, PREFIX, ADMINBOT, DeveloperMode, adminOnly, YASSIN } = global.config;
+
+    const { userBanned, threadBanned, threadInfo, threadData, commandBanned } = global.data;
+    const { commands, cooldowns } = global.client;
+
     var { body, senderID, threadID, messageID } = event;
 
-    if (!body) return;
+    if (!body) return; 
+
     senderID = String(senderID);
     threadID = String(threadID);
-    
     const threadSetting = threadData.get(threadID) || {};
-    const prefix = threadSetting.PREFIX || PREFIX;
+    const prefix = threadSetting.hasOwnProperty("PREFIX") ? threadSetting.PREFIX : PREFIX;
+    
+    // ✅ الإصلاح الصحيح: استخدام Bot ID للمنشن
     const botID = api.getCurrentUserID();
     const prefixRegex = new RegExp(`^(<@!?${botID}>|${escapeRegex(prefix)})\\s*`);
+
     const [matchedPrefix] = body.match(prefixRegex) || [null];
-
     if (!matchedPrefix) return;
-
+    
     const args = body.slice(matchedPrefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
     var command = commands.get(commandName);
+    
+    if (threadBanned.has(threadID) && !ADMINBOT.includes(senderID)) return;
+    if (userBanned.has(senderID) && !ADMINBOT.includes(senderID)) return;
+    if (YASSIN === "true" && !ADMINBOT.includes(senderID)) return;
 
-    // 🧠 منطق المعالجة الذكي عند عدم وجود الأمر
     if (!command) {
-      const allCmds = Array.from(commands.keys());
-      const checker = stringSimilarity.findBestMatch(commandName, allCmds);
-      const closest = checker.bestMatch.target;
+      var allCommandName = Array.from(commands.keys());
+      const checker = stringSimilarity.findBestMatch(commandName, allCommandName);
 
-      // محاولة استخدام الذكاء الاصطناعي أولاً
-      try {
-        const res = await axios.post("https://api.groq.com/openai/v1/chat/completions", {
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: `أنتِ كيرا، بنت عراقية ذكية وساخرة. المستخدم كتب أمراً غير موجود وهو "${commandName}". إذا كان قريباً من "${closest}" ألمحي له بذكاء، وإلا ردي بكلمات ساخرة مختصرة جداً (أقل من 10 كلمات).` },
-            { role: "user", content: body.slice(matchedPrefix.length) }
-          ],
-          max_tokens: 40
-        }, { 
-          headers: { "Authorization": `Bearer ${GROQ_API_KEY}` },
-          timeout: 3000 // مهلة 3 ثواني فقط لضمان سرعة الرد
-        });
-        
-        return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗔𝗜 ━━ ⌬\n${res.data.choices[0].message.content}`, threadID, messageID);
+      if (checker.bestMatch.rating >= 0.8) {
+        command = commands.get(checker.bestMatch.target);
+      } else if (matchedPrefix) {
 
-      } catch (error) {
-        // 🔄 الانتقال التلقائي للكود القديم في حال تعطل الذكاء الاصطناعي
-        const fallbackReplies = [
-          `قصدك "${closest}"؟ لأن هذا الأمر مو عندي.`,
-          `الأمر غلط، جرب "${closest}" عيوني.`,
-          `تأكد من الإملاء، يمكن قصدك "${closest}".`,
-          `ماكو هيج أمر، أظن تريد "${closest}".`
+        const closestMatch = checker.bestMatch.target;
+        const funnyReplies = [
+          `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬\n\n❌ خطأ: "${commandName}" غير مسجل\n💡 هل تقصد: '${closestMatch}'؟`,
+          `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬\n\n⚠️ الأمر غير موجود\n🔍 جرب: '${closestMatch}'`,
+          `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬\n\n🚫 أمر خاطئ\n✨ ربما تقصد: '${closestMatch}'`,
         ];
-        return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬\n\n❌ خطأ: "${commandName}" غير مسجل\n💡 هل تقصد: '${closest}'؟`, threadID, messageID);
+
+        return api.sendMessage(
+          funnyReplies[Math.floor(Math.random() * funnyReplies.length)],
+          threadID,
+          messageID
+        );
       }
     }
 
-    // --- تنفيذ الأمر إذا كان موجوداً ---
-    var permssion = ADMINBOT.includes(senderID) ? 2 : 0;
+    if (commandBanned.get(threadID) || commandBanned.get(senderID)) {
+      if (!ADMINBOT.includes(senderID)) {
+        const banThreads = commandBanned.get(threadID) || [];
+        const banUsers = commandBanned.get(senderID) || [];
+        if (banThreads.includes(command.config.name)) {
+          return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗔𝗗𝗠𝗜𝗡 ━━ ⌬\n\n🚫 الأمر محظور في هذه المجموعة\nالأمر: ${command.config.name}`, threadID, messageID);
+        } else if (banUsers.includes(command.config.name)) {
+          return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗔𝗗𝗠𝗜𝗡 ━━ ⌬\n\n⛔ أنت محظور من استخدام هذا الأمر`, threadID, messageID);
+        }
+      }
+    }
+
+    if (command.config.commandCategory.toLowerCase() == "nsfw" && !global.data.threadAllowNSFW.includes(threadID) && !ADMINBOT.includes(senderID)) {
+      return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬\n\n🔞 محتوى محظور في هذه المجموعة`, threadID, messageID);
+    }
+
+    var permssion = 0;
+    const threadInfoo2 = threadInfo.get(threadID) || (await Threads.getInfo(threadID));
+    const find = threadInfoo2.adminIDs.find((el) => el.id == senderID);
+    if (ADMINBOT.includes(senderID.toString())) permssion = 2;
+    else if (find) permssion = 1;
+
     if (command.config.hasPermssion > permssion) {
-        return api.sendMessage("ما عندك صلاحية لهيج شغل.", threadID, messageID);
+      return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗔𝗗𝗠𝗜𝗡 ━━ ⌬\n\n⚠️ ليس لديك صلاحية لتنفيذ هذا الأمر`, event.threadID, event.messageID);
+    }
+
+    if (!client.cooldowns.has(command.config.name)) {
+      client.cooldowns.set(command.config.name, new Map());
+    }
+    const timestamps = client.cooldowns.get(command.config.name);
+    const expirationTime = (command.config.cooldowns || 1) * 1000;
+    if (timestamps.has(senderID) && dateNow < timestamps.get(senderID) + expirationTime) {
+      return api.setMessageReaction("⏳", event.messageID, () => {}, true);
     }
 
     try {
-      command.run({ api, event, args, Users, Threads, Currencies, permssion });
+      const Obj = { api, event, args, models, Users, Threads, Currencies, permssion, getText: () => {} };
+      command.run(Obj);
+      timestamps.set(senderID, dateNow);
+      return;
     } catch (e) {
-      api.sendMessage(`صار خلل: ${e.message}`, threadID);
+      console.error(e);
+      return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗗𝗘𝗩𝗘𝗟𝗢𝗣𝗘𝗥 ━━ ⌬\n\n❌ حدث خطأ أثناء تنفيذ الأمر\n\n${e.message}`, threadID);
     }
   };
 };
