@@ -5,13 +5,13 @@ if (!global.usersNames) global.usersNames = new Map();
 if (!global.conversationHistory) global.conversationHistory = new Map();
 
 module.exports.config = {
-  name: "نوفا",
+  name: "كيرا",
   version: "13.1",
   hasPermssion: 0,
   credits: "أيمن",
   description: "نوفا — بنت عراقية ذكية وساخرة ومخلصة للمطور",
   commandCategory: "AI",
-  usages: ".نوفا [النص]",
+  usages: ".كيرا [النص]",
   cooldowns: 3,
 };
 
@@ -44,7 +44,7 @@ const getResponseLength = (q) => {
 
 // ===== البرومبت الأساسي لنوفا =====
 const buildSystemRole = (dialect, userName, isAdmin) => `
-أنتِ فتاة اسمها "نوفا"، عراقية، عمرك 17 سنة.
+أنتِ فتاة اسمها "كيرا"، عراقية، عمرك 17 سنة.
 
 📌 شخصيتك:
 - ذكية جدًا وتجاوبين مباشرة بدون لفّ ودوران.
