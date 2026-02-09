@@ -20,6 +20,8 @@
   "author": "Ayman",
   "license": "GPL-3.0",
   "dependencies": {
+    "@hapi/catbox": "^12.1.1",
+    "@hapi/catbox-memory": "^6.0.1",
     "@miraipr0ject/assets": "",
     "@supercharge/strings": "^1.28.0",
     "@napi-rs/canvas": "^0.1.56",
