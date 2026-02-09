@@ -212,6 +212,21 @@ function onBot({ models: botModel }) {
     try {
         await sequelize.authenticate();
         const models = require('./includes/database/model.js')({ Sequelize, sequelize });
+        
+        // ✅ نظام حفظ تلقائي كل 5 دقائق
+        const Currencies = require('./includes/controllers/currencies')({ models });
+        
+        setInterval(async () => {
+            try {
+                await sequelize.sync({ force: false });
+                console.log(chalk.green('✅ [AUTO-SAVE] تم حفظ قاعدة البيانات تلقائياً'));
+            } catch (error) {
+                console.error(chalk.red('❌ [AUTO-SAVE] خطأ في الحفظ:'), error.message);
+            }
+        }, 5 * 60 * 1000); // كل 5 دقائق
+        
+        console.log(chalk.yellow('💾 [AUTO-SAVE] نظام الحفظ التلقائي نشط (كل 5 دقائق)'));
+        
         onBot({ models });
     } catch (error) { 
         console.log(error);
@@ -221,3 +236,30 @@ function onBot({ models: botModel }) {
 })();
 
 process.on('unhandledRejection', (err) => { console.log(err); });
+
+// ✅ حفظ قاعدة البيانات قبل إيقاف البوت
+process.on('SIGINT', async () => {
+    console.log(chalk.yellow('\n⏳ إيقاف البوت... جاري حفظ البيانات...'));
+    try {
+        await sequelize.sync({ force: false });
+        await sequelize.close();
+        console.log(chalk.green('✅ تم حفظ البيانات بنجاح'));
+        process.exit(0);
+    } catch (error) {
+        console.error(chalk.red('❌ خطأ في الحفظ:'), error);
+        process.exit(1);
+    }
+});
+
+process.on('SIGTERM', async () => {
+    console.log(chalk.yellow('\n⏳ تلقي إشارة SIGTERM... جاري حفظ البيانات...'));
+    try {
+        await sequelize.sync({ force: false });
+        await sequelize.close();
+        console.log(chalk.green('✅ تم حفظ البيانات بنجاح'));
+        process.exit(0);
+    } catch (error) {
+        console.error(chalk.red('❌ خطأ في الحفظ:'), error);
+        process.exit(1);
+    }
+});
