@@ -6,7 +6,7 @@
 		"status": true,
 		"icon": "😡"
 	},
-	"notiGroup": false,
+	"notiGroup": true,
 	"NOTIFICATION": true,
 	"allowInbox": true,
 	"commandDisabled": [],
