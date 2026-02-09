@@ -3,13 +3,13 @@ const fs = require('fs-extra');
 const path = require('path');
 
 module.exports.config = {
-  name: "حمام",
+  name: "مهرج",
   version: "2.5.0",
   hasPermssion: 0,
   credits: "ايمن",
-  description: "رمي شخص في الحمام (نظام تبديل تلقائي مستقر)",
+  description: "رمي  (نظام تبديل تلقائي مستقر)",
   commandCategory: "fun",
-  usages: "حمام [@منشن/ID/رد]",
+  usages: "مهرج [@منشن/ID/رد]",
   cooldowns: 5
 };
 
