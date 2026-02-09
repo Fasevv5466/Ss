@@ -1,49 +1,56 @@
 const axios = require("axios");
 
 module.exports.config = {
-  name: "رفع",
+  name: "رابط",
   version: "1.0.0",
   hasPermssion: 0,
   credits: "ايمن",
-  description: "رفع الملفات إلى Catbox",
+  description: "رفع الصور إلى Imgur",
   commandCategory: "utility",
-  usages: "قم بالرد على صورة أو فيديو أو صوت",
+  usages: "قم بالرد على صورة",
   cooldowns: 5
 };
 
-module.exports.run = async function({ api, event, args, Users, Threads, Currencies, models }) {
+module.exports.run = async function({ api, event }) {
   const { threadID, messageID, messageReply } = event;
 
   try {
     const attachment = messageReply?.attachments[0];
-    
-    if (!attachment || !attachment.url) {
-      return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n⚠️ يرجى الرد على ملف مرفق (صورة/فيديو/صوت) لرفعه", threadID, messageID);
+
+    if (!attachment || attachment.type !== "photo") {
+      return api.sendMessage(
+        "⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n⚠️ يرجى الرد على صورة لرفعها",
+        threadID,
+        messageID
+      );
     }
 
-    const waitMsg = await api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n⏳ جاري رفع الملف، يرجى الانتظار...", threadID);
+    const waitMsg = await api.sendMessage(
+      "⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n⏳ جاري رفع الصورة...",
+      threadID
+    );
 
-    const baseApiUrl = "https://catbox-mnib.onrender.com";
-    const { data } = await axios.get(`${baseApiUrl}/catbox`, {
+    const apiUrl = "https://catbox-mnib.onrender.com/imgur";
+    const { data } = await axios.get(apiUrl, {
       params: { url: attachment.url }
     });
 
     api.unsendMessage(waitMsg.messageID);
 
-    if (data && data.url) {
-      return api.sendMessage(
-        `⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n✅ تم رفع الملف بنجاح\n\n🔗 الرابط:\n${data.url}`,
-        threadID,
-        messageID
-      );
-    } else {
-      throw new Error("فشل الحصول على رابط الملف");
+    if (!data || !data.link) {
+      throw new Error("فشل رفع الصورة");
     }
 
-  } catch (error) {
-    console.error("رفع - خطأ:", error);
     return api.sendMessage(
-      `⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n❌ حدث خطأ أثناء رفع الملف\n📝 ${error.message}`,
+      `⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n✅ تم رفع الصورة بنجاح\n\n🔗 الرابط:\n${data.link}`,
+      threadID,
+      messageID
+    );
+
+  } catch (error) {
+    console.error("رابط - خطأ:", error);
+    return api.sendMessage(
+      `⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n❌ حدث خطأ أثناء رفع الصورة\n📝 ${error.message}`,
       threadID,
       messageID
     );
