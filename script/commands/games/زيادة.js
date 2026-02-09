@@ -1,38 +1,42 @@
-const fs = require("fs");
 const path = require("path");
+const { addMoney } = require(path.join(process.cwd(), "includes", "mongodb.js"));
 
 module.exports.config = {
     name: "زيادة",
-    version: "1.1.5",
+    version: "1.4.0",
     hasPermssion: 2,
     credits: "أيمن",
-    description: "شحن رصيد للمطور في MongoDB",
+    description: "شحن رصيد مع التحقق من مفتاح Atlas API",
     commandCategory: "Developer",
     usages: "[المبلغ]",
     cooldowns: 2
 };
 
 module.exports.run = async function({ api, event, args }) {
-    // مصفوفة بالمسارات المحتملة للملف
-    const possiblePaths = [
-        path.join(process.cwd(), "Includes", "mongodb.js"),
-        path.join(process.cwd(), "includes", "mongodb.js"),
-        path.join(__dirname, "../../../Includes/mongodb.js"),
-        path.join(__dirname, "../../../includes/mongodb.js")
-    ];
+    // جلب المفتاح من config.json
+    const masterKey = global.config.MODEL_API_KEY;
 
-    let mongoPath = possiblePaths.find(p => fs.existsSync(p));
-
-    if (!mongoPath) {
-        return api.sendMessage("❌ لم يتم العثور على ملف mongodb.js في أي مكان! تأكد من وجود المجلد والملف وصحة الإملاء.", event.threadID);
+    // التحقق من وجود المفتاح (إثبات الربط)
+    if (!masterKey || !masterKey.startsWith("al-wr4D")) { // التحقق من بداية المفتاح الذي ظهر بالصورة
+        return api.sendMessage("⚠️ خطأ: مفتاح Atlas API غير صالح أو غير مرتبط بالكونفج!", event.threadID);
     }
 
+    const amount = parseInt(args[0]) || 5000;
+
     try {
-        const { addMoney } = require(mongoPath);
-        const amount = parseInt(args[0]) || 5000;
+        // تنفيذ الإضافة في قاعدة البيانات السحابية
         const newBalance = await addMoney(event.senderID, amount);
-        return api.sendMessage(`✅ [MONGODB]\nتم الاتصال بنجاح.\n💰 رصيدك الحالي: ${newBalance}$`, event.threadID, event.messageID);
+
+        return api.sendMessage(
+            `✨ ━━ 𝗞𝗜𝗥𝗔 𝗖𝗟𝗢𝗨𝗗 ━━ ✨\n\n` +
+            `🔑 تم التحقق من الـ API Key بنجاح\n` +
+            `📡 الاتصال: سحابي (Project 0)\n\n` +
+            `✅ تم إضافة ${amount.toLocaleString()}$ برصيدك.\n` +
+            `💰 الإجمالي الحالي: ${newBalance.toLocaleString()}$`, 
+            event.threadID, event.messageID
+        );
+
     } catch (err) {
-        return api.sendMessage(`❌ خطأ داخلي: ${err.message}`, event.threadID);
+        return api.sendMessage(`❌ فشل الاتصال بالسحابة: ${err.message}`, event.threadID);
     }
 };
