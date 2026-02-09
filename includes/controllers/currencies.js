@@ -17,24 +17,42 @@ module.exports = function ({ models }) {
 
 	async function getData(userID) {
 		try {
-			const data = await Currencies.findOne({ where: { userID }});
-			if (data) return data.get({ plain: true });
-			else return false;
+			let data = await Currencies.findOne({ where: { userID }});
+			
+			// ✅ إذا لم يوجد، أنشئ حساب جديد تلقائياً
+			if (!data) {
+				console.log(`📝 [CURRENCY] إنشاء حساب جديد لـ ${userID}`);
+				await Currencies.create({ 
+					userID, 
+					money: 1000,  // رصيد ابتدائي
+					exp: 0,
+					data: {}
+				});
+				data = await Currencies.findOne({ where: { userID }});
+			}
+			
+			return data ? data.get({ plain: true }) : false;
 		} 
 		catch (error) {
-			console.error(error);
+			console.error('❌ [CURRENCY] خطأ في getData:', error);
 			throw new Error(error);
-		};
+		}
 	}
 
 	async function setData(userID, options = {}) {
 		if (typeof options != 'object' && !Array.isArray(options)) throw global.getText("currencies", "needObject");
 		try {
-			(await Currencies.findOne({ where: { userID } })).update(options);
-			return true;
+			const user = await Currencies.findOne({ where: { userID } });
+			if (user) {
+				await user.update(options);
+				await user.save(); // ✅ الحفظ الفوري!
+				console.log(`✅ [CURRENCY] حُفظت البيانات لـ ${userID}:`, options);
+				return true;
+			}
+			return false;
 		} 
 		catch (error) {
-			console.error(error);
+			console.error('❌ [CURRENCY] خطأ في setData:', error);
 			throw new Error(error);
 		}
 	}
@@ -63,28 +81,54 @@ module.exports = function ({ models }) {
 	}
 
 	async function increaseMoney(userID, money) {
-		if (typeof money != 'number') throw global.getText("currencies", "needNumber");
+		if (typeof money != 'number' || money < 0) throw new Error('المبلغ يجب أن يكون رقم موجب');
 		try {
-			let balance = (await getData(userID)).money;
-			await setData(userID, { money: balance + money });
+			const data = await getData(userID);
+			const oldBalance = data.money || 0;
+			const newBalance = oldBalance + money;
+			
+			await setData(userID, { money: newBalance });
+			
+			console.log(`💰 [CURRENCY] إضافة ${money} لـ ${userID} | ${oldBalance} → ${newBalance}`);
 			return true;
 		}
 		catch (error) {
-			console.error(error);
+			console.error('❌ [CURRENCY] خطأ في increaseMoney:', error);
 			throw new Error(error);
 		}
 	}
 
 	async function decreaseMoney(userID, money) {
-		if (typeof money != 'number') throw global.getText("currencies", "needNumber");
+		if (typeof money != 'number' || money < 0) throw new Error('المبلغ يجب أن يكون رقم موجب');
 		try {
-			let balance = (await getData(userID)).money;
-			if (balance < money) return false;
-			await setData(userID, { money: balance - money });
+			const data = await getData(userID);
+			const currentBalance = data.money || 0;
+			
+			if (currentBalance < money) {
+				console.log(`❌ [CURRENCY] رصيد غير كافٍ لـ ${userID}: ${currentBalance} < ${money}`);
+				return false;
+			}
+			
+			const newBalance = currentBalance - money;
+			await setData(userID, { money: newBalance });
+			
+			console.log(`💸 [CURRENCY] خصم ${money} من ${userID} | ${currentBalance} → ${newBalance}`);
 			return true;
 		} catch (error) {
-			console.error(error);
+			console.error('❌ [CURRENCY] خطأ في decreaseMoney:', error);
 			throw new Error(error);
+		}
+	}
+
+	// ✅ دالة حفظ قاعدة البيانات بشكل دوري
+	async function syncDatabase() {
+		try {
+			await Currencies.sync({ force: false });
+			console.log('✅ [CURRENCY] تم مزامنة قاعدة البيانات');
+			return true;
+		} catch (error) {
+			console.error('❌ [CURRENCY] خطأ في المزامنة:', error);
+			return false;
 		}
 	}
 
@@ -95,6 +139,7 @@ module.exports = function ({ models }) {
 		delData,
 		createData,
 		increaseMoney,
-		decreaseMoney
+		decreaseMoney,
+		syncDatabase
 	};
 };
