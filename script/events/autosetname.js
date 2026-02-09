@@ -1,37 +1,48 @@
-const moment = require("moment-timezone");
+const path = require("path");
+const mongoPath = path.join(process.cwd(), "includes", "mongodb.js");
+const { Currency, getUserData } = require(mongoPath);
 
 module.exports.config = {
-  name: "autosetname",
-  eventType: ["log:subscribe"], // يشتغل عند انضمام أي عضو جديد
-  version: "1.2.2",
-  credits: "Ayman",
-  description: "تغيير لقب الأعضاء الجدد تلقائياً عبر نظام ʜᴇʙᴀ ᴄʜᴀɴ"
+    name: "xpControl",
+    eventType: ["message", "message_reply"],
+    version: "1.2.0",
+    credits: "أيمن",
+    description: "تحديث الـ XP واللقب تلقائياً عند الوصول لفل جديد"
 };
 
-module.exports.run = async function ({ api, event }) {
-  const { threadID, logMessageData } = event;
+module.exports.run = async function({ api, event }) {
+    const { senderID, body, threadID, type } = event;
 
-  // جلب قائمة الأعضاء الجدد
-  const memJoin = logMessageData.addedParticipants;
-  if (!memJoin || memJoin.length === 0) return;
-
-  const botID = api.getCurrentUserID();
-
-  for (let user of memJoin) {
-    const idUser = user.userFbId;
-    const nameUser = user.fullName;
-
-    // تجاهل إذا كان البوت (ʜᴇʙᴀ ᴄʜᴀɴ) هو المنضم
-    if (idUser === botID) continue;
+    if (senderID == api.getCurrentUserID() || !body || type == "log:subscribe") return;
 
     try {
-      // تأخير بسيط (1.5 ثانية) لضمان الاستقرار
-      await new Promise(resolve => setTimeout(resolve, 1500));
+        // 1. تحديث الـ XP في السحابة
+        const updatedUser = await Currency.findOneAndUpdate(
+            { userID: senderID },
+            { $inc: { exp: 2 } },
+            { upsert: true, new: true }
+        );
 
-      // تغيير اللقب إلى الزخرفة الموحدة
-      await api.changeNickname(`𖣂 ${nameUser} 𖣂`, threadID, idUser);
+        const currentExp = updatedUser.exp;
+
+        // 2. التحقق إذا وصل لفل جديد (كل 100 XP)
+        // إذا كان باقي قسمة الـ XP على 100 هو 0 أو 2 (لأنه يزيد 2 كل مرة)
+        if (currentExp % 100 === 0 || currentExp % 100 === 2) {
+            
+            // جلب اسم الشخص
+            const info = await api.getUserInfo(senderID);
+            const nameUser = info[senderID].name;
+
+            // تحديث اللقب: NAME | XP: 100
+            const newNickname = `${nameUser} | XP: ${currentExp}`;
+            
+            await api.changeNickname(newNickname, threadID, senderID);
+            
+            // إرسال رسالة مباركة بسيطة (اختياري)
+            // api.sendMessage(`🎊 مبروك يا ${nameUser}! وصلت لفل جديد: ${Math.floor(currentExp/100) + 1}`, threadID);
+        }
+
     } catch (err) {
-      console.log(`⚠️ [ʜᴇʙᴀ ᴄʜᴀɴ] فشل تلقيب العضو: ${idUser}`, err);
+        console.error("❌ [XP & Nickname Error]:", err.message);
     }
-  }
 };
