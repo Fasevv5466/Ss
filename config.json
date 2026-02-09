@@ -1,6 +1,6 @@
 {
 	"language": "ar",
-	"DeveloperMode": false,
+	"DeveloperMode": true,
 	"autoCreateDB": true,
 	"iconUnsend": {
 		"status": true,
