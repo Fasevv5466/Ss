@@ -5,42 +5,36 @@ module.exports.config = {
   version: "1.0.0",
   hasPermssion: 0,
   credits: "عمر",
-  description: "كابوي - لعبة راعي البقر (مرتبطة بنظام العملات)",
+  description: "كابوي - لعبة راعي البقر (مرتبطة بنظام المزامنة)",
   commandCategory: "games",
-  usages: "كابوي [المبلغ]",
+  usages: ".كابوي [المبلغ]",
   cooldowns: 0
 };
 
 module.exports.run = async ({ api, event, args, Currencies }) => {
   const { threadID, messageID, senderID } = event;
 
-  // إذا كتب help
   if(args[0] == "help"){
     let imag = (await axios.get("https://i.imgur.com/VYf0UGv.jpg", { responseType: "stream" })).data;
-    return api.sendMessage({ body: "سحب البقرة ، ولكن ماذا تختار؟ =)))", attachment: imag }, threadID, messageID);
+    return api.sendMessage({ body: "◈ ───『 𝑲𝑰𝑹𝑨 𝑪𝑶𝑾𝑩𝑶𝒀 』─── ◈\n\nسحب البقرة ، ولكن ماذا تختار؟ =)))", attachment: imag }, threadID, messageID);
   }
 
-  // التحقق من الرصيد والرهان
   let money = (await Currencies.getData(senderID)).money;
   let cuoc = parseInt(args[0]);
 
-  if (isNaN(cuoc) || cuoc <= 0) return api.sendMessage("⚠️ يرجى إدخال مبلغ صحيح للرهان!\nمثال: .كابوي 100", threadID, messageID);
-  if (cuoc > money) return api.sendMessage(`❌ رصيدك لا يكفي! رصيدك الحالي هو: ${money}$`, threadID, messageID);
+  if (isNaN(cuoc) || cuoc <= 0) return api.sendMessage("◈ ───『 𝑲𝑰𝑹𝑨 𝑮𝑨𝑴𝑬𝑺 』─── ◈\n\n⚠️ يرجى إدخال مبلغ صحيح للرهان!\nمثال: .كابوي 100", threadID, messageID);
+  if (cuoc > money) return api.sendMessage(`◈ ───『 𝑲𝑰𝑹𝑨 𝑮𝑨𝑴𝑬𝑺 』─── ◈\n\n❌ رصيدك لا يكفي! رصيدك الحالي هو: ${money}$`, threadID, messageID);
 
-  // احصائيات الفوز العشوائية
   let tile_1 = Math.floor(Math.random() * 100);
   let tile_2 = Math.floor(Math.random() * 100);
   let tile_3 = Math.floor(Math.random() * 100);
   let tile_4 = Math.floor(Math.random() * 100);
   let tile_5 = Math.floor(Math.random() * 100);
 
-  // عرض المبالغ (نفس المبلغ لكل بقرة)
-  let sotien_1 = cuoc, sotien_2 = cuoc, sotien_3 = cuoc, sotien_4 = cuoc, sotien_5 = cuoc;
-
   let gif = (await axios.get("https://i.ibb.co/2dgF3vf/keobogif.gif", { responseType: "stream" })).data;
 
   let msg = {
-    body: `اختر بقرة :\n1. البقرة 1 [${sotien_1}$] || احتمالية الفوز ${tile_1}%\n2. البقرة 2 [${sotien_2}$] || احتمالية الفوز ${tile_2}%\n3. البقرة 3 [${sotien_3}$] || احتمالية الفوز ${tile_3}%\n4. البقرة 4 [${sotien_4}$] || احتمالية الفوز ${tile_4}%\n5. البقرة 5 [${sotien_5}$] || احتمالية الفوز ${tile_5}%\nرد برقم البقرة`,
+    body: `◈ ───『 𝑲𝑰𝑹𝑨 𝑮𝑨𝑴𝑬𝑺 』─── ◈\n\nاختر بقرة :\n1. البقرة 1 [${cuoc}$] || احتمالية الفوز ${tile_1}%\n2. البقرة 2 [${cuoc}$] || احتمالية الفوز ${tile_2}%\n3. البقرة 3 [${cuoc}$] || احتمالية الفوز ${tile_3}%\n4. البقرة 4 [${cuoc}$] || احتمالية الفوز ${tile_4}%\n5. البقرة 5 [${cuoc}$] || احتمالية الفوز ${tile_5}%\n\nرد برقم البقرة للبدء!`,
     attachment: gif
   };
 
@@ -56,13 +50,9 @@ module.exports.run = async ({ api, event, args, Currencies }) => {
 
 module.exports.handleReply = async ({ api, event, handleReply }) => {
   const { threadID, senderID, messageID, body } = event;
-  const { author, cuoc } = handleReply;
+  if (handleReply.author !== senderID) return api.sendMessage("❌ مو انت الي سويت هذا الكيم!", threadID, messageID);
 
-  if (author !== senderID)
-    return api.sendMessage("مو انت الي سويت هذا الكيم، ميصر تلعب!", threadID, messageID);
-
-  if(isNaN(body)) return api.sendMessage("يجب عليك إدخال رقم!", threadID);
-  if(body < 1 || body > 5) return api.sendMessage("يمكنك فقط الاختيار من 1 إلى 5", threadID, messageID);
+  if(isNaN(body) || body < 1 || body > 5) return api.sendMessage("⚠️ اختر من 1 إلى 5 فقط!", threadID, messageID);
 
   const images = {
     "1": ["https://i.ibb.co/VH1jcVH/bo1-success.jpg","https://i.ibb.co/JCNFMF1/bo1-fail.jpg"],
@@ -73,12 +63,10 @@ module.exports.handleReply = async ({ api, event, handleReply }) => {
   };
 
   let [win, lose] = images[body];
-
-  let msg = `لقد حددت البقرة ${body}!  \nرد ع الرسالة واكتب "سحب" للبدء`;
   global.client.keobo = global.client.keobo || {};
-  global.client.keobo[senderID] = { stt: body, author: senderID, win, lose, cuoc };
+  global.client.keobo[senderID] = { stt: body, author: senderID, win, lose, cuoc: handleReply.cuoc };
 
-  return api.sendMessage(msg, threadID, (err, info) => {});
+  return api.sendMessage(`◈ ───『 𝑲𝑰𝑹𝑨 𝑪𝑶𝑾𝑩𝑶𝒀 』─── ◈\n\nلقد حددت البقرة ${body}!\nرد على الرسالة بكلمة "سحب" الآن!`, threadID, messageID);
 };
 
 module.exports.handleEvent = async({ api, event, Users, Currencies }) => {
@@ -87,24 +75,19 @@ module.exports.handleEvent = async({ api, event, Users, Currencies }) => {
 
   if(body == "سحب") {
     let name1 = await Users.getNameUser(senderID);
-    let { stt, win, lose, cuoc } = global.client.keobo[senderID];
-
-    let choose = ["true","false"];
-    let ans = choose[Math.floor(Math.random() * choose.length)];
-
+    let { win, lose, cuoc } = global.client.keobo[senderID];
+    let ans = Math.random() > 0.5 ? "true" : "false";
     let image = (await axios.get(ans == "true" ? win : lose, { responseType: "stream" })).data;
     
     if (ans == "true") {
-        await Currencies.increaseMoney(senderID, cuoc); // يربح ضعف الرهان
-        var status = `${name1} فاز وتمكن من امساك البقرة! 🐄\nربحت: ${cuoc}$`;
+        await Currencies.increaseMoney(senderID, cuoc);
+        var status = `✅ ${name1} فاز وتمكن من امساك البقرة!\n💰 ربحت: ${cuoc}$`;
     } else {
-        await Currencies.decreaseMoney(senderID, cuoc); // يخسر الرهان
-        var status = `${name1} لم يتمكن من سحب البقرة! 😅\nخسرت: ${cuoc}$`;
+        await Currencies.decreaseMoney(senderID, cuoc);
+        var status = `❌ ${name1} لم يتمكن من سحب البقرة!\n💸 خسرت: ${cuoc}$`;
     }
 
-    let msg = { body: status, attachment: image };
-
-    api.sendMessage(msg, threadID);
+    api.sendMessage({ body: `◈ ───『 𝑲𝑰𝑹𝑨 𝑹𝑬𝑺𝑼𝑳𝑻 』─── ◈\n\n${status}`, attachment: image }, threadID);
     delete global.client.keobo[senderID];
   }
 };
