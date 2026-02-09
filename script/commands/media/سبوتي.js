@@ -1,15 +1,15 @@
 module.exports.config = {
   name: "سبوتي",
-  version: "2.1.1",
+  version: "2.2.0",
   hasPermssion: 0,
   credits: "ايمن",
-  description: "البحث عن المقاطع الصوتية وإرسالها",
+  description: "البحث عن الأغاني وإرسالها (نسخة مستقرة)",
   commandCategory: "media",
   usages: "سبوتي [اسم الأغنية]",
   cooldowns: 10
 };
 
-module.exports.run = async function({ api, event, args, Users, Threads, Currencies, models }) {
+module.exports.run = async function({ api, event, args }) {
   const axios = require("axios");
   const fs = require("fs-extra");
   const path = require("path");
@@ -18,77 +18,67 @@ module.exports.run = async function({ api, event, args, Users, Threads, Currenci
   const songName = args.join(" ");
 
   if (!songName) {
-    return api.sendMessage(
-      `⌬ ━━ 𝗞𝗜𝗥𝗔 MEDIA ━━ ⌬\n\n` +
-      `يرجى كتابة اسم الأغنية`,
-      threadID,
-      messageID
-    );
+    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\nيرجى كتابة اسم الأغنية التي تبحث عنها!", threadID, messageID);
   }
 
   api.setMessageReaction("🔍", messageID, () => {}, true);
 
   try {
+    // استخدام API ديزر للبحث
     const res = await axios.get(`https://api.deezer.com/search?q=${encodeURIComponent(songName)}&limit=1`);
     
     if (!res.data.data || res.data.data.length === 0) {
       api.setMessageReaction("❌", messageID, () => {}, true);
-      return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 MEDIA ━━ ⌬\n\nلم أجد هذا المقطع", threadID, messageID);
+      return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\nلم أجد هذا المقطع، جرب كتابة اسم الفنان مع الأغنية.", threadID, messageID);
     }
 
     const song = res.data.data[0];
-    const audioUrl = song.preview;
+    const audioUrl = song.preview; // رابط المقطع الصوتي (30 ثانية بجودة عالية)
     const title = song.title;
     const artist = song.artist.name;
-    const cover = song.album.cover_big;
+    const coverUrl = song.album.cover_big;
 
-    let msg = `⌬ ━━ 𝗞𝗜𝗥𝗔 MEDIA ━━ ⌬\n\n`;
-    msg += `الفنان: ${artist}\n`;
-    msg += `الأغنية: ${title}\n\n`;
-    msg += `جاري إرسال المقطع الصوتي`;
+    const cacheDir = path.join(__dirname, "cache");
+    if (!fs.existsSync(cacheDir)) fs.ensureDirSync(cacheDir);
+
+    const audioPath = path.join(cacheDir, `${Date.now()}_audio.mp3`);
+    const coverPath = path.join(cacheDir, `${Date.now()}_cover.jpg`);
 
     api.setMessageReaction("🎵", messageID, () => {}, true);
 
-    const getStream = async (url) => {
-      const response = await axios.get(url, { responseType: "arraybuffer" });
-      const tempPath = path.join(__dirname, "cache", `temp_${Date.now()}.jpg`);
-      fs.writeFileSync(tempPath, Buffer.from(response.data));
-      return fs.createReadStream(tempPath);
+    // تحميل الغلاف والصوت
+    const [audioRes, coverRes] = await Promise.all([
+      axios.get(audioUrl, { responseType: "arraybuffer" }),
+      axios.get(coverUrl, { responseType: "arraybuffer" })
+    ]);
+
+    fs.writeFileSync(audioPath, Buffer.from(audioRes.data));
+    fs.writeFileSync(coverPath, Buffer.from(coverRes.data));
+
+    const msg = {
+      body: `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗦𝗣𝗢𝗧𝗜𝗙𝗬 ━━ ⌬\n\n` +
+            `🎤 الفنان: ${artist}\n` +
+            `🎵 الأغنية: ${title}\n\n` +
+            `جاري إرسال المقطع الصوتي...`,
+      attachment: fs.createReadStream(coverPath)
     };
 
-    api.sendMessage(
-      {
-        body: msg,
-        attachment: await getStream(cover)
-      },
-      threadID,
-      async (err, info) => {
-        if (audioUrl) {
-          const filePath = path.join(__dirname, "cache", `${Date.now()}_${senderID}.mp3`);
-          const getAudio = await axios.get(audioUrl, { responseType: "arraybuffer" });
-          fs.ensureDirSync(path.join(__dirname, "cache"));
-          fs.writeFileSync(filePath, Buffer.from(getAudio.data, "utf-8"));
-
-          api.sendMessage(
-            {
-              body: `⌬ ━━ 𝗞𝗜𝗥𝗔 MEDIA ━━ ⌬\n\nتم جلب المقطع بنجاح: ${title}`,
-              attachment: fs.createReadStream(filePath)
-            },
-            threadID,
-            () => {
-              if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-              api.setMessageReaction("✅", messageID, () => {}, true);
-            },
-            messageID
-          );
-        }
-      },
-      messageID
-    );
+    // إرسال الصورة مع النص أولاً، ثم إرسال المقطع الصوتي
+    return api.sendMessage(msg, threadID, (err, info) => {
+      api.sendMessage({
+        body: `🎶 مقطع: ${title}`,
+        attachment: fs.createReadStream(audioPath)
+      }, threadID, () => {
+        // تنظيف الملفات بعد الإرسال
+        if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
+        if (fs.existsSync(coverPath)) fs.unlinkSync(coverPath);
+        api.setMessageReaction("✅", messageID, () => {}, true);
+      }, messageID);
+    }, messageID);
 
   } catch (error) {
     console.error(error);
     api.setMessageReaction("❌", messageID, () => {}, true);
-    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 MEDIA ━━ ⌬\n\nحدث خطأ أثناء البحث", threadID, messageID);
+    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\nحدث خطأ أثناء الاتصال بالمخدم، حاول لاحقاً.", threadID, messageID);
   }
 };
