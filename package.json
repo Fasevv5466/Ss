@@ -87,7 +87,7 @@
     "openai": "^4.0.0",
     "tesseract.js": "^4.1.1",
     "wasmoon": "^1.1.1",
-    "hut-chat-api": "^1.0.1",
+    "hut-chat-api": "^1.0.5",
     "canvas": "^2.11.0",
     "moment": "^2.29.4",
     "qs": "^6.12.0",
