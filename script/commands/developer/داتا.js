@@ -4,10 +4,10 @@ const axios = require("axios");
 
 module.exports.config = {
   name: "داتا",
-  version: "4.0.0",
+  version: "4.1.0",
   hasPermssion: 2,
   credits: "ايمن",
-  description: "نسخ احتياطي واستعادة الداتا بالبحث الشامل",
+  description: "نسخ احتياطي واستعادة ملفات JSON",
   commandCategory: "developer",
   usages: "داتا (للتحميل) أو رد على ملف (للرفع)",
   cooldowns: 5
@@ -18,83 +18,74 @@ module.exports.run = async function({ api, event, args }) {
 
   if (!global.config.ADMINBOT.includes(senderID)) return;
 
+  // الملفات المطلوبة
   const targetFiles = ['threads.json', 'users.json', 'currencies.json'];
+  
+  // تحديد المجلدات المحتملة يدوياً لضمان الدقة
+  const possibleDirs = [
+    path.join(process.cwd(), 'includes', 'database'),
+    path.join(process.cwd(), 'database'),
+    path.join(process.cwd(), 'modules', 'commands', 'cache'),
+    process.cwd()
+  ];
 
-  // دالة البحث الشامل في كل مجلدات البوت
-  function globalSearch(fileName) {
-    const root = process.cwd();
-    let foundPath = null;
-
-    function search(dir) {
-      if (foundPath) return;
-      const items = fs.readdirSync(dir);
-      for (const item of items) {
-        const fullPath = path.join(dir, item);
-        if (fullPath.includes("node_modules")) continue; // تخطي مجلد المكتبات
-        
-        const stat = fs.statSync(fullPath);
-        if (stat.isDirectory()) {
-          search(fullPath);
-        } else if (item === fileName) {
-          foundPath = fullPath;
-          return;
-        }
-      }
+  // دالة البحث عن مسار الملف
+  const getFilePath = (name) => {
+    for (const dir of possibleDirs) {
+      const fullPath = path.join(dir, name);
+      if (fs.existsSync(fullPath)) return fullPath;
     }
+    return null;
+  };
 
-    try {
-      search(root);
-    } catch (e) {}
-    return foundPath;
-  }
-
-  // --- الجزء الأول: رفع الداتا (عند الرد) ---
+  // --- الجزء الأول: الرفع (عند الرد) ---
   if (type === "message_reply") {
     const attachment = messageReply.attachments[0];
     if (!attachment || !attachment.filename.endsWith(".json")) {
-       return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\n❌ رد على ملف .json", threadID, messageID);
+      return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\n❌ يرجى الرد على ملف .json حصراً.", threadID, messageID);
     }
 
     const fileName = attachment.filename;
     api.setMessageReaction("⏳", messageID, () => {}, true);
 
     try {
-      const savePath = globalSearch(fileName) || path.join(process.cwd(), fileName);
+      // إذا الملف موجود نحدثه في مكانه، إذا مش موجود نرفعه في أول مسار متاح
+      const savePath = getFilePath(fileName) || path.join(possibleDirs[0], fileName);
       const response = await axios.get(attachment.url, { responseType: "arraybuffer" });
       
       fs.ensureDirSync(path.dirname(savePath));
       fs.writeFileSync(savePath, Buffer.from(response.data));
 
       api.setMessageReaction("✅", messageID, () => {}, true);
-      api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗗𝗔𝗧𝗔 ━━ ⌬\n\n✅ تم تحديث [ ${fileName} ]\n📍 المسار: ${savePath}\n🔄 يتم الآن إعادة التشغيل...`, threadID);
+      api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 𝗗𝗔𝗧𝗔 ━━ ⌬\n\n✅ تم تحديث [ ${fileName} ] بنجاح.\n🔄 سيتم إعادة التشغيل الآن...`, threadID);
       
       setTimeout(() => process.exit(1), 2000);
     } catch (e) {
-      return api.sendMessage(`❌ فشل: ${e.message}`, threadID, messageID);
+      return api.sendMessage(`❌ فشل في الرفع: ${e.message}`, threadID, messageID);
     }
     return;
   }
 
-  // --- الجزء الثاني: تحميل الداتا (إرسال الملفات) ---
+  // --- الجزء الثاني: التحميل (إرسال الملفات) ---
   api.setMessageReaction("📥", messageID, () => {}, true);
   
   let attachments = [];
-  let foundDetails = "";
+  let foundList = "";
 
   for (const name of targetFiles) {
-    const fullPath = globalSearch(name);
+    const fullPath = getFilePath(name);
     if (fullPath) {
       attachments.push(fs.createReadStream(fullPath));
-      foundDetails += `• ${name}\n`;
+      foundList += `• ${name}\n`;
     }
   }
 
   if (attachments.length === 0) {
-    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\n❌ لم يتم العثور على الملفات المطلوبة نهائياً في مجلد البوت.\nتأكد أن السكربت يستخدم ملفات JSON للتخزين.", threadID, messageID);
+    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\n❌ لم يتم العثور على الملفات المطلوبة.\nتأكد من وجود مجلد database أو includes.", threadID, messageID);
   }
 
   return api.sendMessage({
-    body: `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗗𝗔𝗧𝗔 ━━ ⌬\n\n✅ تم العثور على الملفات:\n${foundDetails}\n💡 للرفع: رد على الملف بكلمة "داتا"`,
+    body: `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗗𝗔𝗧𝗔 ━━ ⌬\n\n✅ تم العثور على الداتا:\n${foundList}\n💡 للرفع: رد على الملف بكلمة "داتا"`,
     attachment: attachments
   }, threadID, () => api.setMessageReaction("✅", messageID, () => {}, true), messageID);
 };
