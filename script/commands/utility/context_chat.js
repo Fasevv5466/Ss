@@ -4,10 +4,10 @@ const { Groq } = require('groq-sdk');
 const conversations = new Map();
 
 module.exports.config = {
-    name: "محادثة_جروك",
+    name: "جرو",
     aliases: ["chat_groq", "حوار", "دردشة_جروك"],
     description: "محادثة متواصلة مع Groq AI (يحفظ السياق)",
-    usage: "محادثة_جروك [رسالتك] | استخدم 'مسح' لحذف السياق",
+    usage: "جرو [رسالتك] | استخدم 'مسح' لحذف السياق",
     cooldown: 5,
     permissions: [],
     category: "ai"
@@ -33,9 +33,9 @@ module.exports.run = async ({ api, event, args }) => {
         if (!args[0]) {
             const hasContext = conversations.has(conversationKey);
             return api.sendMessage(
-                "💬 محادثة جروك - نموذج متقدم\n\n" +
-                "📝 الاستخدام: محادثة_جروك [رسالتك]\n" +
-                "🗑️ لمسح السياق: محادثة_جروك مسح\n\n" +
+                "💬 محادثة جرو - نموذج متقدم\n\n" +
+                "📝 الاستخدام: جرو [رسالتك]\n" +
+                "🗑️ لمسح السياق: جرو مسح\n\n" +
                 `📊 الحالة: ${hasContext ? '✅ يوجد سياق محادثة' : '❌ لا يوجد سياق'}`,
                 event.threadID,
                 event.messageID
@@ -109,13 +109,13 @@ module.exports.run = async ({ api, event, args }) => {
             `💬 جروك AI (محادثة):\n\n${response}\n\n` +
             `━━━━━━━━━━━━━━━\n` +
             `📊 عدد الرسائل في السياق: ${messageCount}\n` +
-            `🗑️ لمسح السياق: محادثة_جروك مسح`,
+            `🗑️ لمسح السياق: جرو مسح`,
             event.threadID,
             event.messageID
         );
 
     } catch (error) {
-        console.error("❌ خطأ في محادثة_جروك:", error);
+        console.error("❌ خطأ في جرو:", error);
         return api.sendMessage(
             `⚠️ حدث خطأ: ${error.message}`,
             event.threadID,
