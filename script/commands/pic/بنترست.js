@@ -1,13 +1,13 @@
 const axios = require("axios");
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
 
 module.exports.config = {
   name: "بنترست",
-  version: "1.0.0",
+  version: "1.1.0",
   hasPermssion: 0,
   credits: "ايمن",
-  description: "البحث عن صور من Pinterest",
+  description: "البحث عن صور من Pinterest باستخدام API مستقر",
   commandCategory: "pic",
   usages: "[كلمة البحث] [العدد]",
   cooldowns: 5
@@ -16,90 +16,55 @@ module.exports.config = {
 module.exports.run = async function({ api, event, args }) {
   const { threadID, messageID } = event;
 
-  const keySearch = args.slice(0, -1).join(" ");
-  const numberImages = parseInt(args[args.length - 1]) || 5;
+  // تحسين جلب المدخلات
+  let keySearch, numberImages;
+  if (!isNaN(args[args.length - 1])) {
+    numberImages = parseInt(args.pop());
+    keySearch = args.join(" ");
+  } else {
+    keySearch = args.join(" ");
+    numberImages = 6; // العدد الافتراضي
+  }
 
   if (!keySearch) {
-    return api.sendMessage(
-      "⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\n📝 الاستخدام: بنترست [كلمة البحث] [العدد]\n\n💡 مثال: بنترست cat 10",
-      threadID,
-      messageID
-    );
+    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\n📝 الاستخدام: بنترست [كلمة البحث] [العدد]\n\n💡 مثال: بنترست ليفاي 10", threadID, messageID);
   }
 
-  if (numberImages > 20) {
-    return api.sendMessage(
-      "⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\n⚠️ العدد الأقصى للصور هو 20",
-      threadID,
-      messageID
-    );
-  }
+  if (numberImages > 10) numberImages = 10; // تقليل العدد لضمان سرعة الرفع وعدم الحظر
 
   try {
-    const waitMsg = await api.sendMessage(
-      `⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\n⏳ جاري البحث عن "${keySearch}"...`,
-      threadID
-    );
+    const waitMsg = await api.sendMessage(`⏳ جاري البحث عن "${keySearch}" في بنترست...`, threadID);
 
-    const apiUrl = `https://catbox-mnib.onrender.com/pinterest`;
-    const { data } = await axios.get(apiUrl, {
-      params: { 
-        query: keySearch,
-        count: numberImages
-      }
-    });
+    // استخدام API بديل ومستقر
+    const res = await axios.get(`https://api.kenliejugar.com/pinterestsearch/?search=${encodeURIComponent(keySearch)}`);
+    const data = res.data.data; // تعديل حسب استجابة الـ API الجديد
 
-    api.unsendMessage(waitMsg.messageID);
-
-    if (!data || !data.images || data.images.length === 0) {
-      return api.sendMessage(
-        `⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\n❌ لم يتم العثور على صور لـ "${keySearch}"`,
-        threadID,
-        messageID
-      );
+    if (!data || data.length === 0) {
+      return api.sendMessage(`❌ لم يتم العثور على نتائج لـ "${keySearch}"`, threadID, messageID);
     }
 
     const attachments = [];
-    const cacheDir = path.join(__dirname, "cache");
-    
-    if (!fs.existsSync(cacheDir)) {
-      fs.mkdirSync(cacheDir, { recursive: true });
-    }
+    const cacheDir = path.join(__dirname, "cache", `pin_${Date.now()}`);
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
 
-    for (let i = 0; i < data.images.length; i++) {
-      const imageUrl = data.images[i];
-      const imagePath = path.join(cacheDir, `pinterest_${Date.now()}_${i}.jpg`);
-      
-      const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
-      fs.writeFileSync(imagePath, imageResponse.data);
-      
+    const limit = Math.min(data.length, numberImages);
+
+    for (let i = 0; i < limit; i++) {
+      const imagePath = path.join(cacheDir, `${i}.jpg`);
+      const imgRes = await axios.get(data[i], { responseType: "arraybuffer" });
+      fs.writeFileSync(imagePath, Buffer.from(imgRes.data, "utf-8"));
       attachments.push(fs.createReadStream(imagePath));
     }
 
-    await api.sendMessage(
-      {
-        body: `⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\n✅ تم العثور على ${data.images.length} صورة\n🔍 البحث: ${keySearch}`,
-        attachment: attachments
-      },
-      threadID,
-      () => {
-        attachments.forEach((_, i) => {
-          const filePath = path.join(cacheDir, `pinterest_${Date.now()}_${i}.jpg`);
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
-        });
-      },
-      messageID
-    );
+    api.unsendMessage(waitMsg.messageID);
+
+    await api.sendMessage({
+      body: `⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\n✅ تم العثور على ${limit} صورة\n🔍 البحث: ${keySearch}`,
+      attachment: attachments
+    }, threadID, () => fs.removeSync(cacheDir), messageID);
 
   } catch (error) {
-    console.error("بنترست - خطأ:", error);
-    return api.sendMessage(
-      `⌬ ━━ 𝗞𝗜𝗥𝗔 PIC ━━ ⌬\n\n❌ حدث خطأ أثناء البحث\n📝 ${error.message}`,
-      threadID,
-      messageID
-    );
+    console.error(error);
+    return api.sendMessage(`❌ حدث خطأ: الـ API الخارجي لا يستجيب حالياً.\n📝 ${error.message}`, threadID, messageID);
   }
 };
-
