@@ -7,7 +7,16 @@
     "start": "node index.js",
     "login": "node login"
   },
-  "keywords": ["bot", "facebook", "messenger", "kira", "ai"],
+  "keywords": [
+    "bot",
+    "facebook",
+    "messenger",
+    "kira",
+    "ai",
+    "groq",
+    "arabic",
+    "llama"
+  ],
   "author": "Ayman",
   "license": "GPL-3.0",
   "dependencies": {
@@ -37,6 +46,7 @@
     "gifencoder": "^2.0.1",
     "got": "^11.8.3",
     "gradient-string": "^2.0.2",
+    "groq-sdk": "^0.3.0",
     "gtts": "^0.2.1",
     "https-proxy-agent": "^7.0.6",
     "i": "^0.3.7",
@@ -82,5 +92,8 @@
     "qrcode": "^1.5.3",
     "qrcode-reader": "^1.0.4",
     "imgur": "^2.4.2"
+  },
+  "engines": {
+    "node": ">=20.16.0"
   }
 }
