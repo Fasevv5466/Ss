@@ -1,47 +1,72 @@
 module.exports.config = {
   name: "اوامر",
-  version: "2.0.0",
+  version: "3.0.0",
   hasPermssion: 0,
   credits: "ايمن",
-  description: "قائمة الأوامر",
+  description: "عرض الأوامر مقسمة حسب الفئة بالرد بالرقم",
   commandCategory: "utility",
   usages: "اوامر",
   cooldowns: 5
 };
 
-module.exports.run = async ({ api, event, senderID }) => {
-  const categories = ["developer", "admin", "utility", "media", "pic", "games", "fun"];
-  const arabicLabels = ["المطور", "الأدمن", "أدوات", "وسائط", "صور", "ألعاب", "مرح"];
+module.exports.handleEvent = async function({ api, event }) {
+  const { reaction, messageReply } = event;
+  if (reaction === "😡" && messageReply?.senderID === api.getCurrentUserID()) {
+    return api.unsendMessage(messageReply.messageID);
+  }
+};
 
-  let msg = "⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n";
-  arabicLabels.forEach((label, i) => msg += `\n${i + 1}. ${label}`);
-  msg += "\n\nالرد برقم الفئة";
+module.exports.handleReply = async function({ api, event, handleReply }) {
+  const { threadID, messageID, body } = event;
+  const { commands } = global.client;
+  const { categories, type } = handleReply;
 
-  return api.sendMessage(msg, event.threadID, (err, info) => {
+  if (type === "chooseCategory") {
+    const index = parseInt(body) - 1;
+    if (isNaN(index) || index < 0 || index >= categories.length) {
+      return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\nالرقم غير صحيح، يرجى اختيار رقم من القائمة أعلاه.", threadID, messageID);
+    }
+
+    const category = categories[index];
+    const categoryCommands = Array.from(commands.values()).filter(cmd => cmd.config.commandCategory === category);
+    
+    let msg = `⌬ ━━ 𝗞𝗜𝗥𝗔 ${category.toUpperCase()} ━━ ⌬\n\n`;
+    msg += `الأوامر المتاحة في هذه الفئة:\n`;
+    msg += `» ${categoryCommands.map(cmd => cmd.config.name).join("، ")}\n\n`;
+    msg += `💡 رد بـ (😡) لحذف هذه الرسالة.`;
+
+    api.unsendMessage(handleReply.messageID);
+    return api.sendMessage(msg, threadID, messageID);
+  }
+};
+
+module.exports.run = async function({ api, event }) {
+  const { threadID, messageID } = event;
+  const { commands } = global.client;
+
+  // استخراج الفئات الفريدة من الأوامر
+  const categories = [];
+  for (const cmd of commands.values()) {
+    const category = cmd.config.commandCategory;
+    if (!categories.includes(category)) {
+      categories.push(category);
+    }
+  }
+
+  let msg = `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗛𝗘𝗟𝗣 ━━ ⌬\n\n`;
+  msg += `لديك ${commands.size} أمراً متاحاً.\n`;
+  msg += `يرجى الرد برقم الفئة لعرض أوامرها:\n\n`;
+
+  categories.forEach((cat, i) => {
+    msg += `${i + 1}. 【 ${cat.toUpperCase()} 】\n`;
+  });
+
+  return api.sendMessage(msg, threadID, (err, info) => {
     global.client.handleReply.push({
       name: this.config.name,
       messageID: info.messageID,
-      author: event.senderID,
-      categories
+      categories: categories,
+      type: "chooseCategory"
     });
-  }, event.messageID);
-};
-
-module.exports.handleReply = async ({ api, event, handleReply }) => {
-  const { threadID, messageID, body, senderID } = event;
-  if (senderID !== handleReply.author) return;
-
-  const index = parseInt(body) - 1;
-  const category = handleReply.categories[index];
-  if (!category) return api.sendMessage("❌ رقم غير صالح", threadID, messageID);
-
-  api.unsendMessage(handleReply.messageID);
-
-  const cmds = Array.from(global.client.commands.values())
-    .filter(c => c.config.commandCategory.toLowerCase() === category);
-
-  let msg = `⌬ ━━ 𝗞𝗜𝗥𝗔 ${category.toUpperCase()} ━━ ⌬\n`;
-  cmds.forEach((c, i) => msg += `\n${i + 1}. ${global.config.PREFIX}${c.config.name}`);
-  
-  return api.sendMessage(msg + "\n\n⌬ ━━━━━━━━━━━━━━ ⌬", threadID, messageID);
+  }, messageID);
 };
