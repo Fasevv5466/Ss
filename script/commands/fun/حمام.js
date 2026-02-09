@@ -4,10 +4,10 @@ const path = require('path');
 
 module.exports.config = {
   name: "حمام",
-  version: "2.1.0",
+  version: "2.5.0",
   hasPermssion: 0,
   credits: "ايمن",
-  description: "رمي شخص في الحمام (يدعم المنشن، الأيدي، والرد)",
+  description: "رمي شخص في الحمام (نظام تبديل تلقائي مستقر)",
   commandCategory: "fun",
   usages: "حمام [@منشن/ID/رد]",
   cooldowns: 5
@@ -15,7 +15,6 @@ module.exports.config = {
 
 module.exports.handleEvent = async function({ api, event }) {
   const { messageID, reaction, messageReply } = event;
-  // حذف الرسالة عند التفاعل بـ 👍 على رسالة البوت
   if (reaction === "👍" && messageReply?.senderID === api.getCurrentUserID()) {
     return api.unsendMessage(messageReply.messageID);
   }
@@ -24,10 +23,9 @@ module.exports.handleEvent = async function({ api, event }) {
 module.exports.run = async function({ api, event, args, Users, Threads, Currencies, models }) {
   const { threadID, messageID, senderID, mentions, type, messageReply } = event;
   const cacheDir = path.join(__dirname, 'cache');
-  const imagePath = path.join(cacheDir, `toilet_${senderID}_${Date.now()}.png`);
+  const imagePath = path.join(cacheDir, `toilet_${senderID}.png`);
 
   let targetID;
-  // تحديد المعرف الذكي: 1. منشن | 2. رد على رسالة | 3. أيدي مباشر
   if (Object.keys(mentions).length > 0) {
     targetID = Object.keys(mentions)[0];
   } else if (type === "message_reply") {
@@ -37,23 +35,26 @@ module.exports.run = async function({ api, event, args, Users, Threads, Currenci
   }
 
   if (!targetID) {
-    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 FUN ━━ ⌬\n\nمن تريد رميه في الحمام؟ قم بالإشارة إليه أو الرد عليه أو كتابة الأيدي", threadID, messageID);
+    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 FUN ━━ ⌬\n\nمن تريد رميه في الحمام؟ قم بالإشارة إليه أو الرد عليه", threadID, messageID);
   }
 
   try {
     const senderName = await Users.getNameUser(senderID);
     const targetName = await Users.getNameUser(targetID);
-    
-    // جلب الصورة من الـ API (استخدام مصدر مستقر)
     const avatarUrl = `https://graph.facebook.com/${targetID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
-    const apiUrl = `https://api.popcat.xyz/clown?image=${encodeURIComponent(avatarUrl)}`; 
-    // ملاحظة: إذا كان الـ API الخاص بـ toilet معطلاً، هذا البديل يعمل بنفس الكفاءة
-    // قمت بتبديله لرابط معالجة الصور الأكثر استقراراً لضمان عدم ظهور الصورة فارغة
-    
-    const res = await axios.get(`https://api.vyturex.com/toilet?userid=${targetID}`, { responseType: 'arraybuffer' });
+
+    let response;
+    try {
+      // المحاولة الأولى: المصدر الأساسي
+      response = await axios.get(`https://www.api.vyturex.com/toilet?userid=${targetID}`, { responseType: 'arraybuffer', timeout: 5000 });
+    } catch (e) {
+      // المحاولة الثانية (Fallback): إذا فشل الأول نستخدم قالب Clown أو Wanted لضمان استمرار اللعب
+      const fallbackUrl = `https://api.popcat.xyz/clown?image=${encodeURIComponent(avatarUrl)}`;
+      response = await axios.get(fallbackUrl, { responseType: 'arraybuffer' });
+    }
     
     fs.ensureDirSync(cacheDir);
-    fs.writeFileSync(imagePath, Buffer.from(res.data, 'utf-8'));
+    fs.writeFileSync(imagePath, Buffer.from(response.data, 'utf-8'));
 
     return api.sendMessage({
       body: `⌬ ━━ 𝗞𝗜𝗥𝗔 FUN ━━ ⌬\n\n${senderName} يرمي ${targetName} في الحمام`,
@@ -64,6 +65,6 @@ module.exports.run = async function({ api, event, args, Users, Threads, Currenci
 
   } catch (error) {
     if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
-    return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 FUN ━━ ⌬\n\nحدث خطأ أثناء محاولة رميه في الحمام!`, threadID, messageID);
+    return api.sendMessage(`⌬ ━━ 𝗞𝗜𝗥𝗔 FUN ━━ ⌬\n\nعذراً، محرك الصور تحت الصيانة حالياً.`, threadID, messageID);
   }
 };
