@@ -1,10 +1,10 @@
 const { Groq } = require('groq-sdk');
 
 module.exports.config = {
-    name: "كود_جروك",
-    aliases: ["code_groq", "برمجة_جروك", "مبرمج"],
+    name: "كود",
+    aliases: ["code_groq", "كود", "مبرمج"],
     description: "مساعد برمجة ذكي - يكتب ويشرح الأكواد",
-    usage: "كود_جروك [لغة البرمجة] [الطلب]",
+    usage: "كود [لغة البرمجة] [الطلب]",
     cooldown: 5,
     permissions: [],
     category: "developer"
@@ -16,7 +16,7 @@ module.exports.run = async ({ api, event, args }) => {
             return api.sendMessage(
                 "💻 مساعد البرمجة الذكي\n\n" +
                 "📝 الاستخدام:\n" +
-                "كود_جروك [لغة] [الطلب]\n\n" +
+                "كود [لغة] [الطلب]\n\n" +
                 "🔧 اللغات المدعومة:\n" +
                 "• javascript | js\n" +
                 "• python | py\n" +
@@ -26,9 +26,9 @@ module.exports.run = async ({ api, event, args }) => {
                 "• html\n" +
                 "• css\n\n" +
                 "💡 أمثلة:\n" +
-                "• كود_جروك js دالة لحساب المضروب\n" +
-                "• كود_جروك python برنامج لفرز قائمة\n" +
-                "• كود_جروك شرح promise في جافاسكربت",
+                "• كود js دالة لحساب المضروب\n" +
+                "• كود python برنامج لفرز قائمة\n" +
+                "• كود شرح promise في جافاسكربت",
                 event.threadID,
                 event.messageID
             );
@@ -158,7 +158,7 @@ module.exports.run = async ({ api, event, args }) => {
         }
 
     } catch (error) {
-        console.error("❌ خطأ في كود_جروك:", error);
+        console.error("❌ خطأ في كود:", error);
         return api.sendMessage(
             `⚠️ حدث خطأ أثناء كتابة الكود: ${error.message}`,
             event.threadID,
