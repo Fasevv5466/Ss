@@ -1,16 +1,17 @@
 module.exports.config = {
   name: "اوامر",
-  version: "3.0.0",
+  version: "4.0.0",
   hasPermssion: 0,
   credits: "ايمن",
-  description: "عرض الأوامر مقسمة حسب الفئة بالرد بالرقم",
-  commandCategory: "utility",
+  description: "عرض قائمة الأوامر حسب الفئة (إصلاح شامل)",
+  commandCategory: "system",
   usages: "اوامر",
   cooldowns: 5
 };
 
 module.exports.handleEvent = async function({ api, event }) {
   const { reaction, messageReply } = event;
+  // حذف الرسالة عند التفاعل بـ 😡
   if (reaction === "😡" && messageReply?.senderID === api.getCurrentUserID()) {
     return api.unsendMessage(messageReply.messageID);
   }
@@ -18,55 +19,54 @@ module.exports.handleEvent = async function({ api, event }) {
 
 module.exports.handleReply = async function({ api, event, handleReply }) {
   const { threadID, messageID, body } = event;
-  const { commands } = global.client;
-  const { categories, type } = handleReply;
 
-  if (type === "chooseCategory") {
-    const index = parseInt(body) - 1;
-    if (isNaN(index) || index < 0 || index >= categories.length) {
-      return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\nالرقم غير صحيح، يرجى اختيار رقم من القائمة أعلاه.", threadID, messageID);
-    }
+  // التحقق من رقم الفئة المختارة
+  let categoryName = "";
+  let commandsList = "";
 
-    const category = categories[index];
-    const categoryCommands = Array.from(commands.values()).filter(cmd => cmd.config.commandCategory === category);
-    
-    let msg = `⌬ ━━ 𝗞𝗜𝗥𝗔 ${category.toUpperCase()} ━━ ⌬\n\n`;
-    msg += `الأوامر المتاحة في هذه الفئة:\n`;
-    msg += `» ${categoryCommands.map(cmd => cmd.config.name).join("، ")}\n\n`;
-    msg += `💡 رد بـ (😡) لحذف هذه الرسالة.`;
-
-    api.unsendMessage(handleReply.messageID);
-    return api.sendMessage(msg, threadID, messageID);
+  if (body === "1") {
+    categoryName = "الـمـرح - 𝗙𝗨𝗡";
+    commandsList = "» حب، مطلوب، حمام، حضن، زواج، شنق، ترامب، بروفايل، نكت، صراحة";
+  } 
+  else if (body === "2") {
+    categoryName = "الألـعـاب - 𝗚𝗔𝗠𝗘𝗦";
+    commandsList = "» شخصيات، اعلام، اسئلة، احزر، عواصم، ترتيب";
+  } 
+  else if (body === "3") {
+    categoryName = "الإدارة - 𝗔𝗗𝗠𝗜𝗡";
+    commandsList = "» ابتايم، طرد، تقييد، اعدادات، حظر، فك_حظر";
+  } 
+  else {
+    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\nالرقم غير صحيح! اختر (1 أو 2 أو 3) بالرد على الرسالة.", threadID, messageID);
   }
+
+  const msg = `⌬ ━━ 𝗞𝗜𝗥𝗔 ${categoryName} ━━ ⌬\n\n` +
+              `الأوامر المتاحة:\n${commandsList}\n\n` +
+              `💡 يمكنك الرد بـ (😡) لحذف هذه الرسالة.`;
+
+  // حذف قائمة الفئات القديمة لإبقاء الشات نظيفاً
+  api.unsendMessage(handleReply.messageID);
+  
+  return api.sendMessage(msg, threadID, messageID);
 };
 
 module.exports.run = async function({ api, event }) {
   const { threadID, messageID } = event;
-  const { commands } = global.client;
 
-  // استخراج الفئات الفريدة من الأوامر
-  const categories = [];
-  for (const cmd of commands.values()) {
-    const category = cmd.config.commandCategory;
-    if (!categories.includes(category)) {
-      categories.push(category);
-    }
-  }
+  const menu = `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗛𝗘𝗟𝗣 ━━ ⌬\n\n` +
+               `يرجى الرد برقم الفئة لعرض الأوامر:\n\n` +
+               `𝟭. 【 الـمـرح - 𝗙𝗨𝗡 】\n` +
+               `𝟮. 【 الألـعـاب - 𝗚𝗔𝗠𝗘𝗦 】\n` +
+               `𝟯. 【 الإدارة - 𝗔𝗗𝗠𝗜𝗡 】\n\n` +
+               `--- --- --- --- --- ---\n` +
+               `💡 رد بـ (😡) على أي رسالة بوت لحذفها.`;
 
-  let msg = `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗛𝗘𝗟𝗣 ━━ ⌬\n\n`;
-  msg += `لديك ${commands.size} أمراً متاحاً.\n`;
-  msg += `يرجى الرد برقم الفئة لعرض أوامرها:\n\n`;
-
-  categories.forEach((cat, i) => {
-    msg += `${i + 1}. 【 ${cat.toUpperCase()} 】\n`;
-  });
-
-  return api.sendMessage(msg, threadID, (err, info) => {
+  return api.sendMessage(menu, threadID, (err, info) => {
+    if (err) return console.log(err);
     global.client.handleReply.push({
       name: this.config.name,
       messageID: info.messageID,
-      categories: categories,
-      type: "chooseCategory"
+      author: event.senderID
     });
   }, messageID);
 };
