@@ -1,10 +1,22 @@
+// =================== index.js - Kira Bot كامل ===================
+require("dotenv").config(); // لضبط مفاتيح البيئة
+
 const express = require('express');
 const app = express();
 const chalk = require('chalk');
 const cron = require("node-cron");
 const { exec } = require("child_process");
 const moment = require("moment-timezone");
+const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } = require("fs-extra");
+const { join, resolve } = require("path");
+const logger = require("./utils/log.js");
+const login = require("hut-chat-api");
+const axios = require("axios");
 
+// =================== مكتبة الميديا ===================
+const media = require('./kira-media.js'); // جميع وظائف الميديا بدون API خارجي
+
+// =================== إعدادات السيرفر ===================
 const timerestart = 120;
 const port = process.env.PORT || 8000;
 
@@ -23,49 +35,44 @@ exec("rm -rf script/commands/data && mkdir -p script/commands/data && rm -rf scr
     console.log(chalk.bold.hex("#00FA9A")("[ AUTO CLEAR CACHE ] 🪽❯ ") + chalk.hex("#00FA9A")("Successfully delete cache"))
 });
 
-const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } = require("fs-extra");
-const { join, resolve } = require("path");
-const logger = require("./utils/log.js");
-const login = require("hut-chat-api");
-const axios = require("axios");
-
+// =================== المتغيرات العامة ===================
 console.log(chalk.bold.hex("#03f0fc").bold("[ KIRA ] » ") + chalk.bold.hex("#fcba03").bold("Initializing variables..."));
 
-global.client = new Object({
+global.client = {
     commands: new Map(),
     events: new Map(),
     cooldowns: new Map(),
-    eventRegistered: new Array(),
-    handleSchedule: new Array(),
-    handleReaction: new Array(),
-    handleReply: new Array(),
+    eventRegistered: [],
+    handleSchedule: [],
+    handleReaction: [],
+    handleReply: [],
     mainPath: process.cwd(),
-    configPath: new String()
-});
+    configPath: ""
+};
 
-global.data = new Object({
+global.data = {
     threadInfo: new Map(),
     threadData: new Map(),
     userName: new Map(),
     userBanned: new Map(),
     threadBanned: new Map(),
     commandBanned: new Map(),
-    threadAllowNSFW: new Array(),
-    allUserID: new Array(),
-    allCurrenciesID: new Array(),
-    allThreadID: new Array()
-});
+    threadAllowNSFW: [],
+    allUserID: [],
+    allCurrenciesID: [],
+    allThreadID: []
+};
 
 global.utils = require("./utils/index.js");
 global.utils.config = require("./utils/config.js");
 global.utils.decorations = require("./utils/decorations.js");
-global.nodemodule = new Object();
-global.config = new Object();
-global.configModule = new Object();
-global.moduleData = new Array();
-global.language = new Object();
+global.nodemodule = {};
+global.config = {};
+global.configModule = {};
+global.moduleData = [];
+global.language = {};
 
-// تحميل الإعدادات
+// =================== تحميل الإعدادات ===================
 var configValue;
 try {
     global.client.configPath = join(global.client.mainPath, "config.json");
@@ -83,18 +90,19 @@ try {
 const { Sequelize, sequelize } = require("./includes/database/index.js");
 writeFileSync(global.client.configPath + ".temp", JSON.stringify(global.config, null, 4), 'utf8');
 
-// تحميل اللغات
+// =================== تحميل اللغات ===================
 try {
-    const langFile = (readFileSync(`${__dirname}/languages/${global.config.language || "en"}.lang`, { encoding: 'utf-8' })).split(/\r?\n|\r/);
+    const langFile = readFileSync(`${__dirname}/languages/${global.config.language || "en"}.lang`, { encoding: 'utf-8' })
+        .split(/\r?\n|\r/);
     const langData = langFile.filter(item => item.indexOf('#') != 0 && item != '');
     for (const item of langData) {
         const getSeparator = item.indexOf('=');
         const itemKey = item.slice(0, getSeparator);
-        const itemValue = item.slice(getSeparator + 1, item.length);
+        const itemValue = item.slice(getSeparator + 1);
         const head = itemKey.slice(0, itemKey.indexOf('.'));
         const key = itemKey.replace(head + '.', '');
         const value = itemValue.replace(/\\n/gi, '\n');
-        if (typeof global.language[head] == "undefined") global.language[head] = new Object();
+        if (!global.language[head]) global.language[head] = {};
         global.language[head][key] = value;
     }
 } catch (e) {
@@ -104,9 +112,9 @@ try {
 global.getText = function (...args) {
     try {
         const langText = global.language;    
-        var text = langText[args[0]][args[1]];
+        let text = langText[args[0]][args[1]];
         if (!text) return `[${args[1]}]`;
-        for (var i = args.length - 1; i > 0; i--) {
+        for (let i = args.length - 1; i > 0; i--) {
             const regEx = RegExp(`%${i}`, 'g');
             text = text.replace(regEx, args[i + 1]);
         }
@@ -114,7 +122,7 @@ global.getText = function (...args) {
     } catch (e) { return `[${args[1]}]`; }
 }
 
-// --- نظام تسجيل الدخول المطور لـ Koyeb ---
+// =================== تسجيل الدخول للبوت ===================
 var appStateFile = resolve(join(global.client.mainPath, global.config.APPSTATEPATH || "appstate.json"));
 var appState;
 
@@ -134,6 +142,7 @@ if (process.env.APPSTATE) {
     }
 }
 
+// =================== تشغيل البوت ===================
 function onBot({ models: botModel }) {
     const loginData = { appState };
     login(loginData, async(loginError, loginApiData) => {
@@ -144,13 +153,12 @@ function onBot({ models: botModel }) {
 
         loginApiData.setOptions(global.config.FCAOption);
         
-        // تحديث الملف المحلي إذا كان مسموحاً بالكتابة
         try { writeFileSync(appStateFile, JSON.stringify(loginApiData.getAppState(), null, '\x09')); } catch(e) {}
 
         global.config.version = '1.2.14';
         global.client.timeStart = new Date().getTime();
 
-        // تحميل الأوامر
+        // =================== تحميل الأوامر ===================
         const commandsPath = join(global.client.mainPath, 'script', 'commands');
         const categories = readdirSync(commandsPath).filter(item => require('fs').statSync(join(commandsPath, item)).isDirectory());
         
@@ -171,7 +179,7 @@ function onBot({ models: botModel }) {
             }
         }
 
-        // تحميل الأحداث
+        // =================== تحميل الأحداث ===================
         const eventsPath = join(global.client.mainPath, 'script', 'events');
         if (existsSync(eventsPath)) {
             const events = readdirSync(eventsPath).filter(ev => ev.endsWith('.js'));
@@ -201,13 +209,25 @@ function onBot({ models: botModel }) {
             loginApiData.sendMessage(`لـقـد تـم تـشـغـيـل الـبـوت فـي ${timeNow} ✅`, global.config.ADMINBOT[0]);
         }
 
+        // =================== تحديث البايو كل ساعة ===================
         cron.schedule(`0 0 */1 * * *`, () => {
             const dateStr = moment().tz("Asia/Manila").format("MM/DD/YYYY");
             loginApiData.changeBio(`Prefix: ${global.config.PREFIX}\n\nBot Name: ${global.config.BOTNAME}\nDate: ${dateStr}`);
         }, { scheduled: true, timezone: "Africa/Casablanca" });
+
+        // =================== مثال استخدام الميديا ===================
+        (async () => {
+            try {
+                const testImage = await media.downloadImage("https://i.imgur.com/A1bX8.jpg");
+                console.log("✅ تم تنزيل الصورة:", testImage);
+            } catch (err) {
+                console.error("❌ خطأ في الميديا:", err);
+            }
+        })();
     });
 }
 
+// =================== بدء البوت ===================
 (async() => {
     try {
         await sequelize.authenticate();
