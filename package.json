@@ -23,7 +23,6 @@
     "@hapi/catbox": "^12.1.1",
     "@hapi/catbox-memory": "^6.0.2",
     "@miraipr0ject/assets": "latest",
-    "@supercharge/strings": "^3.0.0",
     "@napi-rs/canvas": "^0.1.58",
     "adm-zip": "^0.5.16",
     "axios": "^1.7.9",
