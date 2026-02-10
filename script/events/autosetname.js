@@ -1,48 +1,52 @@
 const path = require("path");
-const mongoPath = path.join(process.cwd(), "includes", "mongodb.js");
-const { Currency, getUserData } = require(mongoPath);
+const fs = require("fs-extra");
 
-module.exports.config = {
-    name: "xpControl",
-    eventType: ["message", "message_reply"],
-    version: "1.2.0",
-    credits: "أيمن",
-    description: "تحديث الـ XP واللقب تلقائياً عند الوصول لفل جديد"
-};
+module.exports = {
+    config: {
+        name: "xpControl",
+        eventType: ["message", "message_reply", "message_reaction"],
+        version: "2.0.0",
+        author: "Kira AI"
+    },
 
-module.exports.run = async function({ api, event }) {
-    const { senderID, body, threadID, type } = event;
+    handleEvent: async function({ api, event, Currencies }) {
+        const { senderID, threadID, type, body } = event;
 
-    if (senderID == api.getCurrentUserID() || !body || type == "log:subscribe") return;
+        // تجاهل رسائل البوت أو الأحداث الفارغة
+        if (!senderID || senderID == api.getCurrentUserID() || type === "log:unsubscribe") return;
 
-    try {
-        // 1. تحديث الـ XP في السحابة
-        const updatedUser = await Currency.findOneAndUpdate(
-            { userID: senderID },
-            { $inc: { exp: 2 } },
-            { upsert: true, new: true }
-        );
-
-        const currentExp = updatedUser.exp;
-
-        // 2. التحقق إذا وصل لفل جديد (كل 100 XP)
-        // إذا كان باقي قسمة الـ XP على 100 هو 0 أو 2 (لأنه يزيد 2 كل مرة)
-        if (currentExp % 100 === 0 || currentExp % 100 === 2) {
+        try {
+            // 1. زيادة الـ XP باستخدام الدالة الممررة من الهاندلر أو المونغو مباشرة
+            // نزيد 2 XP لكل رسالة
+            const mongoPath = path.join(process.cwd(), "includes", "mongodb.js");
+            const mongoDB = require(mongoPath);
             
-            // جلب اسم الشخص
-            const info = await api.getUserInfo(senderID);
-            const nameUser = info[senderID].name;
+            const currentExp = await mongoDB.addExp(senderID, 2);
 
-            // تحديث اللقب: NAME | XP: 100
-            const newNickname = `${nameUser} | XP: ${currentExp}`;
-            
-            await api.changeNickname(newNickname, threadID, senderID);
-            
-            // إرسال رسالة مباركة بسيطة (اختياري)
-            // api.sendMessage(`🎊 مبروك يا ${nameUser}! وصلت لفل جديد: ${Math.floor(currentExp/100) + 1}`, threadID);
+            // 2. التحقق من "اللفل الجديد" (كل 100 XP)
+            // نستخدم الشرط (100) لضمان التحديث مرة واحدة عند كل مئة
+            if (currentExp > 0 && currentExp % 100 === 0) {
+                
+                // جلب اسم المستخدم من قاعدة البيانات أو الفيسبوك
+                const userData = await mongoDB.getUserData(senderID);
+                const nameUser = userData.user.name || "عضو كيرا";
+                
+                // تحويل النص لـ Bold Sans باستخدام زخرفة كيرا
+                const bold = (text) => global.utils.toBoldSans(text);
+
+                // 3. تحديث اللقب في المجموعة
+                const newNickname = `${nameUser} | XP: ${currentExp}`;
+                
+                await api.changeNickname(newNickname, threadID, senderID);
+
+                // 4. إرسال تنبيه الفخامة (اختياري - يمكنك حذفه إذا أردت صمتاً)
+                const msg = `⌬ ━━━ ${bold("LEVEL UP")} ━━━ ⌬\n\n✨ مبروك يا ${nameUser}\n🆙 ارتفع مستواك إلى: [ XP: ${currentExp} ]\n\n⌬ ━━━━━━━━━━━━━━ ⌬`;
+                
+                api.sendMessage(msg, threadID);
+            }
+
+        } catch (err) {
+            console.error("❌ [XP Error]:", err.message);
         }
-
-    } catch (err) {
-        console.error("❌ [XP & Nickname Error]:", err.message);
     }
 };
