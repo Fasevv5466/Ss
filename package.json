@@ -1,6 +1,6 @@
 {
   "name": "kira-bot",
-  "version": "31.7.2",
+  "version": "1.0.0",
   "description": "Kira Bot - AI Powered Facebook Messenger Bot",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,7 @@
     "arabic",
     "llama"
   ],
-  "author": "Ayman",
+  "author": "ayman",
   "license": "GPL-3.0",
   "dependencies": {
     "@hapi/catbox": "^12.1.1",
