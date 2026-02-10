@@ -1,3 +1,6 @@
+// ==========================================
+// ملف إدارة قاعدة بيانات MongoDB - بوت Kira المطور
+// ==========================================
 const mongoose = require("mongoose");
 
 const MONGO_URI = "mongodb+srv://kkayman200_db_user:ukhzlLzjRxQgSnTl@cluster0.7nsuoil.mongodb.net/KiraDB?retryWrites=true&w=majority";
@@ -18,7 +21,7 @@ const userSchema = new Schema({
 
 const currencySchema = new Schema({
     userID: { type: String, required: true, unique: true },
-    money: { type: Number, default: 0 },
+    money: { type: Number, default: 0, min: 0 }, // ✅ إضافة min: 0 لمنع الأرقام السالبة
     exp: { type: Number, default: 0 },
     updatedAt: { type: Date, default: Date.now }
 });
@@ -27,58 +30,259 @@ const User = mongoose.model("User", userSchema);
 const Currency = mongoose.model("Currency", currencySchema);
 
 // ==============================
-// 🛠️ الدوال المساعدة المطورة (المصححة)
+// 🛠️ الدوال المساعدة المطورة
 // ==============================
 
+// التأكد من وجود المستخدم (تم تحسين الأداء)
 async function ensureUser(userID) {
     try {
-        await User.findOneAndUpdate({ userID }, { $setOnInsert: { userID } }, { upsert: true });
-        await Currency.findOneAndUpdate({ userID }, { $setOnInsert: { userID } }, { upsert: true });
+        let user = await User.findOneAndUpdate(
+            { userID }, 
+            { $setOnInsert: { userID } }, 
+            { upsert: true, new: true }
+        );
+        let currency = await Currency.findOneAndUpdate(
+            { userID }, 
+            { $setOnInsert: { userID, money: 0, exp: 0 } }, 
+            { upsert: true, new: true }
+        );
+        return { user, currency };
     } catch (e) {
-        console.error("Error in ensureUser:", e);
+        console.error("❌ [MONGODB] Error in ensureUser:", e);
+        return null;
     }
 }
 
+// إضافة رصيد (باستخدام التحديث المباشر $inc)
 async function addMoney(userID, amount) {
-    const currency = await Currency.findOneAndUpdate(
-        { userID },
-        { $inc: { money: Math.abs(Number(amount)) }, $set: { updatedAt: new Date() } },
-        { upsert: true, new: true }
-    );
-    return currency.money;
+    try {
+        await ensureUser(userID);
+        const parsedAmount = Number(amount);
+        
+        if (isNaN(parsedAmount) || parsedAmount < 0) {
+            console.error("❌ [MONGODB] Invalid amount to add:", amount);
+            return null;
+        }
+
+        const currency = await Currency.findOneAndUpdate(
+            { userID },
+            { 
+                $inc: { money: parsedAmount }, 
+                $set: { updatedAt: new Date() } 
+            },
+            { upsert: true, new: true }
+        );
+        
+        console.log(`✅ [MONGODB] Added ${parsedAmount} to ${userID}. New balance: ${currency.money}`);
+        return currency.money;
+    } catch (e) {
+        console.error("❌ [MONGODB] Error in addMoney:", e);
+        return null;
+    }
 }
 
-// ✅ دالة الخصم المصححة 100%
+// ✅ خصم رصيد (مُصلح - يمنع الرصيد السالب)
 async function removeMoney(userID, amount) {
     try {
-        const amt = Math.abs(Number(amount)); // التأكد أنه رقم موجب للخصم
+        await ensureUser(userID);
+        const parsedAmount = Number(amount);
+        
+        if (isNaN(parsedAmount) || parsedAmount < 0) {
+            console.error("❌ [MONGODB] Invalid amount to remove:", amount);
+            return null;
+        }
+
+        // جلب الرصيد الحالي
+        const current = await Currency.findOne({ userID });
+        
+        if (!current) {
+            console.error("❌ [MONGODB] User not found:", userID);
+            return 0;
+        }
+
+        // حساب المبلغ الفعلي للخصم (لا يتجاوز الرصيد الحالي)
+        const currentMoney = current.money || 0;
+        const actualDeduction = Math.min(parsedAmount, currentMoney);
+        const newBalance = Math.max(0, currentMoney - actualDeduction);
+
+        // تحديث الرصيد
         const currency = await Currency.findOneAndUpdate(
-            { userID, money: { $gte: amt } }, // شرط: يجب أن يكون الرصيد أكبر أو يساوي المبلغ
+            { userID },
             { 
-                $inc: { money: -amt }, 
-                $set: { updatedAt: new Date() } 
+                $set: { 
+                    money: newBalance,
+                    updatedAt: new Date() 
+                } 
             },
             { new: true }
         );
 
-        // إذا لم يجد مستخدم برصيد كافٍ، نخصم المتاح أو نرجع الرصيد الحالي
-        if (!currency) {
-            const current = await Currency.findOne({ userID });
-            return current ? current.money : 0;
-        }
+        console.log(`✅ [MONGODB] Removed ${actualDeduction} from ${userID}. New balance: ${currency.money}`);
         
-        return currency.money;
+        return {
+            success: true,
+            requestedAmount: parsedAmount,
+            deductedAmount: actualDeduction,
+            newBalance: currency.money,
+            wasPartial: actualDeduction < parsedAmount
+        };
     } catch (e) {
-        console.error("Error in removeMoney:", e);
+        console.error("❌ [MONGODB] Error in removeMoney:", e);
+        return null;
+    }
+}
+
+// ✅ دالة جديدة: التحقق من كفاية الرصيد
+async function hasSufficientBalance(userID, amount) {
+    try {
+        const currency = await Currency.findOne({ userID });
+        if (!currency) return false;
+        return (currency.money || 0) >= Number(amount);
+    } catch (e) {
+        console.error("❌ [MONGODB] Error in hasSufficientBalance:", e);
+        return false;
+    }
+}
+
+// ✅ دالة جديدة: تحويل أموال بين مستخدمين
+async function transferMoney(fromUserID, toUserID, amount) {
+    try {
+        const parsedAmount = Number(amount);
+        
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+            return { success: false, error: "مبلغ غير صالح" };
+        }
+
+        // التحقق من رصيد المرسل
+        const hasFunds = await hasSufficientBalance(fromUserID, parsedAmount);
+        if (!hasFunds) {
+            return { success: false, error: "رصيد غير كافٍ" };
+        }
+
+        // خصم من المرسل
+        const removeResult = await removeMoney(fromUserID, parsedAmount);
+        if (!removeResult || !removeResult.success) {
+            return { success: false, error: "فشل الخصم من المرسل" };
+        }
+
+        // إضافة للمستقبل
+        const addResult = await addMoney(toUserID, parsedAmount);
+        if (!addResult) {
+            // إرجاع المبلغ للمرسل في حالة الفشل
+            await addMoney(fromUserID, parsedAmount);
+            return { success: false, error: "فشل الإضافة للمستقبل" };
+        }
+
+        console.log(`✅ [MONGODB] Transferred ${parsedAmount} from ${fromUserID} to ${toUserID}`);
+        
+        return {
+            success: true,
+            amount: parsedAmount,
+            fromBalance: removeResult.newBalance,
+            toBalance: addResult
+        };
+    } catch (e) {
+        console.error("❌ [MONGODB] Error in transferMoney:", e);
+        return { success: false, error: "خطأ في التحويل" };
+    }
+}
+
+// جلب بيانات المستخدم
+async function getUserData(userID) {
+    try {
+        await ensureUser(userID);
+        const user = await User.findOne({ userID });
+        const currency = await Currency.findOne({ userID });
+        return { user, currency };
+    } catch (e) {
+        console.error("❌ [MONGODB] Error in getUserData:", e);
+        return null;
+    }
+}
+
+// ✅ دالة جديدة: جلب الرصيد فقط
+async function getBalance(userID) {
+    try {
+        await ensureUser(userID);
+        const currency = await Currency.findOne({ userID });
+        return currency ? (currency.money || 0) : 0;
+    } catch (e) {
+        console.error("❌ [MONGODB] Error in getBalance:", e);
         return 0;
     }
 }
 
-async function getUserData(userID) {
-    await ensureUser(userID);
-    const user = await User.findOne({ userID });
-    const currency = await Currency.findOne({ userID });
-    return { user, currency };
+// ✅ دالة جديدة: تعيين رصيد محدد
+async function setBalance(userID, amount) {
+    try {
+        await ensureUser(userID);
+        const parsedAmount = Math.max(0, Number(amount));
+        
+        if (isNaN(parsedAmount)) {
+            console.error("❌ [MONGODB] Invalid amount to set:", amount);
+            return null;
+        }
+
+        const currency = await Currency.findOneAndUpdate(
+            { userID },
+            { 
+                $set: { 
+                    money: parsedAmount,
+                    updatedAt: new Date() 
+                } 
+            },
+            { new: true }
+        );
+
+        console.log(`✅ [MONGODB] Set balance for ${userID} to ${parsedAmount}`);
+        return currency.money;
+    } catch (e) {
+        console.error("❌ [MONGODB] Error in setBalance:", e);
+        return null;
+    }
+}
+
+// ✅ دالة جديدة: إضافة خبرة
+async function addExp(userID, amount) {
+    try {
+        await ensureUser(userID);
+        const parsedAmount = Number(amount);
+        
+        if (isNaN(parsedAmount) || parsedAmount < 0) {
+            console.error("❌ [MONGODB] Invalid exp amount:", amount);
+            return null;
+        }
+
+        const currency = await Currency.findOneAndUpdate(
+            { userID },
+            { 
+                $inc: { exp: parsedAmount }, 
+                $set: { updatedAt: new Date() } 
+            },
+            { upsert: true, new: true }
+        );
+        
+        console.log(`✅ [MONGODB] Added ${parsedAmount} exp to ${userID}. Total exp: ${currency.exp}`);
+        return currency.exp;
+    } catch (e) {
+        console.error("❌ [MONGODB] Error in addExp:", e);
+        return null;
+    }
+}
+
+// ✅ دالة جديدة: جلب ترتيب الأغنياء (Top Rich)
+async function getTopRich(limit = 10) {
+    try {
+        const topUsers = await Currency.find({})
+            .sort({ money: -1 })
+            .limit(limit)
+            .select('userID money');
+        
+        return topUsers;
+    } catch (e) {
+        console.error("❌ [MONGODB] Error in getTopRich:", e);
+        return [];
+    }
 }
 
 module.exports = { 
@@ -86,6 +290,12 @@ module.exports = {
     Currency, 
     ensureUser, 
     addMoney, 
-    removeMoney, 
-    getUserData 
+    removeMoney,
+    hasSufficientBalance,
+    transferMoney,
+    getUserData,
+    getBalance,
+    setBalance,
+    addExp,
+    getTopRich
 };
