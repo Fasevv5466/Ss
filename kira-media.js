@@ -1,22 +1,16 @@
 // kira-media.js
 // جميع وظائف الميديا لبوت Kira
 // متوافق مع Node ≥20 وRailway
-require("dotenv").config(); // لضبط مفاتيح البيئة
-
 const fs = require("fs");
 const path = require("path");
-const axios = require("axios");
-const imageDownloader = require("image-downloader");
 const Jimp = require("jimp");
 const sharp = require("sharp");
 const Canvas = require("@napi-rs/canvas");
-const { createGIF } = require("gifencoder");
-const ImgbbUploader = require("imgbb-uploader");
-const imgur = require("imgur");
 const ytdl = require("ytdl-core");
 const ytSearch = require("yt-search");
+const imageDownloader = require("image-downloader");
 
-// =================== تنزيل ===================
+// =================== تنزيل الصور ===================
 async function downloadImage(url, destFolder = "./downloads") {
   if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
   const filename = path.join(destFolder, path.basename(url));
@@ -24,6 +18,7 @@ async function downloadImage(url, destFolder = "./downloads") {
   return filename;
 }
 
+// =================== تنزيل فيديو يوتيوب ===================
 async function downloadYouTubeVideo(url, destFolder = "./downloads") {
   if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
   const info = await ytdl.getInfo(url);
@@ -35,19 +30,6 @@ async function downloadYouTubeVideo(url, destFolder = "./downloads") {
       .on("finish", () => resolve(output))
       .on("error", reject);
   });
-}
-
-// =================== رفع ===================
-async function uploadToImgBB(filePath) {
-  return ImgbbUploader({
-    apiKey: process.env.IMGBB_API_KEY,
-    imagePath: filePath,
-  });
-}
-
-async function uploadToImgur(filePath) {
-  imgur.setClientId(process.env.IMGUR_CLIENT_ID);
-  return imgur.uploadFile(filePath);
 }
 
 // =================== تعديل الصور ===================
@@ -68,7 +50,7 @@ async function addTextToImage(filePath, text, outputFolder = "./edited") {
   return output;
 }
 
-// =================== تأثيرات Canvas ===================
+// =================== رسم Canvas ===================
 async function drawCanvas(width = 800, height = 600, text = "Kira Bot") {
   const canvas = Canvas.createCanvas(width, height);
   const ctx = canvas.getContext("2d");
@@ -88,15 +70,13 @@ async function drawCanvas(width = 800, height = 600, text = "Kira Bot") {
 // =================== بحث يوتيوب ===================
 async function searchYouTube(query) {
   const results = await ytSearch(query);
-  return results.videos[0]; // أول نتيجة
+  return results.videos[0]; // أول نتيجة فقط
 }
 
 // =================== تصدير الدوال ===================
 module.exports = {
   downloadImage,
   downloadYouTubeVideo,
-  uploadToImgBB,
-  uploadToImgur,
   resizeImage,
   addTextToImage,
   drawCanvas,
