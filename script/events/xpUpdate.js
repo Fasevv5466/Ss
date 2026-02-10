@@ -1,36 +1,36 @@
 const path = require("path");
 const mongoPath = path.join(process.cwd(), "includes", "mongodb.js");
-const { Currency } = require(mongoPath);
+const mongoDB = require(mongoPath);
 
-module.exports.config = {
-  name: "xpControl",
-  eventType: ["message"], // يراقب الرسائل القادمة
-  version: "1.1.0",
-  credits: "أيمن",
-  description: "نظام زيادة الـ XP التلقائي عبر السحابة"
-};
+module.exports = {
+    config: {
+        name: "xpControl",
+        eventType: ["message", "message_reply"], // يراقب كل أنواع الرسائل
+        version: "2.1.0",
+        author: "Kira AI"
+    },
 
-module.exports.run = async function({ api, event }) {
-  const { senderID, body, type, threadID } = event;
+    handleEvent: async function({ api, event }) {
+        const { senderID, body, type } = event;
+        const prefix = global.config.PREFIX || ".";
 
-  // 1. تجاهل رسائل البوت نفسه
-  // 2. تجاهل الرسائل التي تبدأ ببادئة (Prefix) لكي لا يحسب الأوامر
-  if (senderID == api.getCurrentUserID() || !body || body.startsWith('.') || body.startsWith('!')) return;
+        // 1. تجاهل رسائل البوت، الرسائل الفارغة، والأوامر (التي تبدأ ببريفكس)
+        if (!senderID || 
+            senderID == api.getCurrentUserID() || 
+            !body || 
+            body.startsWith(prefix) || 
+            type == "log:subscribe" || 
+            type == "log:unsubscribe") return;
 
-  try {
-    // تحديث السحابة مباشرة بزيادة مقدارها 2
-    // استخدام upsert لضمان إنشاء سجل للعضو الجديد فوراً
-    await Currency.findOneAndUpdate(
-      { userID: senderID },
-      { 
-        $inc: { exp: 2 },
-        $setOnInsert: { money: 0, lastDaily: 0 } 
-      },
-      { upsert: true, new: true }
-    );
+        try {
+            // 2. تحديث السحابة (MongoDB) مباشرة باستخدام دالة addExp اللي ربطناها
+            // نزيد 2 XP لكل رسالة في صمت تام
+            await mongoDB.addExp(senderID, 2);
 
-    // ملاحظة: الزيادة تتم في صمت تام لضمان استقرار الشات
-  } catch (err) {
-    console.error("⚠️ [XP ERROR]:", err.message);
-  }
+            // تم التحديث بنجاح في قاعدة بيانات KiraDB
+        } catch (err) {
+            console.error("⌬ ━━ [XP CLOUD ERROR] ━━ ⌬");
+            console.error(`ID: ${senderID} | Error: ${err.message}`);
+        }
+    }
 };
