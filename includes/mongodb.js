@@ -1,6 +1,3 @@
-// ==========================================
-// ملف إدارة قاعدة بيانات MongoDB - بوت Kira المطور
-// ==========================================
 const mongoose = require("mongoose");
 
 const MONGO_URI = "mongodb+srv://kkayman200_db_user:ukhzlLzjRxQgSnTl@cluster0.7nsuoil.mongodb.net/KiraDB?retryWrites=true&w=majority";
@@ -30,58 +27,53 @@ const User = mongoose.model("User", userSchema);
 const Currency = mongoose.model("Currency", currencySchema);
 
 // ==============================
-// 🛠️ الدوال المساعدة المطورة
+// 🛠️ الدوال المساعدة المطورة (المصححة)
 // ==============================
 
-// التأكد من وجود المستخدم (تم تحسين الأداء)
 async function ensureUser(userID) {
     try {
-        let user = await User.findOneAndUpdate(
-            { userID }, 
-            { $setOnInsert: { userID } }, 
-            { upsert: true, new: true }
-        );
-        let currency = await Currency.findOneAndUpdate(
-            { userID }, 
-            { $setOnInsert: { userID } }, 
-            { upsert: true, new: true }
-        );
-        return { user, currency };
+        await User.findOneAndUpdate({ userID }, { $setOnInsert: { userID } }, { upsert: true });
+        await Currency.findOneAndUpdate({ userID }, { $setOnInsert: { userID } }, { upsert: true });
     } catch (e) {
         console.error("Error in ensureUser:", e);
     }
 }
 
-// إضافة رصيد (باستخدام التحديث المباشر $inc)
 async function addMoney(userID, amount) {
     const currency = await Currency.findOneAndUpdate(
         { userID },
-        { 
-            $inc: { money: Number(amount) }, 
-            $set: { updatedAt: new Date() } 
-        },
+        { $inc: { money: Math.abs(Number(amount)) }, $set: { updatedAt: new Date() } },
         { upsert: true, new: true }
     );
     return currency.money;
 }
 
-// خصم رصيد (مع ضمان عدم النزول تحت الصفر)
+// ✅ دالة الخصم المصححة 100%
 async function removeMoney(userID, amount) {
-    const current = await Currency.findOne({ userID });
-    const deduct = (current && current.money < amount) ? current.money : amount;
-    
-    const currency = await Currency.findOneAndUpdate(
-        { userID },
-        { 
-            $inc: { money: -Number(deduct) }, 
-            $set: { updatedAt: new Date() } 
-        },
-        { upsert: true, new: true }
-    );
-    return currency.money;
+    try {
+        const amt = Math.abs(Number(amount)); // التأكد أنه رقم موجب للخصم
+        const currency = await Currency.findOneAndUpdate(
+            { userID, money: { $gte: amt } }, // شرط: يجب أن يكون الرصيد أكبر أو يساوي المبلغ
+            { 
+                $inc: { money: -amt }, 
+                $set: { updatedAt: new Date() } 
+            },
+            { new: true }
+        );
+
+        // إذا لم يجد مستخدم برصيد كافٍ، نخصم المتاح أو نرجع الرصيد الحالي
+        if (!currency) {
+            const current = await Currency.findOne({ userID });
+            return current ? current.money : 0;
+        }
+        
+        return currency.money;
+    } catch (e) {
+        console.error("Error in removeMoney:", e);
+        return 0;
+    }
 }
 
-// جلب بيانات المستخدم
 async function getUserData(userID) {
     await ensureUser(userID);
     const user = await User.findOne({ userID });
