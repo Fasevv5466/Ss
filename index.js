@@ -8,369 +8,13 @@ const moment = require("moment-timezone");
 const timerestart = 120;
 const port = process.env.PORT || 8000;
 
-// ========================
-// 🔥 نظام الإحصائيات الجهنمية 🔥
-// ========================
-global.hellStats = {
-    startTime: Date.now(),
-    totalMessages: 0,
-    commandsExecuted: 0,
-    errorCount: 0,
-    deathCount: 0,
-    soulsCaptured: 0,
-    restarts: 0
-};
-
-// سيرفر الـ Health Check + واجهة جهنمية
+// سيرفر الـ Health Check
 app.get('/', (req, res) => {
-    const uptime = Math.floor((Date.now() - global.hellStats.startTime) / 1000);
-    const hours = Math.floor(uptime / 3600);
-    const minutes = Math.floor((uptime % 3600) / 60);
-    const seconds = uptime % 60;
-    
-    res.send(`
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 نظام المراقبة الجهنمي 🔥</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #0a0000 0%, #1a0000 25%, #2d0a0a 50%, #1a0000 75%, #0a0000 100%);
-            font-family: 'Courier New', monospace;
-            color: #ff3333;
-            overflow-x: hidden;
-            position: relative;
-            min-height: 100vh;
-        }
-        
-        @keyframes flames {
-            0%, 100% { text-shadow: 0 0 10px #ff0000, 0 0 20px #ff3300, 0 0 30px #ff6600; }
-            50% { text-shadow: 0 0 20px #ff3300, 0 0 40px #ff6600, 0 0 60px #ff9900; }
-        }
-        
-        @keyframes bloodDrip {
-            0% { top: -100px; opacity: 1; }
-            100% { top: 100vh; opacity: 0; }
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-2px) rotate(-0.5deg); }
-            75% { transform: translateX(2px) rotate(0.5deg); }
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-        
-        .blood-drop {
-            position: fixed;
-            width: 3px;
-            height: 20px;
-            background: linear-gradient(to bottom, #8b0000, #ff0000);
-            border-radius: 0 0 50% 50%;
-            animation: bloodDrip linear infinite;
-            z-index: 1;
-        }
-        
-        .skull {
-            position: fixed;
-            font-size: 30px;
-            opacity: 0.1;
-            animation: pulse 3s ease-in-out infinite;
-        }
-        
-        .container {
-            position: relative;
-            z-index: 10;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .header {
-            text-align: center;
-            padding: 40px 20px;
-            border-bottom: 3px solid #8b0000;
-            animation: shake 0.5s infinite;
-        }
-        
-        .header h1 {
-            font-size: 48px;
-            animation: flames 2s ease-in-out infinite;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-        
-        .subtitle {
-            color: #ff6666;
-            font-size: 18px;
-            margin-top: 10px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 40px 0;
-        }
-        
-        .stat-card {
-            background: rgba(139, 0, 0, 0.3);
-            border: 2px solid #8b0000;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .stat-card:hover::before {
-            left: 100%;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 30px rgba(255, 0, 0, 0.5);
-            border-color: #ff0000;
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            color: #ff9999;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .stat-value {
-            font-size: 36px;
-            font-weight: bold;
-            color: #ff3333;
-            text-shadow: 0 0 10px #ff0000;
-        }
-        
-        .stat-icon {
-            font-size: 24px;
-            margin-right: 10px;
-        }
-        
-        .uptime-bar {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid #8b0000;
-            border-radius: 20px;
-            padding: 30px;
-            margin: 30px 0;
-            text-align: center;
-        }
-        
-        .uptime-display {
-            font-size: 48px;
-            color: #ff0000;
-            text-shadow: 0 0 20px #ff0000;
-            font-weight: bold;
-            margin: 20px 0;
-            animation: flames 2s ease-in-out infinite;
-        }
-        
-        .souls-container {
-            margin: 40px 0;
-            text-align: center;
-        }
-        
-        .souls-count {
-            font-size: 72px;
-            color: #ff0000;
-            text-shadow: 0 0 30px #ff0000, 0 0 60px #ff3300;
-            animation: pulse 2s ease-in-out infinite;
-            font-weight: bold;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 30px;
-            margin-top: 50px;
-            border-top: 2px solid #8b0000;
-            color: #666;
-        }
-        
-        .warning {
-            background: rgba(255, 0, 0, 0.1);
-            border: 2px dashed #ff0000;
-            padding: 20px;
-            margin: 30px 0;
-            border-radius: 10px;
-            text-align: center;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-        
-        .demon-emoji {
-            font-size: 100px;
-            display: inline-block;
-            animation: float 3s ease-in-out infinite;
-        }
-    </style>
-</head>
-<body>
-    <!-- جثث متساقطة -->
-    <script>
-        // إنشاء قطرات الدم
-        for(let i = 0; i < 30; i++) {
-            const drop = document.createElement('div');
-            drop.className = 'blood-drop';
-            drop.style.left = Math.random() * 100 + '%';
-            drop.style.animationDuration = (Math.random() * 3 + 2) + 's';
-            drop.style.animationDelay = Math.random() * 5 + 's';
-            document.body.appendChild(drop);
-        }
-        
-        // إنشاء جماجم عائمة
-        for(let i = 0; i < 15; i++) {
-            const skull = document.createElement('div');
-            skull.className = 'skull';
-            skull.innerHTML = '💀';
-            skull.style.left = Math.random() * 100 + '%';
-            skull.style.top = Math.random() * 100 + '%';
-            skull.style.animationDelay = Math.random() * 3 + 's';
-            document.body.appendChild(skull);
-        }
-        
-        // عداد الجثث المتساقطة
-        let deathCounter = ${global.hellStats.deathCount};
-        setInterval(() => {
-            deathCounter++;
-            document.getElementById('death-count').innerText = deathCounter.toLocaleString();
-            
-            // إضافة جثة جديدة
-            const body = document.createElement('div');
-            body.style.position = 'fixed';
-            body.style.fontSize = '40px';
-            body.style.left = Math.random() * 100 + '%';
-            body.style.top = '-50px';
-            body.innerHTML = ['💀', '☠️', '👻', '⚰️'][Math.floor(Math.random() * 4)];
-            body.style.animation = 'bloodDrip 3s linear';
-            document.body.appendChild(body);
-            setTimeout(() => body.remove(), 3000);
-        }, 1000);
-        
-        // تحديث الوقت
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-SA');
-        }, 1000);
-    </script>
-
-    <div class="container">
-        <div class="header">
-            <div class="demon-emoji">😈</div>
-            <h1>🔥 نظام المراقبة الجهنمي 🔥</h1>
-            <div class="subtitle">⚡ KIRA BOT - HELL MONITORING SYSTEM ⚡</div>
-            <div class="subtitle" id="current-time">${new Date().toLocaleTimeString('ar-SA')}</div>
-        </div>
-        
-        <div class="warning">
-            <h2 style="color: #ff0000; margin-bottom: 10px;">⚠️ تحذير جهنمي ⚠️</h2>
-            <p>هذا النظام يعمل بطاقة الأرواح المفقودة في الجحيم</p>
-        </div>
-        
-        <div class="uptime-bar">
-            <div class="stat-label">⏱️ وقت التشغيل الجهنمي</div>
-            <div class="uptime-display">${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</div>
-            <div class="subtitle">منذ ${new Date(global.hellStats.startTime).toLocaleString('ar-SA')}</div>
-        </div>
-        
-        <div class="souls-container">
-            <div class="stat-label">👹 الأرواح المحتجزة في الجحيم</div>
-            <div class="souls-count">${global.hellStats.soulsCaptured.toLocaleString()}</div>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">💬</span> رسائل معالجة</div>
-                <div class="stat-value">${global.hellStats.totalMessages.toLocaleString()}</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">⚡</span> أوامر منفذة</div>
-                <div class="stat-value">${global.hellStats.commandsExecuted.toLocaleString()}</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">💀</span> جثث متساقطة</div>
-                <div class="stat-value" id="death-count">${global.hellStats.deathCount.toLocaleString()}</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">🔥</span> أخطاء جهنمية</div>
-                <div class="stat-value">${global.hellStats.errorCount.toLocaleString()}</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">🔄</span> إعادة تشغيل</div>
-                <div class="stat-value">${global.hellStats.restarts.toLocaleString()}</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">📊</span> حالة النظام</div>
-                <div class="stat-value" style="color: #00ff00;">ONLINE</div>
-            </div>
-        </div>
-        
-        <div class="warning">
-            <h3 style="color: #ff6666;">🔥 النظام يعمل بكامل قوته الجهنمية 🔥</h3>
-            <p style="margin-top: 10px;">كل ثانية تتساقط جثة جديدة في هاوية الجحيم</p>
-        </div>
-        
-        <div class="footer">
-            <p>🔥 KIRA BOT - Powered by WS3-FCA 🔥</p>
-            <p style="margin-top: 10px;">⚡ Created by: ayman | Hell Edition ⚡</p>
-        </div>
-    </div>
-</body>
-</html>
-    `);
-});
-
-// إحصائيات API
-app.get('/api/stats', (req, res) => {
-    const uptime = Math.floor((Date.now() - global.hellStats.startTime) / 1000);
-    res.json({
-        status: 'online',
-        uptime: uptime,
-        stats: global.hellStats,
-        timestamp: Date.now()
-    });
+    res.send('📓 نظام كيرا يعمل بنجاح! | Kira Bot is Online');
 });
 
 app.listen(port, () => {
-    console.log(chalk.cyan(`📡 Hell monitoring system is running on port ${port}`));
+    console.log(chalk.cyan(`📡 Health check server is running on port ${port}`));
 });
 
 // تنظيف الكاش عند التشغيل
@@ -382,7 +26,7 @@ exec("rm -rf script/commands/data && mkdir -p script/commands/data && rm -rf scr
 const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } = require("fs-extra");
 const { join, resolve } = require("path");
 const logger = require("./utils/log.js");
-const login = require("ws3-fca"); // ✅ تم التعديل من hut-chat-api إلى ws3-fca
+const login = require("hut-chat-api");
 const axios = require("axios");
 
 console.log(chalk.bold.hex("#03f0fc").bold("[ KIRA ] » ") + chalk.bold.hex("#fcba03").bold("Initializing variables..."));
@@ -495,7 +139,6 @@ function onBot({ models: botModel }) {
     login(loginData, async(loginError, loginApiData) => {
         if (loginError) {
             console.error(loginError);
-            global.hellStats.errorCount++;
             return logger("حدث خطأ أثناء تسجيل الدخول، تأكد من صحة الـ AppState", `ERROR`);
         }
 
@@ -523,7 +166,6 @@ function onBot({ models: botModel }) {
                         logger.loader(`🌸『 تـم تحميل: ${module.config.name} 』🌸`);
                     }
                 } catch (error) {
-                    global.hellStats.errorCount++;
                     logger.loader(`Fail load command: ${command}`, 'error');
                 }
             }
@@ -537,10 +179,7 @@ function onBot({ models: botModel }) {
                 try {
                     const event = require(join(eventsPath, ev));
                     global.client.events.set(event.config.name, event);
-                } catch (err) { 
-                    global.hellStats.errorCount++;
-                    logger.loader("Fail load event: " + ev, "error"); 
-                }
+                } catch (err) { logger.loader("Fail load event: " + ev, "error"); }
             }
         }
 
@@ -550,43 +189,22 @@ function onBot({ models: botModel }) {
         const listenerData = { api: loginApiData, models: botModel };
         const listener = require('./includes/listen.js')(listenerData);
         loginApiData.listenMqtt((error, message) => {
-            if (error) {
-                global.hellStats.errorCount++;
-                return;
-            }
-            global.hellStats.totalMessages++;
-            global.hellStats.soulsCaptured++;
+            if (error) return;
             return listener(message);
         });
         
         global.client.api = loginApiData;
-        logger(`KIRA ✨ 🔥 HELL EDITION 🔥`, '[ by ayman ]');
-        console.log(chalk.red.bold(`
-╔═══════════════════════════════════════════════════════╗
-║                                                       ║
-║   🔥🔥🔥  نظام المراقبة الجهنمي نشط  🔥🔥🔥          ║
-║                                                       ║
-║   😈 الأرواح تُحتجز...                              ║
-║   💀 الجثث تتساقط كل ثانية...                       ║
-║   ⚡ النظام يعمل بكامل قوته الجهنمية...             ║
-║                                                       ║
-╚═══════════════════════════════════════════════════════╝
-        `));
+        logger(`KIRA ✨`, '[ by ayman ]');
 
         const timeNow = moment().tz("Africa/Casablanca").format("HH:mm:ss");
         if (global.config.ADMINBOT && global.config.ADMINBOT[0]) {
-            loginApiData.sendMessage(`🔥 لـقـد تـم تـشـغـيـل الـبـوت الجهنمي فـي ${timeNow} ✅\n💀 الجثث بدأت بالتساقط...`, global.config.ADMINBOT[0]);
+            loginApiData.sendMessage(`لـقـد تـم تـشـغـيـل الـبـوت فـي ${timeNow} ✅`, global.config.ADMINBOT[0]);
         }
 
         cron.schedule(`0 0 */1 * * *`, () => {
             const dateStr = moment().tz("Asia/Manila").format("MM/DD/YYYY");
-            loginApiData.changeBio(`🔥 Prefix: ${global.config.PREFIX}\n\nBot Name: ${global.config.BOTNAME}\nDate: ${dateStr}\n💀 Souls: ${global.hellStats.soulsCaptured}`);
+            loginApiData.changeBio(`Prefix: ${global.config.PREFIX}\n\nBot Name: ${global.config.BOTNAME}\nDate: ${dateStr}`);
         }, { scheduled: true, timezone: "Africa/Casablanca" });
-        
-        // تحديث عداد الجثث كل ثانية
-        setInterval(() => {
-            global.hellStats.deathCount++;
-        }, 1000);
     });
 }
 
@@ -594,59 +212,12 @@ function onBot({ models: botModel }) {
     try {
         await sequelize.authenticate();
         const models = require('./includes/database/model.js')({ Sequelize, sequelize });
-        
-        // ✅ نظام حفظ تلقائي كل 5 دقائق
-        const Currencies = require('./includes/controllers/currencies')({ models });
-        
-        setInterval(async () => {
-            try {
-                await sequelize.sync({ force: false });
-                console.log(chalk.green('✅ [AUTO-SAVE] تم حفظ قاعدة البيانات تلقائياً'));
-            } catch (error) {
-                global.hellStats.errorCount++;
-                console.error(chalk.red('❌ [AUTO-SAVE] خطأ في الحفظ:'), error.message);
-            }
-        }, 5 * 60 * 1000); // كل 5 دقائق
-        
-        console.log(chalk.yellow('💾 [AUTO-SAVE] نظام الحفظ التلقائي نشط (كل 5 دقائق)'));
-        
         onBot({ models });
     } catch (error) { 
         console.log(error);
-        global.hellStats.errorCount++;
         logger("DB Error", "error"); 
     }
     console.log(chalk.bold.hex("#eff1f0").bold("════════════════ SUCCESFULLY ═════════════════"));
 })();
 
-process.on('unhandledRejection', (err) => { 
-    global.hellStats.errorCount++;
-    console.log(err); 
-});
-
-// ✅ حفظ قاعدة البيانات قبل إيقاف البوت
-process.on('SIGINT', async () => {
-    console.log(chalk.yellow('\n⏳ إيقاف البوت... جاري حفظ البيانات...'));
-    try {
-        await sequelize.sync({ force: false });
-        await sequelize.close();
-        console.log(chalk.green('✅ تم حفظ البيانات بنجاح'));
-        process.exit(0);
-    } catch (error) {
-        console.error(chalk.red('❌ خطأ في الحفظ:'), error);
-        process.exit(1);
-    }
-});
-
-process.on('SIGTERM', async () => {
-    console.log(chalk.yellow('\n⏳ تلقي إشارة SIGTERM... جاري حفظ البيانات...'));
-    try {
-        await sequelize.sync({ force: false });
-        await sequelize.close();
-        console.log(chalk.green('✅ تم حفظ البيانات بنجاح'));
-        process.exit(0);
-    } catch (error) {
-        console.error(chalk.red('❌ خطأ في الحفظ:'), error);
-        process.exit(1);
-    }
-});
+process.on('unhandledRejection', (err) => { console.log(err); });
