@@ -4,24 +4,9 @@ const chalk = require('chalk');
 const cron = require("node-cron");
 const { exec } = require("child_process");
 const moment = require("moment-timezone");
-const { join, resolve } = require("path");
-const { readFileSync, writeFileSync, readdirSync, existsSync, unlinkSync } = require("fs");
-
-// ✅ الحل الصحيح لاستيراد ws3-fca
-const fcaPackage = require("ws3-fca");
-const login = fcaPackage.login || fcaPackage.default?.login || fcaPackage;
-
-// التحقق من نجاح التحميل
-if (typeof login !== 'function') {
-    console.error(chalk.red('❌ فشل تحميل ws3-fca'));
-    console.error('محاولة استخراج الدالة من:', fcaPackage);
-    process.exit(1);
-}
-
-console.log(chalk.green('✅ تم تحميل ws3-fca بنجاح!'));
 
 const timerestart = 120;
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8000;
 
 // ========================
 // 🔥 نظام الإحصائيات الجهنمية 🔥
@@ -254,9 +239,10 @@ app.get('/', (req, res) => {
     </style>
 </head>
 <body>
+    <!-- جثث متساقطة -->
     <script>
-        // تأثير قطرات الدم
-        for(let i = 0; i < 20; i++) {
+        // إنشاء قطرات الدم
+        for(let i = 0; i < 30; i++) {
             const drop = document.createElement('div');
             drop.className = 'blood-drop';
             drop.style.left = Math.random() * 100 + '%';
@@ -265,84 +251,106 @@ app.get('/', (req, res) => {
             document.body.appendChild(drop);
         }
         
-        // جماجم طائرة
-        const positions = [
-            {top: '10%', left: '10%'},
-            {top: '20%', left: '80%'},
-            {top: '50%', left: '5%'},
-            {top: '70%', left: '90%'},
-            {top: '80%', left: '15%'}
-        ];
-        
-        positions.forEach(pos => {
+        // إنشاء جماجم عائمة
+        for(let i = 0; i < 15; i++) {
             const skull = document.createElement('div');
             skull.className = 'skull';
             skull.innerHTML = '💀';
-            skull.style.top = pos.top;
-            skull.style.left = pos.left;
-            skull.style.animationDelay = Math.random() + 's';
+            skull.style.left = Math.random() * 100 + '%';
+            skull.style.top = Math.random() * 100 + '%';
+            skull.style.animationDelay = Math.random() * 3 + 's';
             document.body.appendChild(skull);
-        });
+        }
         
-        // تحديث تلقائي كل 5 ثواني
+        // عداد الجثث المتساقطة
+        let deathCounter = ${global.hellStats.deathCount};
         setInterval(() => {
-            location.reload();
-        }, 5000);
+            deathCounter++;
+            document.getElementById('death-count').innerText = deathCounter.toLocaleString();
+            
+            // إضافة جثة جديدة
+            const body = document.createElement('div');
+            body.style.position = 'fixed';
+            body.style.fontSize = '40px';
+            body.style.left = Math.random() * 100 + '%';
+            body.style.top = '-50px';
+            body.innerHTML = ['💀', '☠️', '👻', '⚰️'][Math.floor(Math.random() * 4)];
+            body.style.animation = 'bloodDrip 3s linear';
+            document.body.appendChild(body);
+            setTimeout(() => body.remove(), 3000);
+        }, 1000);
+        
+        // تحديث الوقت
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('ar-SA');
+        }, 1000);
     </script>
 
     <div class="container">
         <div class="header">
-            <h1>🔥 نظام المراقبة الجهنمي 🔥</h1>
-            <div class="subtitle">⚡ KIRA BOT - HELL EDITION ⚡</div>
-            <div class="subtitle">By Ayman 😈</div>
-        </div>
-
-        <div class="warning">
             <div class="demon-emoji">😈</div>
-            <h2 style="color: #ff0000; margin: 20px 0;">⚠️ تحذير جهنمي ⚠️</h2>
-            <p style="color: #ff6666;">النظام يعمل بكامل طاقته الجهنمية... الأرواح تُحتجز في كل لحظة!</p>
+            <h1>🔥 نظام المراقبة الجهنمي 🔥</h1>
+            <div class="subtitle">⚡ KIRA BOT - HELL MONITORING SYSTEM ⚡</div>
+            <div class="subtitle" id="current-time">${new Date().toLocaleTimeString('ar-SA')}</div>
         </div>
-
+        
+        <div class="warning">
+            <h2 style="color: #ff0000; margin-bottom: 10px;">⚠️ تحذير جهنمي ⚠️</h2>
+            <p>هذا النظام يعمل بطاقة الأرواح المفقودة في الجحيم</p>
+        </div>
+        
         <div class="uptime-bar">
             <div class="stat-label">⏱️ وقت التشغيل الجهنمي</div>
-            <div class="uptime-display">${hours}س ${minutes}د ${seconds}ث</div>
+            <div class="uptime-display">${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</div>
+            <div class="subtitle">منذ ${new Date(global.hellStats.startTime).toLocaleString('ar-SA')}</div>
         </div>
-
+        
+        <div class="souls-container">
+            <div class="stat-label">👹 الأرواح المحتجزة في الجحيم</div>
+            <div class="souls-count">${global.hellStats.soulsCaptured.toLocaleString()}</div>
+        </div>
+        
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">💬</span>إجمالي الرسائل</div>
-                <div class="stat-value">${global.hellStats.totalMessages}</div>
+                <div class="stat-label"><span class="stat-icon">💬</span> رسائل معالجة</div>
+                <div class="stat-value">${global.hellStats.totalMessages.toLocaleString()}</div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">⚡</span>الأوامر المنفذة</div>
-                <div class="stat-value">${global.hellStats.commandsExecuted}</div>
+                <div class="stat-label"><span class="stat-icon">⚡</span> أوامر منفذة</div>
+                <div class="stat-value">${global.hellStats.commandsExecuted.toLocaleString()}</div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">❌</span>عدد الأخطاء</div>
-                <div class="stat-value">${global.hellStats.errorCount}</div>
+                <div class="stat-label"><span class="stat-icon">💀</span> جثث متساقطة</div>
+                <div class="stat-value" id="death-count">${global.hellStats.deathCount.toLocaleString()}</div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">💀</span>الجثث المتساقطة</div>
-                <div class="stat-value">${global.hellStats.deathCount}</div>
+                <div class="stat-label"><span class="stat-icon">🔥</span> أخطاء جهنمية</div>
+                <div class="stat-value">${global.hellStats.errorCount.toLocaleString()}</div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-label"><span class="stat-icon">🔄</span>عدد إعادات التشغيل</div>
-                <div class="stat-value">${global.hellStats.restarts}</div>
+                <div class="stat-label"><span class="stat-icon">🔄</span> إعادة تشغيل</div>
+                <div class="stat-value">${global.hellStats.restarts.toLocaleString()}</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label"><span class="stat-icon">📊</span> حالة النظام</div>
+                <div class="stat-value" style="color: #00ff00;">ONLINE</div>
             </div>
         </div>
-
-        <div class="souls-container">
-            <div class="stat-label">👻 الأرواح المحتجزة في الجحيم 👻</div>
-            <div class="souls-count">${global.hellStats.soulsCaptured}</div>
+        
+        <div class="warning">
+            <h3 style="color: #ff6666;">🔥 النظام يعمل بكامل قوته الجهنمية 🔥</h3>
+            <p style="margin-top: 10px;">كل ثانية تتساقط جثة جديدة في هاوية الجحيم</p>
         </div>
-
+        
         <div class="footer">
-            <p>🔥 نظام كيرا الجهنمي يعمل بنجاح! | Kira Hell Bot is Online 🔥</p>
-            <p style="margin-top: 10px; color: #999;">تحديث تلقائي كل 5 ثواني</p>
+            <p>🔥 KIRA BOT - Powered by WS3-FCA 🔥</p>
+            <p style="margin-top: 10px;">⚡ Created by: ayman | Hell Edition ⚡</p>
         </div>
     </div>
 </body>
@@ -350,18 +358,45 @@ app.get('/', (req, res) => {
     `);
 });
 
-app.listen(port, () => {
-    console.log(chalk.cyan(`📡 Health check server is running on port ${port}`));
+// إحصائيات API
+app.get('/api/stats', (req, res) => {
+    const uptime = Math.floor((Date.now() - global.hellStats.startTime) / 1000);
+    res.json({
+        status: 'online',
+        uptime: uptime,
+        stats: global.hellStats,
+        timestamp: Date.now()
+    });
 });
 
-// إعداد المتغيرات العامة
-const logger = require('./utils/log.js');
+app.listen(port, () => {
+    console.log(chalk.cyan(`📡 Hell monitoring system is running on port ${port}`));
+});
+
+// تنظيف الكاش عند التشغيل
+exec("rm -rf script/commands/data && mkdir -p script/commands/data && rm -rf script/commands/tad/* ", (error) => {
+    if (error) return;
+    console.log(chalk.bold.hex("#00FA9A")("[ AUTO CLEAR CACHE ] 🪽❯ ") + chalk.hex("#00FA9A")("Successfully delete cache"))
+});
+
+const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } = require("fs-extra");
+const { join, resolve } = require("path");
+const logger = require("./utils/log.js");
+const login = require("ws3-fca"); // ✅ تم التعديل من hut-chat-api إلى ws3-fca
+const axios = require("axios");
+
+console.log(chalk.bold.hex("#03f0fc").bold("[ KIRA ] » ") + chalk.bold.hex("#fcba03").bold("Initializing variables..."));
 
 global.client = new Object({
     commands: new Map(),
     events: new Map(),
     cooldowns: new Map(),
-    mainPath: process.cwd()
+    eventRegistered: new Array(),
+    handleSchedule: new Array(),
+    handleReaction: new Array(),
+    handleReply: new Array(),
+    mainPath: process.cwd(),
+    configPath: new String()
 });
 
 global.data = new Object({
@@ -377,8 +412,9 @@ global.data = new Object({
     allThreadID: new Array()
 });
 
-global.utils = require("./utils");
-
+global.utils = require("./utils/index.js");
+global.utils.config = require("./utils/config.js");
+global.utils.decorations = require("./utils/decorations.js");
 global.nodemodule = new Object();
 global.config = new Object();
 global.configModule = new Object();
@@ -456,18 +492,12 @@ if (process.env.APPSTATE) {
 
 function onBot({ models: botModel }) {
     const loginData = { appState };
-    
-    console.log(chalk.yellow('🔄 محاولة تسجيل الدخول...'));
-    
     login(loginData, async(loginError, loginApiData) => {
         if (loginError) {
-            console.error(chalk.red('❌ خطأ في تسجيل الدخول:'));
             console.error(loginError);
             global.hellStats.errorCount++;
             return logger("حدث خطأ أثناء تسجيل الدخول، تأكد من صحة الـ AppState", `ERROR`);
         }
-
-        console.log(chalk.green('✅ تم تسجيل الدخول بنجاح!'));
 
         loginApiData.setOptions(global.config.FCAOption);
         
