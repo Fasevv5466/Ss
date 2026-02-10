@@ -7,19 +7,18 @@ const moment = require("moment-timezone");
 const { join, resolve } = require("path");
 const { readFileSync, writeFileSync, readdirSync, existsSync, unlinkSync } = require("fs");
 
-// استيراد ws3-fca بطريقة متوافقة
-let login;
-try {
-    // محاولة الاستيراد العادي
-    login = require("ws3-fca");
-    // إذا كان الاستيراد يعيد object مع default
-    if (login && typeof login === 'object' && login.default) {
-        login = login.default;
-    }
-} catch (e) {
-    console.error("خطأ في تحميل ws3-fca:", e);
+// ✅ الحل الصحيح لاستيراد ws3-fca
+const fcaPackage = require("ws3-fca");
+const login = fcaPackage.login || fcaPackage.default?.login || fcaPackage;
+
+// التحقق من نجاح التحميل
+if (typeof login !== 'function') {
+    console.error(chalk.red('❌ فشل تحميل ws3-fca'));
+    console.error('محاولة استخراج الدالة من:', fcaPackage);
     process.exit(1);
 }
+
+console.log(chalk.green('✅ تم تحميل ws3-fca بنجاح!'));
 
 const timerestart = 120;
 const port = process.env.PORT || 8080;
@@ -456,14 +455,6 @@ if (process.env.APPSTATE) {
 }
 
 function onBot({ models: botModel }) {
-    // التأكد من أن login دالة
-    if (typeof login !== 'function') {
-        console.error(chalk.red('❌ خطأ: login ليست دالة!'));
-        console.error('نوع login:', typeof login);
-        console.error('محتوى login:', login);
-        return logger("login is not a function - check ws3-fca installation", "ERROR");
-    }
-
     const loginData = { appState };
     
     console.log(chalk.yellow('🔄 محاولة تسجيل الدخول...'));
