@@ -1,26 +1,40 @@
-// kira-media.js
+// kira-media-lite.js
 // جميع وظائف الميديا لبوت Kira
 // متوافق مع Node ≥20 وRailway
+require("dotenv").config(); // لضبط مفاتيح البيئة
+
 const fs = require("fs");
 const path = require("path");
+const axios = require("axios");
 const Jimp = require("jimp");
 const sharp = require("sharp");
 const Canvas = require("@napi-rs/canvas");
 const ytdl = require("ytdl-core");
 const ytSearch = require("yt-search");
-const imageDownloader = require("image-downloader");
+const imgur = require("imgur");
+
+// =================== UTIL ===================
+function ensureDir(folder) {
+  if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
+  return folder;
+}
 
 // =================== تنزيل الصور ===================
 async function downloadImage(url, destFolder = "./downloads") {
-  if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
+  ensureDir(destFolder);
   const filename = path.join(destFolder, path.basename(url));
-  await imageDownloader.image({ url, dest: filename });
-  return filename;
+  const writer = fs.createWriteStream(filename);
+  const response = await axios({ url, method: "GET", responseType: "stream" });
+  response.data.pipe(writer);
+  return new Promise((resolve, reject) => {
+    writer.on("finish", () => resolve(filename));
+    writer.on("error", reject);
+  });
 }
 
 // =================== تنزيل فيديو يوتيوب ===================
 async function downloadYouTubeVideo(url, destFolder = "./downloads") {
-  if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
+  ensureDir(destFolder);
   const info = await ytdl.getInfo(url);
   const title = info.videoDetails.title.replace(/[^\w\s]/gi, "");
   const output = path.join(destFolder, `${title}.mp4`);
@@ -34,14 +48,14 @@ async function downloadYouTubeVideo(url, destFolder = "./downloads") {
 
 // =================== تعديل الصور ===================
 async function resizeImage(filePath, width = 500, height = 500, outputFolder = "./edited") {
-  if (!fs.existsSync(outputFolder)) fs.mkdirSync(outputFolder, { recursive: true });
+  ensureDir(outputFolder);
   const output = path.join(outputFolder, path.basename(filePath));
   await sharp(filePath).resize(width, height).toFile(output);
   return output;
 }
 
 async function addTextToImage(filePath, text, outputFolder = "./edited") {
-  if (!fs.existsSync(outputFolder)) fs.mkdirSync(outputFolder, { recursive: true });
+  ensureDir(outputFolder);
   const image = await Jimp.read(filePath);
   const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
   image.print(font, 10, 10, text);
@@ -50,7 +64,7 @@ async function addTextToImage(filePath, text, outputFolder = "./edited") {
   return output;
 }
 
-// =================== رسم Canvas ===================
+// =================== Canvas ===================
 async function drawCanvas(width = 800, height = 600, text = "Kira Bot") {
   const canvas = Canvas.createCanvas(width, height);
   const ctx = canvas.getContext("2d");
@@ -67,10 +81,16 @@ async function drawCanvas(width = 800, height = 600, text = "Kira Bot") {
   return canvas.toBuffer("image/png");
 }
 
-// =================== بحث يوتيوب ===================
+// =================== بحث فيديو يوتيوب ===================
 async function searchYouTube(query) {
   const results = await ytSearch(query);
-  return results.videos[0]; // أول نتيجة فقط
+  return results.videos[0]; // أول نتيجة
+}
+
+// =================== رفع الصور ===================
+async function uploadToImgur(filePath) {
+  imgur.setClientId(process.env.IMGUR_CLIENT_ID || "");
+  return imgur.uploadFile(filePath);
 }
 
 // =================== تصدير الدوال ===================
@@ -81,4 +101,5 @@ module.exports = {
   addTextToImage,
   drawCanvas,
   searchYouTube,
+  uploadToImgur,
 };
