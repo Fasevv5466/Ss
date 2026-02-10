@@ -1,95 +1,89 @@
 const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
-const moment = require("moment-timezone");
+const mongoPath = path.join(process.cwd(), "includes", "mongodb.js");
+const mongoDB = require(mongoPath);
 
-module.exports.config = {
-  name: "joinNoti",
-  eventType: ["log:subscribe"],
-  version: "1.6.0",
-  credits: "Ayman",
-  description: "ترحيب ملكي بالأعضاء الجدد مع معالجة أخطاء متقدمة"
-};
+module.exports = {
+    config: {
+        name: "joinNoti",
+        eventType: ["log:subscribe"],
+        version: "2.6.0",
+        author: "Kira AI"
+    },
 
-module.exports.run = async function({ api, event, Users, Threads }) {
-  const { threadID } = event;
-  const time = moment.tz("Asia/Baghdad").format("HH:mm:ss DD/MM/YYYY");
-  const hours = parseInt(moment.tz("Asia/Baghdad").format("HH"));
+    run: async function({ api, event }) {
+        const { threadID } = event;
+        const bold = (text) => global.utils.toBoldSans(text);
+        const header = `⌬ ━━━ ${bold("KIRA SYSTEM")} ━━━ ⌬`;
+        const footer = `⌬ ━━━━━━━━━━━━━━━━ ⌬`;
 
-  // 1. إذا دخل البوت إلى المجموعة
-  if (event.logMessageData.addedParticipants.some(i => i.userFbId == api.getCurrentUserID())) {
-    try {
-      api.changeNickname(`[ ${global.config.PREFIX} ] • ${global.config.BOTNAME || "هبة"}`, threadID, api.getCurrentUserID());
-      return api.sendMessage(`✅ تـم تـفـعـيـل الـنـظـام بـنـجـاح!\n🤖 أنـا الـآن جـاهـزة لـخـدمـتـكـم، اكـتـب (${global.config.PREFIX}الاوامر) لـلـإسـتـكـشـاف.`, threadID);
-    } catch (e) { console.log(e) }
-  }
+        // 1. عند دخول البوت للمجموعة (الرسالة المطلوبة)
+        if (event.logMessageData.addedParticipants.some(i => i.userFbId == api.getCurrentUserID())) {
+            api.changeNickname(`[ ${global.config.PREFIX} ] • ${global.config.BOTNAME}`, threadID, api.getCurrentUserID());
+            
+            const wakeupMsg = `${header}\n\nاوووف.. أيقظتوني مجدداً! 😴\n\n✅ تـم تـفـعـيـل الـبـوت بـنـجـاح\n🤖 اكـتـب (${global.config.PREFIX}الاوامر) لـلـبـدء.\n\n${footer}`;
+            const wakeupGif = "https://media.giphy.com/media/10N247rib4BlVC/giphy.gif";
+            const cachePath = path.join(process.cwd(), "includes", "handle", "cache");
+            if (!fs.existsSync(cachePath)) fs.mkdirSync(cachePath, { recursive: true });
+            const imgPath = path.join(cachePath, `wakeup_${Date.now()}.gif`);
 
-  // 2. ترحيب الأعضاء الجدد
-  try {
-    const threadInfo = await api.getThreadInfo(threadID);
-    const { threadName, participantIDs } = threadInfo;
-    const addedParticipants = event.logMessageData.addedParticipants;
-    
-    let nameArray = [];
-    let memLength = [];
-    let i = 0;
+            try {
+                const { data } = await axios.get(wakeupGif, { responseType: "arraybuffer" });
+                fs.writeFileSync(imgPath, Buffer.from(data, "utf-8"));
+                return api.sendMessage({
+                    body: wakeupMsg,
+                    attachment: fs.createReadStream(imgPath)
+                }, threadID, () => {
+                    if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+                });
+            } catch (err) {
+                return api.sendMessage(wakeupMsg, threadID);
+            }
+        }
 
-    for (const user of addedParticipants) {
-      const id = user.userFbId;
-      const userName = user.fullName;
-      nameArray.push(userName);
-      memLength.push(participantIDs.length + i++);
-
-      // تسجيل العضو في قاعدة البيانات بشكل آمن
-      if (global.data && global.data.allUserID && !global.data.allUserID.includes(id)) {
+        // 2. ترحيب الأعضاء (نفس الزخرفة والبنك)
         try {
-          await Users.createData(id, { name: userName, data: {} });
-          global.data.userName.set(id, userName);
-          global.data.allUserID.push(id);
-        } catch (dbErr) { console.log("خطأ تسجيل داتا: " + dbErr) }
-      }
+            const addedParticipants = event.logMessageData.addedParticipants;
+            const threadInfo = await api.getThreadInfo(threadID);
+            
+            for (const user of addedParticipants) {
+                const id = user.userFbId;
+                const userName = user.fullName;
+                const balance = await mongoDB.getBalance(id);
+
+                const msg = `⌬ ━━━ ${bold("KIRA WELCOME")} ━━━ ⌬\n\n` +
+                          `👋 أهـلاً بـك: [ ${userName} ]\n` +
+                          `🏰 فـي: [ ${threadInfo.threadName} ]\n` +
+                          `💰 رصـيدك: [ ${balance}$ ]\n\n` +
+                          `✨ نـتـمـنى لـك وقـتـاً مـمـتـعـاً مـعـنا!\n\n` +
+                          `${footer}`;
+
+                const gifs = [
+                    "https://media.giphy.com/media/bqSkJ4IwNcoZG/giphy.gif",
+                    "https://media.giphy.com/media/MdLFOyVZtoUPm/giphy.gif",
+                    "https://media.giphy.com/media/cKtQKy2VylZC0/giphy.gif",
+                    "https://media.giphy.com/media/7ihhFw8q0LzBS/giphy.gif",
+                    "https://media.giphy.com/media/l8vODjlQrm2YM/giphy.gif",
+                    "https://media.giphy.com/media/cxPtMDHG8Ljry/giphy.gif"
+                ];
+                
+                const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
+                const cachePath = path.join(process.cwd(), "includes", "handle", "cache");
+                const imgPath = path.join(cachePath, `welcome_${id}_${Date.now()}.gif`);
+
+                try {
+                    const { data } = await axios.get(randomGif, { responseType: "arraybuffer" });
+                    fs.writeFileSync(imgPath, Buffer.from(data, "utf-8"));
+                    api.sendMessage({ body: msg, attachment: fs.createReadStream(imgPath) }, threadID, () => {
+                        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+                    });
+                } catch (err) {
+                    api.sendMessage(msg, threadID);
+                }
+            }
+        } catch (e) {
+            console.error("خطأ ترحيب كيرا: " + e);
+        }
     }
-
-    // تحديد الوقت والتحية
-    let session = hours >= 5 && hours < 12 ? "صباح الخير ☕" : hours >= 12 && hours < 17 ? "طاب يومك ☀️" : hours >= 17 && hours < 21 ? "مساء الخير 🌆" : "ليلة سعيدة ✨";
-
-    const authorName = await Users.getNameUser(event.author) || "عضو المجموعة";
-
-    let msg = `╭─────╼✨╾─────╮\n  تـرحـيـب مـلـكـي جـديـد\n╰─────╼✨╾─────╯\n\n` +
-              `👋 أهـلاً بـك: [ ${nameArray.join(", ")} ]\n` +
-              `🏰 فـي مـجـمـوعـة: [ ${threadName} ]\n` +
-              `👥 أنـت الـعـضـو رقـم: [ ${memLength.join(", ")} ]\n\n` +
-              `📥 تـمـت إضـافـتـك بـواسطـة: [ ${authorName} ]\n` +
-              `⏰ الـوقـت الآن: [ ${time} ]\n\n` +
-              `💡 ${session} نـتـمـنى لـك وقـتـاً مـمـتـعـاً مـعـنا!\n` +
-              `━━━━━━━━━━━━━━`;
-
-    // نظام تحميل الصور مع حماية من الفشل
-    const gifs = [
-      "https://media.giphy.com/media/AQUJBBWdybhKTykygq/giphy.gif",
-      "https://media.giphy.com/media/1448TKNMMg4BFu/giphy.gif",
-      "https://media.giphy.com/media/LML5ldpTKLPelFtBfY/giphy.gif"
-    ];
-    const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
-    const pathGif = path.join(__dirname, "cache", `join_${Date.now()}_${Math.random()}.gif`);
-
-    try {
-      const response = await axios.get(randomGif, { responseType: "arraybuffer", timeout: 5000 });
-      fs.ensureDirSync(path.join(__dirname, "cache"));
-      fs.writeFileSync(pathGif, Buffer.from(response.data, "utf-8"));
-
-      return api.sendMessage({
-        body: msg,
-        attachment: fs.createReadStream(pathGif)
-      }, threadID, () => {
-        if (fs.existsSync(pathGif)) fs.unlinkSync(pathGif);
-      });
-    } catch (imgErr) {
-      // إذا فشل تحميل الصورة، يرسل الترحيب كنص فقط ولا يتوقف البوت
-      return api.sendMessage(msg, threadID);
-    }
-
-  } catch (e) {
-    console.error("خطأ عام في نظام الترحيب: " + e);
-  }
 };
