@@ -6,7 +6,7 @@ const { exec } = require("child_process");
 const moment = require("moment-timezone");
 const { join, resolve } = require("path");
 const { readFileSync, writeFileSync, readdirSync, existsSync, unlinkSync } = require("fs");
-const login = require("hut-chat-api");
+const login = require("ws3-fca");
 
 const timerestart = 120;
 const port = process.env.PORT || 8000;
@@ -343,7 +343,6 @@ app.listen(port, () => {
 });
 
 // إعداد المتغيرات العامة
-const { resolve: resolvePath } = require('path');
 const logger = require('./utils/log.js');
 
 global.client = new Object({
