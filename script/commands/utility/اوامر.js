@@ -1,25 +1,30 @@
 module.exports.config = {
   name: "اوامر",
-  version: "9.0.0",
+  version: "10.0.0",
   hasPermssion: 0,
-  credits: "ايمن",
-  description: "قائمة الأوامر بتنسيق كيرا الفخم",
-  commandCategory: "utility",
-  usages: "اوامر",
+  credits: "ayman",
+  description: "قائمة الأوامر التفاعلية بالرد مع الخط الخشن",
+  commandCategory: "system",
+  usages: "[اوامر]",
   cooldowns: 5
 };
 
 module.exports.handleEvent = async function({ api, event }) {
-  const { reaction, messageReply } = event;
-  if (reaction === "😡" && messageReply?.senderID === api.getCurrentUserID()) {
+  const { type, reaction, messageReply } = event;
+  if (type === "message_reaction" && reaction === "😡" && messageReply?.senderID === api.getCurrentUserID()) {
     return api.unsendMessage(messageReply.messageID);
   }
 };
 
 module.exports.handleReply = async function({ api, event, handleReply }) {
-  const { threadID, messageID, body } = event;
-  const { commands } = global.client;
+  const { threadID, messageID, body, senderID } = event;
+  const { author, type } = handleReply;
+  if (senderID !== author) return;
+
+  const bold = (text) => global.utils.toBoldSans(text);
+  const heavy = (text) => global.utils.toBoldMath(text);
   
+  // خريطة التصنيفات
   const categories = {
     "1": { id: "fun", name: "الـتـرفـيـه" },
     "2": { id: "admin", name: "الإدارة" },
@@ -30,38 +35,58 @@ module.exports.handleReply = async function({ api, event, handleReply }) {
     "7": { id: "utility", name: "الـخدمات" }
   };
 
+  // العودة للقائمة الرئيسية إذا رد بكلمة "رجوع"
+  if (body.toLowerCase() === "رجوع") {
+     api.unsendMessage(handleReply.messageID);
+     return module.exports.run({ api, event });
+  }
+
   const choice = categories[body];
   if (!choice) return;
 
-  const categoryCommands = Array.from(commands.values())
-    .filter(cmd => cmd.config.commandCategory.toLowerCase() === choice.id)
+  const allCommands = Array.from(global.client.commands.values());
+  const categoryCommands = allCommands
+    .filter(cmd => cmd.config.commandCategory.toLowerCase() === choice.id.toLowerCase())
     .map(cmd => cmd.config.name);
 
-  const msg = `⌬ ━━ 𝗞𝗜𝗥𝗔  - ${choice.name} ━━ ⌬\n\n` +
-              `» ${categoryCommands.join(" - ")}`;
+  const msg = `⌬ ━━━━━━━━━━━━ ⌬\n   ${heavy(`𝗞𝗜𝗥𝗔 - ${choice.id.toUpperCase()}`)}\n⌬ ━━━━━━━━━━━━ ⌬\n\n` +
+              `» ${bold(categoryCommands.join(" - "))}\n\n` +
+              `✨ ${bold("عدد الأوامر:")} ${categoryCommands.length}\n` +
+              `🔙 ${bold("رد بكلمة [رجوع] للعودة للقائمة.")}`;
 
   api.unsendMessage(handleReply.messageID);
-  return api.sendMessage(msg, threadID, messageID);
+  return api.sendMessage(msg, threadID, (err, info) => {
+    global.client.handleReply.push({
+      name: this.config.name,
+      messageID: info.messageID,
+      author: senderID,
+      type: "category"
+    });
+  }, messageID);
 };
 
 module.exports.run = async function({ api, event }) {
-  const { threadID, messageID } = event;
+  const { threadID, messageID, senderID } = event;
+  const heavy = (text) => global.utils.toBoldMath(text);
+  const bold = (text) => global.utils.toBoldSans(text);
 
-  const menu = `⌬ ━━ 𝗞𝗜𝗥𝗔  𝗛𝗘𝗟𝗣 ━━ ⌬\n\n` +
+  const menu = `⌬ ━━━━━━━━━━━━ ⌬\n      ${heavy("𝗞𝗜𝗥𝗔 𝗛𝗘𝗟𝗣")}\n⌬ ━━━━━━━━━━━━ ⌬\n\n` +
                `مرحباً بك، رد برقم الفئة المطلوبة:\n\n` +
-               `𝟭. 【 الـتـرفـيـه 】\n` +
-               `𝟮. 【 الإدارة 】\n` +
-               `𝟯. 【 الـمـطـور 】\n` +
-               `𝟰. 【 الألـعـاب 】\n` +
-               `𝟱. 【 الـوسـائط 】\n` +
-               `𝟲. 【 الـصـور 】\n` +
-               `𝟳. 【 الـخدمات 】`;
+               `𝟭. 【 ${heavy("الـتـرفـيـه")} 】\n` +
+               `𝟮. 【 ${heavy("الإدارة")} 】\n` +
+               `𝟯. 【 ${heavy("الـمـطـور")} 】\n` +
+               `𝟰. 【 ${heavy("الألـعـاب")} 】\n` +
+               `𝟱. 【 ${heavy("الـوسـائط")} 】\n` +
+               `𝟲. 【 ${heavy("الـصـور")} 】\n` +
+               `𝟳. 【 ${heavy("الـخدمات")} 】\n\n` +
+               `💡 ${bold("قم بالرد بالرقم لتصفح الأوامر.")}`;
 
   return api.sendMessage(menu, threadID, (err, info) => {
     global.client.handleReply.push({
       name: this.config.name,
       messageID: info.messageID,
-      author: event.senderID
+      author: senderID,
+      type: "main"
     });
   }, messageID);
 };
