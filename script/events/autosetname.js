@@ -1,52 +1,44 @@
-const path = require("path");
-const fs = require("fs-extra");
-
-module.exports = {
-    config: {
-        name: "xpControl",
-        eventType: ["message", "message_reply", "message_reaction"],
-        version: "2.0.0",
-        author: "Kira AI"
-    },
-
-    handleEvent: async function({ api, event, Currencies }) {
-        const { senderID, threadID, type, body } = event;
-
-        // تجاهل رسائل البوت أو الأحداث الفارغة
-        if (!senderID || senderID == api.getCurrentUserID() || type === "log:unsubscribe") return;
-
-        try {
-            // 1. زيادة الـ XP باستخدام الدالة الممررة من الهاندلر أو المونغو مباشرة
-            // نزيد 2 XP لكل رسالة
-            const mongoPath = path.join(process.cwd(), "includes", "mongodb.js");
-            const mongoDB = require(mongoPath);
-            
-            const currentExp = await mongoDB.addExp(senderID, 2);
-
-            // 2. التحقق من "اللفل الجديد" (كل 100 XP)
-            // نستخدم الشرط (100) لضمان التحديث مرة واحدة عند كل مئة
-            if (currentExp > 0 && currentExp % 100 === 0) {
-                
-                // جلب اسم المستخدم من قاعدة البيانات أو الفيسبوك
-                const userData = await mongoDB.getUserData(senderID);
-                const nameUser = userData.user.name || "عضو كيرا";
-                
-                // تحويل النص لـ Bold Sans باستخدام زخرفة كيرا
-                const bold = (text) => global.utils.toBoldSans(text);
-
-                // 3. تحديث اللقب في المجموعة
-                const newNickname = `${nameUser} | XP: ${currentExp}`;
-                
-                await api.changeNickname(newNickname, threadID, senderID);
-
-                // 4. إرسال تنبيه الفخامة (اختياري - يمكنك حذفه إذا أردت صمتاً)
-                const msg = `⌬ ━━━ ${bold("LEVEL UP")} ━━━ ⌬\n\n✨ مبروك يا ${nameUser}\n🆙 ارتفع مستواك إلى: [ XP: ${currentExp} ]\n\n⌬ ━━━━━━━━━━━━━━ ⌬`;
-                
-                api.sendMessage(msg, threadID);
-            }
-
-        } catch (err) {
-            console.error("❌ [XP Error]:", err.message);
-        }
-    }
+ module.exports.config = {
+  name: "اللقب_التلقائي",
+  eventType: ["log:subscribe"],
+  version: "1.0.0",
+  credits: "ayman",
+  description: "تغيير لقب الأعضاء الجدد تلقائياً فور دخولهم"
 };
+
+module.exports.run = async function({ api, event, Users }) {
+  const { threadID, logMessageData } = event;
+  const bold = (text) => global.utils.toBoldSans(text);
+  const header = `⌬ ━━━ ${bold("KIRA AUTO-NAME")} ━━━ ⌬`;
+
+  // استبعاد البوت من العملية
+  const botID = api.getCurrentUserID();
+  
+  // قائمة الأعضاء الجدد
+  const memJoin = logMessageData.addedParticipants;
+
+  for (let user of memJoin) {
+    const idUser = user.userFbId;
+    
+    // إذا كان العضو الجديد ليس البوت
+    if (idUser !== botID) {
+      try {
+        // جلب اسم العضو الأصلي
+        const info = await Users.getData(idUser);
+        const name = info.name || user.fullName;
+
+        // تغيير اللقب إلى التنسيق المطلوب 𖣂 الاسم 𖣂
+        const newNickname = `𖣂 ${name} 𖣂`;
+        
+        // تنفيذ التغيير (تأخير بسيط لتفادي الحظر)
+        setTimeout(() => {
+          api.changeNickname(newNickname, threadID, idUser);
+        }, 1500);
+
+      } catch (e) {
+        console.log("Auto-Nickname Error: ", e);
+      }
+    }
+  }
+
+  
