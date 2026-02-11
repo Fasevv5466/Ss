@@ -1,41 +1,33 @@
-module.exports.config = {
+    module.exports.config = {
   name: "اوامر",
-  version: "10.0.0",
+  version: "10.2.0",
   hasPermssion: 0,
   credits: "ayman",
-  description: "قائمة الأوامر التفاعلية بالرد مع الخط الخشن",
-  commandCategory: "system",
+  description: "قائمة الأوامر بنظام الرد المباشر - نسخة نظيفة",
+  commandCategory: "utility",
   usages: "[اوامر]",
   cooldowns: 5
 };
 
-module.exports.handleEvent = async function({ api, event }) {
-  const { type, reaction, messageReply } = event;
-  if (type === "message_reaction" && reaction === "😡" && messageReply?.senderID === api.getCurrentUserID()) {
-    return api.unsendMessage(messageReply.messageID);
-  }
+const heavy = (text) => {
+    const keys = {"A":"𝗔","B":"Ｂ","C":"Ｃ","D":"Ｄ","E":"Ｅ","F":"Ｆ","G":"Ｇ","H":"Ｈ","I":"Ｉ","J":"Ｊ","K":"Ｋ","L":"Ｌ","M":"Ｍ","N":"Ｎ","O":"Ｏ","P":"Ｐ","Q":"Ｑ","R":"Ｒ","S":"Ｓ","T":"Ｔ","U":"Ｕ","V":"Ｖ","W":"Ｗ","X":"Ｘ","Y":"Ｙ","Z":"Ｚ","a":"ａ","b":"ｂ","c":"ｃ","d":"ｄ","e":"ｅ","f":"ｆ","g":"ｇ","h":"ｈ","i":"ｉ","j":"ｊ","k":"ｋ","l":"ｌ","m":"ｍ","n":"ｎ","o":"ｏ","p":"ｐ","q":"ｑ","r":"ｒ","s":"ｓ","t":"ｔ","u":"ｕ","v":"ｖ","w":"ｗ","x":"ｘ","y":"ｙ","z":"ｚ","0":"𝟬","1":"𝟭","2":"𝟮","3":"𝟯","4":"𝟰","5":"𝟱","6":"𝟲","7":"𝟳","8":"𝟴","9":"𝟵"};
+    return text.toString().split("").map(char => keys[char] || char).join("");
 };
 
 module.exports.handleReply = async function({ api, event, handleReply }) {
   const { threadID, messageID, body, senderID } = event;
-  const { author, type } = handleReply;
-  if (senderID !== author) return;
+  if (senderID !== handleReply.author) return;
 
-  const bold = (text) => global.utils.toBoldSans(text);
-  const heavy = (text) => global.utils.toBoldMath(text);
-  
-  // خريطة التصنيفات
   const categories = {
-    "1": { id: "fun", name: "الـتـرفـيـه" },
+    "1": { id: "fun", name: "الترفيه" },
     "2": { id: "admin", name: "الإدارة" },
-    "3": { id: "developer", name: "الـمـطـور" },
-    "4": { id: "games", name: "الألـعـاب" },
-    "5": { id: "media", name: "الـوسـائط" },
-    "6": { id: "pic", name: "الـصـور" },
-    "7": { id: "utility", name: "الـخدمات" }
+    "3": { id: "developer", name: "المطور" },
+    "4": { id: "games", name: "الألعاب" },
+    "5": { id: "media", name: "الوسائط" },
+    "6": { id: "pic", name: "الصور" },
+    "7": { id: "utility", name: "الخدمات" }
   };
 
-  // العودة للقائمة الرئيسية إذا رد بكلمة "رجوع"
   if (body.toLowerCase() === "رجوع") {
      api.unsendMessage(handleReply.messageID);
      return module.exports.run({ api, event });
@@ -49,44 +41,43 @@ module.exports.handleReply = async function({ api, event, handleReply }) {
     .filter(cmd => cmd.config.commandCategory.toLowerCase() === choice.id.toLowerCase())
     .map(cmd => cmd.config.name);
 
-  const msg = `⌬ ━━━━━━━━━━━━ ⌬\n   ${heavy(`𝗞𝗜𝗥𝗔 - ${choice.id.toUpperCase()}`)}\n⌬ ━━━━━━━━━━━━ ⌬\n\n` +
-              `» ${bold(categoryCommands.join(" - "))}\n\n` +
-              `✨ ${bold("عدد الأوامر:")} ${categoryCommands.length}\n` +
-              `🔙 ${bold("رد بكلمة [رجوع] للعودة للقائمة.")}`;
+  if (categoryCommands.length === 0) return api.sendMessage(`لا توجد أوامر في فئة ${choice.name}`, threadID, messageID);
+
+  const msg = `--- ${heavy(choice.name.toUpperCase())} ---\n\n` +
+              `${categoryCommands.join(" - ")}\n\n` +
+              `عدد الأوامر: ${categoryCommands.length}\n` +
+              `للعودة أرسل: رجوع`;
 
   api.unsendMessage(handleReply.messageID);
   return api.sendMessage(msg, threadID, (err, info) => {
     global.client.handleReply.push({
       name: this.config.name,
       messageID: info.messageID,
-      author: senderID,
-      type: "category"
+      author: senderID
     });
   }, messageID);
 };
 
 module.exports.run = async function({ api, event }) {
   const { threadID, messageID, senderID } = event;
-  const heavy = (text) => global.utils.toBoldMath(text);
-  const bold = (text) => global.utils.toBoldSans(text);
 
-  const menu = `⌬ ━━━━━━━━━━━━ ⌬\n      ${heavy("𝗞𝗜𝗥𝗔 𝗛𝗘𝗟𝗣")}\n⌬ ━━━━━━━━━━━━ ⌬\n\n` +
-               `مرحباً بك، رد برقم الفئة المطلوبة:\n\n` +
-               `𝟭. 【 ${heavy("الـتـرفـيـه")} 】\n` +
-               `𝟮. 【 ${heavy("الإدارة")} 】\n` +
-               `𝟯. 【 ${heavy("الـمـطـور")} 】\n` +
-               `𝟰. 【 ${heavy("الألـعـاب")} 】\n` +
-               `𝟱. 【 ${heavy("الـوسـائط")} 】\n` +
-               `𝟲. 【 ${heavy("الـصـور")} 】\n` +
-               `𝟳. 【 ${heavy("الـخدمات")} 】\n\n` +
-               `💡 ${bold("قم بالرد بالرقم لتصفح الأوامر.")}`;
+  const menu = `${heavy("قائمة الفئات")}\n` +
+               `------------------\n` +
+               `1. الترفيه\n` +
+               `2. الإدارة\n` +
+               `3. المطور\n` +
+               `4. الألعاب\n` +
+               `5. الوسائط\n` +
+               `6. الصور\n` +
+               `7. الخدمات\n` +
+               `------------------\n` +
+               `رد برقم الفئة لعرض الأوامر.`;
 
   return api.sendMessage(menu, threadID, (err, info) => {
     global.client.handleReply.push({
       name: this.config.name,
       messageID: info.messageID,
-      author: senderID,
-      type: "main"
+      author: senderID
     });
   }, messageID);
 };
