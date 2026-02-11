@@ -3,100 +3,207 @@ const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
 
-// تأكد من أن المسار صحيح لملف المونغو عندك
 const mongodb = require(path.join(process.cwd(), "includes", "mongodb.js"));
 
 module.exports.config = {
   name: "بنك",
-  version: "14.0.1",
+  version: "15.0.0",
   hasPermssion: 0,
-  credits: "ايمن - VOID EMPEROR",
-  description: "عرض بطاقة الإمبراطور الفراغي الخاصة بك 🌌",
+  credits: "VOID SYSTEM",
+  description: "Neon Emperor Bank Card",
   commandCategory: "games",
   usages: "[@منشن]",
   cooldowns: 5
 };
 
-module.exports.run = async function ({ api, event, args }) {
+module.exports.run = async function ({ api, event }) {
   const { threadID, messageID, senderID } = event;
-  
+
   try {
     let targetID = senderID;
+
     if (Object.keys(event.mentions).length > 0) {
       targetID = Object.keys(event.mentions)[0];
     } else if (event.type === "message_reply") {
       targetID = event.messageReply.senderID;
     }
 
-    // جلب البيانات مع التعامل مع احتمالية عدم وجودها
     const data = await mongodb.getUserData(targetID);
-    if (!data) {
-      return api.sendMessage("❌ هذا المستخدم غير مسجل في قاعدة البيانات!", threadID, messageID);
-    }
-    
-    // تصحيح استخراج المتغيرات لتناسب بنية MongoDB الشائعة
-    const currency = data.currency || data; 
-    const calculated = data.calculated || { rank: { name: "مبتدئ", emoji: "👶" }, progress: 0, expNeeded: 1000 };
-    const user = data.user || { name: (await api.getUserInfo(targetID))[targetID].name };
-    
-    const username = user.name || "مستخدم";
-    const isDeveloper = global.config.ADMINBOT && global.config.ADMINBOT.includes(targetID);
-    
-    // إشعار البدء
-    const loadingMsg = await api.sendMessage("⚡ جاري استدعاء قوة الفراغ...", threadID);
-    
-    const card = await createVoidEmperorCard({
+    if (!data || !data.currency)
+      return api.sendMessage("❌ لا توجد بيانات.", threadID, messageID);
+
+    const { currency, calculated } = data;
+    const userInfo = await api.getUserInfo(targetID);
+    const username =
+      data.user?.name ||
+      userInfo[targetID]?.name ||
+      "USER";
+
+    const isDeveloper =
+      global.config.ADMINBOT &&
+      global.config.ADMINBOT.includes(targetID);
+
+    const exp = currency.exp || 0;
+    const expNeeded = calculated?.expNeeded || 100;
+    const progress = Math.min(
+      Math.floor((exp / expNeeded) * 100),
+      100
+    );
+
+    const card = await createCard({
       userID: targetID,
       username: username.toUpperCase(),
       money: currency.money || 0,
-      exp: currency.exp || 0,
+      exp,
       level: currency.level || 1,
-      msgCount: currency.messageCount || 0,
-      rank: calculated.rank,
-      progress: calculated.progress || 0,
-      expNeeded: calculated.expNeeded || 100,
-      isDeveloper: isDeveloper
+      msg: currency.messageCount || 0,
+      rank: calculated?.rank?.name || "مبتدئ",
+      progress,
+      isDeveloper
     });
-    
-    const cachePath = path.join(__dirname, "cache", `void_${targetID}.png`);
-    if (!fs.existsSync(path.join(__dirname, "cache"))) fs.mkdirSync(path.join(__dirname, "cache"));
-    
-    await fs.writeFile(cachePath, card);
-    
-    // حذف رسالة التحميل وإرسال البطاقة
-    api.unsendMessage(loadingMsg.messageID);
 
-    return api.sendMessage({
-      body: `╔══════════════════╗\n   🌌 VOID EMPEROR SYSTEM\n╚══════════════════╝\n\n👤 الـمـسـتـخـدم: ${username}\n⚡ الـرتـبـة: ${calculated.rank.name}\n💰 الـرصـيـد: ${formatNumber(currency.money)}$`,
-      attachment: fs.createReadStream(cachePath)
-    }, threadID, () => {
-        if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
-    }, messageID);
-    
-  } catch (error) {
-    console.error("❌ VOID ERROR:", error);
-    return api.sendMessage(`❌ فشل النظام في معالجة القوة الفراغية!`, threadID, messageID);
+    const cachePath = path.join(
+      __dirname,
+      `cache_bank_${targetID}.png`
+    );
+    await fs.writeFile(cachePath, card);
+
+    return api.sendMessage(
+      {
+        attachment: fs.createReadStream(cachePath)
+      },
+      threadID,
+      () => fs.unlinkSync(cachePath),
+      messageID
+    );
+  } catch (e) {
+    console.log(e);
+    api.sendMessage("❌ Error", threadID, messageID);
   }
 };
 
-// --- دالة التنسيق ---
-function formatNumber(num) {
-  return num ? num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0";
+function getTheme(rank, isDev) {
+  if (isDev)
+    return { primary: "#a855f7", neon: "#d8b4fe" };
+
+  switch (rank) {
+    case "مبتدئ":
+      return { primary: "#22c55e", neon: "#4ade80" }; // أخضر
+    case "محارب":
+      return { primary: "#eab308", neon: "#fde047" }; // أصفر
+    case "فارس":
+      return { primary: "#0ea5e9", neon: "#38bdf8" }; // أزرق
+    case "نخبة":
+      return { primary: "#a16207", neon: "#d97706" }; // بني
+    case "بطل":
+      return { primary: "#ef4444", neon: "#f87171" }; // أحمر
+    default:
+      return { primary: "#22c55e", neon: "#4ade80" };
+  }
 }
 
-// --- دالة جلب الثيم (تأكد من مطابقة أسماء الرتب) ---
-function getVoidTheme(rank, isDeveloper) {
-  const rName = (rank && rank.name) ? rank.name : "مبتدئ";
-  if (isDeveloper) return { name: "SYSTEM OWNER", primary: "#8b5cf6", secondary: "#a78bfa", accent: "#c4b5fd", neon: "#d8b4fe", dark: "#4c1d95", glow: "#f3e8ff", bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e" };
-  
-  const themes = {
-    "مبتدئ": { name: "ROOKIE", primary: "#22c55e", secondary: "#4ade80", accent: "#86efac", neon: "#bbf7d0", dark: "#166534", glow: "#dcfce7", bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e" },
-    "محارب": { name: "SOLDIER", primary: "#eab308", secondary: "#facc15", accent: "#fde047", neon: "#fef08a", dark: "#854d0e", glow: "#fef9c3", bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e" },
-    "فارس": { name: "WARRIOR", primary: "#06b6d4", secondary: "#22d3ee", accent: "#67e8f9", neon: "#a5f3fc", dark: "#164e63", glow: "#cffafe", bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e" },
-    "ملك": { name: "VOID EMPEROR", primary: "#dc2626", secondary: "#ef4444", accent: "#f87171", neon: "#fca5a5", dark: "#7f1d1d", glow: "#fee2e2", bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e" }
-  };
-  return themes[rName] || { name: "IMMORTAL", primary: "#7c3aed", secondary: "#8b5cf6", accent: "#a78bfa", neon: "#c4b5fd", dark: "#5b21b6", glow: "#ede9fe", bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e" };
-}
+async function createCard(data) {
+  const W = 1300;
+  const H = 500;
+  const canvas = Canvas.createCanvas(W, H);
+  const ctx = canvas.getContext("2d");
 
-// --- بقية دوال الرسم (نفس الكود الأصلي بدون تغيير في الجرافيك) ---
-// (انسخ بقية الدوال من كودك الأصلي هنا: createVoidEmperorCard, drawOctagonalAvatar, إلخ...)
+  const theme = getTheme(data.rank, data.isDeveloper);
+
+  // خلفية
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, "#050507");
+  bg.addColorStop(1, "#0f172a");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // إطار نيون
+  ctx.strokeStyle = theme.primary;
+  ctx.lineWidth = 4;
+  ctx.shadowColor = theme.neon;
+  ctx.shadowBlur = 30;
+  ctx.strokeRect(20, 20, W - 40, H - 40);
+  ctx.shadowBlur = 0;
+
+  // صورة
+  try {
+    const avatarURL = `https://graph.facebook.com/${data.userID}/picture?width=512&height=512`;
+    const img = await Canvas.loadImage(avatarURL);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(180, 250, 120, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(img, 60, 130, 240, 240);
+    ctx.restore();
+
+    ctx.strokeStyle = theme.primary;
+    ctx.lineWidth = 6;
+    ctx.shadowColor = theme.neon;
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    ctx.arc(180, 250, 120, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  } catch {}
+
+  // اسم
+  ctx.font = "bold 50px Arial";
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = theme.neon;
+  ctx.shadowBlur = 20;
+  ctx.fillText(data.username, 350, 170);
+  ctx.shadowBlur = 0;
+
+  // بيانات
+  ctx.font = "bold 28px Arial";
+  ctx.fillStyle = "#cccccc";
+
+  ctx.fillText(`LEVEL : ${data.level}`, 350, 230);
+  ctx.fillText(`XP : ${data.exp}`, 350, 270);
+  ctx.fillText(`BANK : ${data.money}$`, 350, 310);
+  ctx.fillText(`MSG : ${data.msg}`, 350, 350);
+
+  // XP BAR
+  const barX = 350;
+  const barY = 400;
+  const barW = 700;
+  const barH = 30;
+
+  ctx.fillStyle = "#111";
+  ctx.fillRect(barX, barY, barW, barH);
+
+  const fillW = (data.progress / 100) * barW;
+
+  const grad = ctx.createLinearGradient(
+    barX,
+    barY,
+    barX + fillW,
+    barY
+  );
+  grad.addColorStop(0, theme.neon);
+  grad.addColorStop(1, theme.primary);
+
+  ctx.fillStyle = grad;
+  ctx.shadowColor = theme.neon;
+  ctx.shadowBlur = 15;
+  ctx.fillRect(barX, barY, fillW, barH);
+  ctx.shadowBlur = 0;
+
+  ctx.strokeStyle = theme.primary;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(barX, barY, barW, barH);
+
+  ctx.font = "bold 22px Arial";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(`${data.progress}%`, barX + barW + 20, barY + 23);
+
+  if (data.isDeveloper) {
+    ctx.font = "bold 30px Arial";
+    ctx.fillStyle = theme.primary;
+    ctx.fillText("SYSTEM OWNER", 350, 120);
+  }
+
+  return canvas.toBuffer("image/png");
+}
