@@ -2,19 +2,13 @@ const path = require("path");
 
 module.exports.config = {
     name: "خبرة",
-    version: "1.2.0",
-    hasPermssion: 2,
+    version: "1.5.0",
+    hasPermssion: 2, // للمطورين فقط
     credits: "ayman",
-    description: "إضافة نقاط خبرة للمستخدمين عبر addExp",
+    description: "تعديل نقاط الخبرة للمستخدمين في المونغو",
     commandCategory: "admin",
     usages: "[@tag / id] [المبلغ]",
     cooldowns: 2
-};
-
-// دالة الخط الخشن البسيطة
-const heavy = (text) => {
-    const keys = {"0":"𝟬","1":"𝟭","2":"𝟮","3":"𝟯","4":"𝟰","5":"𝟱","6":"𝟲","7":"𝟳","8":"𝟴","9":"𝟵"};
-    return text.toString().split("").map(char => keys[char] || char).join("");
 };
 
 module.exports.run = async function({ api, event, args }) {
@@ -24,36 +18,40 @@ module.exports.run = async function({ api, event, args }) {
     try {
         let targetID, xpToAdd;
 
-        // تحديد الشخص والمبلغ
+        // 1. تحديد الشخص (منشن أو UID)
         if (Object.keys(mentions).length > 0) {
             targetID = Object.keys(mentions)[0];
-            xpToAdd = parseInt(args[args.length - 1]);
-        } else {
+        } else if (args[0] && args[0].length > 10) {
             targetID = args[0];
-            xpToAdd = parseInt(args[1]);
         }
 
-        if (isNaN(xpToAdd)) return api.sendMessage("⚠️ يرجى كتابة مبلغ صحيح.", threadID, messageID);
+        // 2. البحث عن أول رقم في الرسالة لاعتباره هو الـ XP
+        xpToAdd = args.find(arg => !isNaN(arg) && arg.length < 10 && !arg.includes("@"));
+        xpToAdd = parseInt(xpToAdd);
 
-        // استخدام دالة addExp الموجودة في ملف المونغو الخاص بك
+        // 3. التحقق من المدخلات
+        if (!targetID) return api.sendMessage("⚠️ منشن شخصاً أو ضع آيدي الحساب.", threadID, messageID);
+        if (isNaN(xpToAdd)) return api.sendMessage("⚠️ يرجى كتابة الرقم المطلوب.\nمثال: .خبرة @ايمن 1000", threadID, messageID);
+
+        // 4. تنفيذ الأمر عبر دالة addExp في المونغو
         const result = await mongodb.addExp(targetID, xpToAdd);
         
-        if (!result) return api.sendMessage("❌ فشل تحديث البيانات في قاعدة البيانات.", threadID, messageID);
+        if (!result) return api.sendMessage("❌ عطل: لم يتم العثور على العضو في القاعدة.", threadID, messageID);
 
-        let msg = `--- تحديث الخبرة ---\n\n` +
-                  `تم إضافة: +${xpToAdd.toLocaleString()} XP\n` +
-                  `المستوى الحالي: ${heavy(result.level.toString())}\n` +
-                  `الرتبة: ${result.rank.emoji} ${result.rank.name}`;
+        // 5. بناء الرسالة النهائية (بسيطة وصافية)
+        let msg = `[ نظام الخبرة ]\n` +
+                  `✅ الإضافة: +${xpToAdd.toLocaleString()} XP\n` +
+                  `📊 المستوى: ${result.level}\n` +
+                  `👑 الرتبة: ${result.rank.emoji} ${result.rank.name}`;
 
         if (result.isLevelUp) {
-            msg += `\n\n🆙 ارتفاع مستوى!\nمكافأة: +${result.bonusMoney}$`;
+            msg += `\n🆙 لفل أب! مكافأة: +${result.bonusMoney}$`;
         }
 
-        api.setMessageReaction("✅", messageID, () => {}, true);
+        api.setMessageReaction("⚡", messageID, () => {}, true);
         return api.sendMessage(msg, threadID, messageID);
 
     } catch (e) {
-        console.error(e);
-        api.sendMessage("❌ حدث خطأ في النظام.", threadID, messageID);
+        api.sendMessage(`❌ فشل: ${e.message}`, threadID, messageID);
     }
 };
