@@ -1,89 +1,92 @@
+const path = require("path");
+
 module.exports = function ({ models, api }) {
-	const Threads = models.use('Threads');
+    // استدعاء محرك المونغو لربط المجموعات
+    const mongodb = require(path.join(process.cwd(), "includes", "mongodb.js"));
 
-	async function getInfo(threadID) {
-		try {
-			const result = await api.getThreadInfo(threadID);
-			return result;
-		}
-		catch (error) { 
-			console.log(error);
-			throw new Error(error);
-		};
-	}
+    async function getInfo(threadID) {
+        try {
+            // جلب المعلومات من فيسبوك مباشرة
+            return await api.getThreadInfo(threadID);
+        }
+        catch (error) { 
+            console.error("❌ [Threads] خطأ في جلب معلومات المجموعة:", error);
+            return {};
+        };
+    }
 
-	async function getAll(...data) {
-		var where, attributes;
-		for (const i of data) {
-			if (typeof i != 'object') throw global.getText("threads", "needObjectOrArray");
-			if (Array.isArray(i)) attributes = i;
-			else where = i;
-		}
-		try { return (await Threads.findAll({ where, attributes })).map(e => e.get({ plain: true })); }
-		catch (error) {
-			console.error(error);
-			throw new Error(error);
-		}
-}
+    async function getAll() {
+        try {
+            // جلب جميع المجموعات المسجلة في KiraDB
+            return await mongodb.getAllThreads(); 
+        }
+        catch (error) {
+            console.error(error);
+            return [];
+        }
+    }
 
-	async function getData(threadID) {
-		try {
-			const data = await Threads.findOne({ where: { threadID }});
-			if (data) return data.get({ plain: true });
-			else return false;
-		} 
-		catch (error) { 
-			console.error(error);
-            throw new Error(error);
-		}
-	}
+    async function getData(threadID) {
+        try {
+            // جلب إعدادات المجموعة من المونغو
+            let data = await mongodb.getThreadData(threadID);
+            
+            if (!data) {
+                console.log(`📡 [KiraDB] تسجيل مجموعة جديدة: ${threadID}`);
+                // إذا لم توجد المجموعة، يتم إنشاؤها بإعدادات افتراضية
+                return { threadID, threadName: "KIRA Group", settings: {} };
+            }
+            
+            return data;
+        } 
+        catch (error) { 
+            console.error("❌ [Threads] خطأ في جلب بيانات المجموعة:", error);
+            return false;
+        }
+    }
 
-	async function setData(threadID, options = {}) {
-		if (typeof options != 'object' && !Array.isArray(options)) throw global.getText("threads", "needObject");
-		try {
-			(await Threads.findOne({ where: { threadID } })).update(options);
-			return true;
-		} catch (error) { 
-			try{
-				await this.createData(threadID, options);
+    async function setData(threadID, options = {}) {
+        try {
+            // تحديث إعدادات المجموعة في المونغو (مثل البادئة Prefix أو الترحيب)
+            await mongodb.updateThreadData(threadID, options);
+            console.log(`✅ [KiraDB] تم تحديث إعدادات المجموعة: ${threadID}`);
+            return true;
+        } catch (error) { 
+            console.error("❌ [Threads] فشل في تحديث البيانات:", error);
+            return false;
+        }
+    }
 
-			} catch (error) {
-				console.error(error);
-				throw new Error(error);
-			}
-			
-		}
-	}
+    async function createData(threadID, defaults = {}) {
+        try {
+            // إنشاء سجل جديد للمجموعة في القاعدة السحابية
+            await mongodb.createThread(threadID, defaults);
+            return true;
+        }
+        catch (error) {
+            console.error(error);
+            return false;
+        }
+    }
 
-	async function delData(threadID) {
-		try {
-			(await Threads.findOne({ where: { threadID } })).destroy();
-			return true;
-		}
-		catch (error) {
-			console.error(error);
-			throw new Error(error);
-		}
-	}
+    async function delData(threadID) {
+        try {
+            // حذف المجموعة من القاعدة (اختياري)
+            await mongodb.deleteThread(threadID);
+            return true;
+        }
+        catch (error) {
+            console.error(error);
+            return false;
+        }
+    }
 
-	async function createData(threadID, defaults = {}) {
-		if (typeof defaults != 'object' && !Array.isArray(defaults)) throw global.getText("threads", "needObject");
-		try {
-			await Threads.findOrCreate({ where: { threadID }, defaults });
-			return true;
-		}
-		catch {
-			console.error(error);
-			throw new Error(error);
-		}
-	}
-
-	return {
-		getInfo,
-		getAll,
-		getData,
-		setData,
-		delData,
-		createData
-	};
+    return {
+        getInfo,
+        getAll,
+        getData,
+        setData,
+        delData,
+        createData
+    };
 };
