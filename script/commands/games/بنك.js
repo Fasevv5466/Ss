@@ -7,10 +7,10 @@ const mongodb = require(path.join(process.cwd(), "includes", "mongodb.js"));
 
 module.exports.config = {
   name: "بنك",
-  version: "2.0.0",
+  version: "3.0.0",
   hasPermssion: 0,
-  credits: "ايمن - Ultra Detailed Profile Card",
-  description: "بطاقة بروفايل دقيقة ومفصلة للغاية",
+  credits: "ايمن - Cyberpunk Style",
+  description: "بطاقة بروفايل سايبربانك",
   commandCategory: "games",
   usages: "[@منشن]",
   cooldowns: 5
@@ -40,9 +40,9 @@ module.exports.run = async function ({ api, event, args }) {
     // تحديد إذا كان مطور
     const isDeveloper = global.config.ADMINBOT && global.config.ADMINBOT.includes(targetID);
     
-    api.sendMessage("🎨 جاري إنشاء البطاقة الاحترافية...", threadID, messageID);
+    api.sendMessage("🎨 جاري إنشاء البطاقة السايبربانك...", threadID, messageID);
     
-    const card = await createUltraDetailedCard({
+    const card = await createCyberpunkCard({
       userID: targetID,
       username: username,
       money: currency.money || 0,
@@ -57,13 +57,13 @@ module.exports.run = async function ({ api, event, args }) {
       isDeveloper: isDeveloper
     });
     
-    const cachePath = path.join(__dirname, "cache", `profile_ultra_${targetID}.png`);
+    const cachePath = path.join(__dirname, "cache", `profile_cyber_${targetID}.png`);
     await fs.ensureDir(path.join(__dirname, "cache"));
     await fs.writeFile(cachePath, card);
     
     return api.sendMessage({
       body: `╔═══════════════╗\n` +
-            `║  𝗣𝗥𝗢𝗙𝗜𝗟𝗘 𝗖𝗔𝗥𝗗  ║\n` +
+            `║  𝗖𝗬𝗕𝗘𝗥 𝗣𝗥𝗢𝗙𝗜𝗟𝗘  ║\n` +
             `╚═══════════════╝\n\n` +
             `👤 ${username}\n` +
             `🆔 ${targetID}\n` +
@@ -89,20 +89,21 @@ function formatNumber(num) {
 }
 
 // ══════════════════════════════════════════════════════════
-// 🎨 تحديد الألوان حسب XP
+// 🎨 تحديد ألوان السايبربانك حسب XP
 // ══════════════════════════════════════════════════════════
-function getRankTheme(exp, isDeveloper) {
+function getCyberpunkTheme(exp, isDeveloper) {
   if (isDeveloper) {
     return {
       name: "مطور",
       emoji: "👑",
-      // ألوان نيون بنفسجية متعددة
-      primary: "#b829ff",
-      secondary: "#ff29d4",
-      accent: "#29fff5",
-      glow: "#d429ff",
-      background: ["#1a0033", "#330066", "#1a0040"],
-      particles: ["#b829ff", "#ff29d4", "#29fff5", "#8829ff", "#ff29a6"],
+      // أحمر نيوني داكن مظلم
+      primary: "#ff0040",
+      secondary: "#cc0033",
+      accent: "#ff1a4d",
+      glow: "#ff0044",
+      background: ["#1a0008", "#2b0010", "#200008"],
+      particles: ["#ff0040", "#cc0033", "#ff1a4d", "#990022", "#ff0055"],
+      border: "#ff0044",
       isSpecial: true
     };
   }
@@ -117,7 +118,8 @@ function getRankTheme(exp, isDeveloper) {
       accent: "#ffed00",
       glow: "#ffff00",
       background: ["#1a1a00", "#2b2b00", "#1f1f00"],
-      particles: ["#ffff00", "#fff700", "#ffed00"]
+      particles: ["#ffff00", "#fff700", "#ffed00"],
+      border: "#ffff00"
     };
   } else if (exp < 400) {
     // جندي - أخضر نيون
@@ -129,7 +131,8 @@ function getRankTheme(exp, isDeveloper) {
       accent: "#00ffcc",
       glow: "#00ff44",
       background: ["#001a00", "#002b00", "#001f00"],
-      particles: ["#00ff00", "#00ff88", "#00ffcc"]
+      particles: ["#00ff00", "#00ff88", "#00ffcc"],
+      border: "#00ff00"
     };
   } else if (exp < 700) {
     // عسكري - أزرق نيون
@@ -141,7 +144,8 @@ function getRankTheme(exp, isDeveloper) {
       accent: "#00ffff",
       glow: "#00aaff",
       background: ["#001a2b", "#00152b", "#001a33"],
-      particles: ["#00d4ff", "#0088ff", "#00ffff"]
+      particles: ["#00d4ff", "#0088ff", "#00ffff"],
+      border: "#00d4ff"
     };
   } else if (exp < 1000) {
     // ضابط - برتقالي نيون
@@ -153,7 +157,8 @@ function getRankTheme(exp, isDeveloper) {
       accent: "#ffaa00",
       glow: "#ff9900",
       background: ["#2b1500", "#331a00", "#2b1800"],
-      particles: ["#ff8800", "#ff6600", "#ffaa00"]
+      particles: ["#ff8800", "#ff6600", "#ffaa00"],
+      border: "#ff8800"
     };
   } else if (exp < 2500) {
     // قائد - فضي نيون
@@ -165,7 +170,8 @@ function getRankTheme(exp, isDeveloper) {
       accent: "#ffffff",
       glow: "#d0d0d0",
       background: ["#1a1a1a", "#2b2b2b", "#222222"],
-      particles: ["#c0c0c0", "#e0e0e0", "#ffffff"]
+      particles: ["#c0c0c0", "#e0e0e0", "#ffffff"],
+      border: "#c0c0c0"
     };
   } else {
     // وزير - ذهبي نيون
@@ -177,377 +183,226 @@ function getRankTheme(exp, isDeveloper) {
       accent: "#fff700",
       glow: "#ffe700",
       background: ["#2b2200", "#332900", "#2b2500"],
-      particles: ["#ffd700", "#ffed00", "#fff700"]
+      particles: ["#ffd700", "#ffed00", "#fff700"],
+      border: "#ffd700"
     };
   }
 }
 
 // ══════════════════════════════════════════════════════════
-// 🎨 الدالة الرئيسية لإنشاء البطاقة
+// 🎨 الدالة الرئيسية لإنشاء البطاقة السايبربانك
 // ══════════════════════════════════════════════════════════
-async function createUltraDetailedCard(data) {
+async function createCyberpunkCard(data) {
   const W = 1100;
   const H = 700;
   const canvas = Canvas.createCanvas(W, H);
   const ctx = canvas.getContext("2d");
 
-  // الحصول على theme الرتبة
-  const theme = getRankTheme(data.exp, data.isDeveloper);
+  // الحصول على theme السايبربانك
+  const theme = getCyberpunkTheme(data.exp, data.isDeveloper);
 
-  // ══════════════ الخلفية النيون المتدرجة ══════════════
-  if (theme.isSpecial) {
-    // خلفية متحركة للمطور
-    const bgGrad = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W, H)/2);
-    bgGrad.addColorStop(0, theme.background[0]);
-    bgGrad.addColorStop(0.5, theme.background[1]);
-    bgGrad.addColorStop(1, theme.background[2]);
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, W, H);
-    
-    // موجات نيون متعددة
-    for (let i = 0; i < 5; i++) {
-      const waveGrad = ctx.createLinearGradient(0, H * i / 5, W, H * (i + 1) / 5);
-      waveGrad.addColorStop(0, `rgba(184, 41, 255, ${0.05 + i * 0.02})`);
-      waveGrad.addColorStop(0.5, `rgba(255, 41, 212, ${0.05 + i * 0.02})`);
-      waveGrad.addColorStop(1, `rgba(41, 255, 245, ${0.05 + i * 0.02})`);
-      ctx.fillStyle = waveGrad;
-      ctx.fillRect(0, 0, W, H);
-    }
-  } else {
-    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-    bgGrad.addColorStop(0, theme.background[0]);
-    bgGrad.addColorStop(0.5, theme.background[1]);
-    bgGrad.addColorStop(1, theme.background[2]);
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, W, H);
-  }
+  // ══════════════ خلفية سايبربانك داكنة ══════════════
+  const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+  bgGrad.addColorStop(0, theme.background[0]);
+  bgGrad.addColorStop(0.5, theme.background[1]);
+  bgGrad.addColorStop(1, theme.background[2]);
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
 
-  // شبكة نيون
-  ctx.strokeStyle = `rgba(${hexToRgb(theme.primary)}, 0.08)`;
+  // شبكة سايبربانك
+  ctx.strokeStyle = `rgba(${hexToRgb(theme.border)}, 0.12)`;
   ctx.lineWidth = 1;
-  ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 5;
-  for (let i = 0; i < W; i += 25) {
+  for (let i = 0; i < W; i += 30) {
     ctx.beginPath();
     ctx.moveTo(i, 0);
     ctx.lineTo(i, H);
     ctx.stroke();
   }
-  for (let j = 0; j < H; j += 25) {
+  for (let j = 0; j < H; j += 30) {
     ctx.beginPath();
     ctx.moveTo(0, j);
     ctx.lineTo(W, j);
     ctx.stroke();
   }
-  ctx.shadowBlur = 0;
 
-  // جزيئات نيون متوهجة
-  const particleCount = theme.isSpecial ? 50 : 30;
+  // جزيئات متوهجة
+  const particleCount = theme.isSpecial ? 60 : 35;
   for (let i = 0; i < particleCount; i++) {
     const x = Math.random() * W;
     const y = Math.random() * H;
-    const r = 2 + Math.random() * (theme.isSpecial ? 8 : 4);
+    const r = 1.5 + Math.random() * (theme.isSpecial ? 6 : 3);
     const colorIndex = Math.floor(Math.random() * theme.particles.length);
     const color = theme.particles[colorIndex];
     
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r * 4);
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
     grad.addColorStop(0, color);
-    grad.addColorStop(0.3, `${color}bb`);
+    grad.addColorStop(0.4, `${color}99`);
     grad.addColorStop(1, `${color}00`);
     
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(x, y, r * 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // نقطة مركزية
-    ctx.fillStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = theme.isSpecial ? 20 : 15;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-  }
-
-  // دوائر نيون كبيرة
-  for (let i = 0; i < (theme.isSpecial ? 12 : 6); i++) {
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-    const r = 40 + Math.random() * 100;
-    const colorIndex = Math.floor(Math.random() * theme.particles.length);
-    const color = theme.particles[colorIndex];
-    
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, `${color}22`);
-    grad.addColorStop(0.5, `${color}11`);
-    grad.addColorStop(1, `${color}00`);
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.arc(x, y, r * 3, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // ══════════════ إطار نيون متوهج ══════════════
-  // إطار خارجي
-  ctx.strokeStyle = theme.primary;
+  // ══════════════ الحاوية الرئيسية السايبربانك ══════════════
+  const containerX = 40;
+  const containerY = 40;
+  const containerW = W - 80;
+  const containerH = H - 80;
+
+  // خلفية الحاوية
+  ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+  ctx.beginPath();
+  ctx.roundRect(containerX, containerY, containerW, containerH, 20);
+  ctx.fill();
+
+  // إطار مزدوج سايبربانك
+  ctx.strokeStyle = theme.border;
   ctx.lineWidth = 4;
-  ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 40;
-  ctx.strokeRect(15, 15, W - 30, H - 30);
-  
-  // إطار أوسط
-  ctx.strokeStyle = theme.secondary;
-  ctx.lineWidth = 2.5;
+  ctx.shadowColor = theme.glow;
   ctx.shadowBlur = 30;
-  ctx.strokeRect(22, 22, W - 44, H - 44);
-  
-  // إطار داخلي
+  ctx.stroke();
+
   ctx.strokeStyle = theme.accent;
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 2;
   ctx.shadowBlur = 20;
-  ctx.strokeRect(30, 30, W - 60, H - 60);
+  ctx.beginPath();
+  ctx.roundRect(containerX + 5, containerY + 5, containerW - 10, containerH - 10, 18);
+  ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // زوايا نيون مزدوجة
-  drawNeonCorner(ctx, 28, 28, 40, theme.primary, theme.secondary, "tl");
-  drawNeonCorner(ctx, W - 28, 28, 40, theme.primary, theme.secondary, "tr");
-  drawNeonCorner(ctx, 28, H - 28, 40, theme.primary, theme.secondary, "bl");
-  drawNeonCorner(ctx, W - 28, H - 28, 40, theme.primary, theme.secondary, "br");
+  // خطوط زوايا سايبربانك
+  drawCyberCorners(ctx, containerX, containerY, containerW, containerH, theme);
 
-  // ══════════════ صورة البروفايل مع إطار نيون ══════════════
-  const avSize = 260;
-  const avX = 170;
-  const avY = H/2;
+  // ══════════════ صورة البروفايل السداسية ══════════════
+  const avatarX = containerX + 70;
+  const avatarY = containerY + 90;
+  const avatarSize = 140;
 
-  // دوائر نيون متعددة حول الصورة
-  for (let i = 0; i < 4; i++) {
-    const radius = avSize/2 + 20 + (i * 15);
-    const alpha = 1 - (i * 0.2);
-    
-    ctx.strokeStyle = theme.particles[i % theme.particles.length];
-    ctx.lineWidth = 3 - (i * 0.5);
-    ctx.shadowColor = theme.particles[i % theme.particles.length];
-    ctx.shadowBlur = 35 - (i * 5);
-    ctx.beginPath();
-    ctx.arc(avX, avY, radius, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  ctx.shadowBlur = 0;
-
-  // سداسي نيون خارجي
-  if (theme.isSpecial) {
-    // سداسي دوار للمطور
-    for (let i = 0; i < 3; i++) {
-      ctx.strokeStyle = theme.particles[i];
-      ctx.lineWidth = 4 - i;
-      ctx.shadowColor = theme.particles[i];
-      ctx.shadowBlur = 40;
-      ctx.save();
-      ctx.translate(avX, avY);
-      ctx.rotate((Math.PI / 6) * i);
-      ctx.translate(-avX, -avY);
-      drawHexagon(ctx, avX, avY, avSize/2 + 30 + (i * 10));
-      ctx.stroke();
-      ctx.restore();
-    }
-  } else {
-    ctx.strokeStyle = theme.primary;
-    ctx.lineWidth = 5;
-    ctx.shadowColor = theme.primary;
-    ctx.shadowBlur = 40;
-    drawHexagon(ctx, avX, avY, avSize/2 + 25);
-    ctx.stroke();
-  }
-  ctx.shadowBlur = 0;
-
-  // الصورة
   try {
-    const url = `https://graph.facebook.com/${data.userID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
-    const res = await axios.get(url, { responseType: "arraybuffer" });
-    const img = await Canvas.loadImage(Buffer.from(res.data));
-    
+    const avatarUrl = `https://graph.facebook.com/${data.userID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+    const response = await axios.get(avatarUrl, { responseType: "arraybuffer" });
+    const avatarImg = await Canvas.loadImage(Buffer.from(response.data));
+
+    // دوائر توهج خلفية
+    for (let i = 4; i >= 0; i--) {
+      const r = avatarSize/2 + (i * 12);
+      const alpha = 0.6 - (i * 0.1);
+      
+      ctx.fillStyle = `${theme.primary}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
+      ctx.shadowColor = theme.primary;
+      ctx.shadowBlur = 35;
+      ctx.beginPath();
+      ctx.arc(avatarX, avatarY, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // رسم الصورة سداسية
     ctx.save();
+    ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.arc(avX, avY, avSize/2, 0, Math.PI*2);
-    ctx.closePath();
+    drawHexagon(ctx, avatarX, avatarY, avatarSize/2);
     ctx.clip();
-    ctx.drawImage(img, avX - avSize/2, avY - avSize/2, avSize, avSize);
+    ctx.drawImage(avatarImg, avatarX - avatarSize/2, avatarY - avatarSize/2, avatarSize, avatarSize);
     ctx.restore();
-    
-    // إطار الصورة النيون
+
+    // إطار سداسي نيون
     ctx.strokeStyle = theme.primary;
     ctx.lineWidth = 5;
     ctx.shadowColor = theme.primary;
-    ctx.shadowBlur = 30;
-    ctx.beginPath();
-    ctx.arc(avX, avY, avSize/2, 0, Math.PI*2);
-    ctx.stroke();
-    
-    // حلقة داخلية
-    ctx.strokeStyle = theme.secondary;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 20;
-    ctx.beginPath();
-    ctx.arc(avX, avY, avSize/2 - 5, 0, Math.PI*2);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-  } catch(e) {
-    // صورة افتراضية نيون
-    const avatarGrad = ctx.createRadialGradient(avX, avY, 0, avX, avY, avSize/2);
-    avatarGrad.addColorStop(0, theme.background[1]);
-    avatarGrad.addColorStop(1, theme.background[0]);
-    ctx.fillStyle = avatarGrad;
-    ctx.beginPath();
-    ctx.arc(avX, avY, avSize/2, 0, Math.PI*2);
-    ctx.fill();
-    
-    ctx.font = "bold 100px Arial";
-    ctx.fillStyle = theme.primary;
-    ctx.textAlign = "center";
-    ctx.shadowColor = theme.primary;
     ctx.shadowBlur = 40;
-    ctx.fillText("?", avX, avY + 35);
+    ctx.beginPath();
+    drawHexagon(ctx, avatarX, avatarY, avatarSize/2);
+    ctx.stroke();
+
+    ctx.strokeStyle = theme.accent;
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 25;
+    ctx.beginPath();
+    drawHexagon(ctx, avatarX, avatarY, avatarSize/2 - 6);
+    ctx.stroke();
     ctx.shadowBlur = 0;
+
+  } catch (error) {
+    console.error("Error loading avatar:", error);
   }
 
-  // شارة المستوى النيون
-  drawNeonLevelBadge(ctx, avX, avY - avSize/2 - 35, data.level, theme);
+  // شارة المستوى
+  drawCyberLevelBadge(ctx, avatarX, avatarY + avatarSize/2 + 45, data.level, theme);
 
-  // ══════════════ قسم المعلومات النيون ══════════════
-  const infoX = 420;
-  const infoY = 80;
+  // ══════════════ معلومات المستخدم ══════════════
+  const infoX = containerX + 240;
+  const infoY = containerY + 60;
 
-  // العنوان الرئيسي
-  ctx.font = "bold 26px Arial";
-  ctx.fillStyle = theme.secondary;
-  ctx.textAlign = "left";
-  ctx.shadowColor = theme.secondary;
-  ctx.shadowBlur = 25;
-  ctx.fillText("◈◈◈ PLAYER PROFILE ◈◈◈", infoX, infoY);
-  ctx.shadowBlur = 0;
-
-  // اسم المستخدم - نيون مزدوج
-  ctx.font = "bold 56px Arial";
-  
-  // ظل خارجي
-  ctx.fillStyle = theme.accent;
-  ctx.shadowColor = theme.accent;
-  ctx.shadowBlur = 50;
-  ctx.fillText(data.username, infoX + 2, infoY + 57);
-  
-  // النص الأساسي
+  // الاسم
+  ctx.font = "bold 42px Arial";
   ctx.fillStyle = theme.primary;
+  ctx.textAlign = "left";
   ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 40;
-  ctx.fillText(data.username, infoX, infoY + 55);
-  ctx.shadowBlur = 0;
-
-  // خط فاصل نيون متدرج
-  const lineY = infoY + 80;
-  const lineGrad = ctx.createLinearGradient(infoX, lineY, infoX + 650, lineY);
-  lineGrad.addColorStop(0, `${theme.primary}00`);
-  lineGrad.addColorStop(0.2, theme.primary);
-  lineGrad.addColorStop(0.5, theme.accent);
-  lineGrad.addColorStop(0.8, theme.secondary);
-  lineGrad.addColorStop(1, `${theme.secondary}00`);
-  
-  ctx.strokeStyle = lineGrad;
-  ctx.lineWidth = 3;
-  ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 20;
-  ctx.beginPath();
-  ctx.moveTo(infoX, lineY);
-  ctx.lineTo(infoX + 650, lineY);
-  ctx.stroke();
-  
-  // خط ثانوي
-  ctx.lineWidth = 1.5;
-  ctx.shadowBlur = 15;
-  ctx.beginPath();
-  ctx.moveTo(infoX, lineY + 3);
-  ctx.lineTo(infoX + 650, lineY + 3);
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-
-  // ID المستخدم
-  ctx.font = "bold 22px Courier New";
-  ctx.fillStyle = theme.accent;
-  ctx.shadowColor = theme.accent;
-  ctx.shadowBlur = 15;
-  ctx.fillText(`USER ID: ${data.userID}`, infoX, infoY + 120);
+  ctx.shadowBlur = 35;
+  ctx.fillText(data.username, infoX, infoY);
   ctx.shadowBlur = 0;
 
   // الرتبة والمستوى
-  ctx.font = "bold 32px Arial";
-  ctx.fillStyle = theme.primary;
-  ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 30;
-  ctx.fillText(`${theme.emoji} ${theme.name}`, infoX, infoY + 165);
-  
-  ctx.font = "28px Arial";
+  ctx.font = "bold 24px Arial";
+  ctx.fillStyle = theme.accent;
+  ctx.shadowColor = theme.accent;
+  ctx.shadowBlur = 20;
+  ctx.fillText(`${theme.emoji} ${theme.name} • LVL ${data.level}`, infoX, infoY + 45);
+  ctx.shadowBlur = 0;
+
+  // User ID
+  ctx.font = "14px 'Courier New'";
   ctx.fillStyle = theme.secondary;
   ctx.shadowColor = theme.secondary;
-  ctx.shadowBlur = 20;
-  ctx.fillText(`| Level ${data.level}`, infoX + 220, infoY + 165);
+  ctx.shadowBlur = 12;
+  ctx.fillText(`ID: ${data.userID}`, infoX, infoY + 75);
   ctx.shadowBlur = 0;
 
-  // ══════════════ البطاقات الإحصائية النيون ══════════════
-  const statsY = infoY + 220;
-  const cardW = 200;
-  const cardH = 115;
-  const gap = 20;
+  // ══════════════ البطاقات الثلاث (XP - MONEY - MSG) ══════════════
+  const cardsY = infoY + 110;
+  const cardW = 270;
+  const cardH = 110;
+  const cardSpacing = 20;
 
-  // XP
-  drawNeonStatCard(ctx, infoX, statsY, cardW, cardH, 
-    "✨", "EXPERIENCE", data.exp, theme, `${formatNumber(data.expNeeded)} next`);
+  // البطاقة الأولى: XP
+  drawCyberStatCard(ctx, infoX, cardsY, cardW, cardH, "✨", "EXPERIENCE", data.exp, theme, "XP");
 
-  // Money
-  drawNeonStatCard(ctx, infoX + cardW + gap, statsY, cardW, cardH,
-    "💰", "BALANCE", data.money, theme, "Kira Coins");
+  // البطاقة الثانية: MONEY
+  drawCyberStatCard(ctx, infoX + cardW + cardSpacing, cardsY, cardW, cardH, "💰", "MONEY", data.money, theme, "$");
 
-  // Messages
-  drawNeonStatCard(ctx, infoX + (cardW + gap) * 2, statsY, cardW, cardH,
-    "💬", "MESSAGES", data.msgCount, theme, "sent");
+  // البطاقة الثالثة: MESSAGES
+  drawCyberStatCard(ctx, infoX, cardsY + cardH + cardSpacing, cardW, cardH, "💬", "MESSAGES", data.msgCount, theme, "MSG");
 
-  // ══════════════ شريط التقدم النيون ══════════════
-  const progY = statsY + cardH + 50;
-  const progW = cardW * 3 + gap * 2;
-  const progH = 40;
-
-  // عنوان الشريط
-  ctx.font = "bold 20px Arial";
-  ctx.fillStyle = theme.accent;
-  ctx.textAlign = "left";
-  ctx.shadowColor = theme.accent;
-  ctx.shadowBlur = 15;
-  ctx.fillText("⚡ LEVEL PROGRESS ⚡", infoX, progY - 15);
-  ctx.shadowBlur = 0;
+  // ══════════════ شريط التقدم ══════════════
+  const progY = cardsY + (cardH * 2) + cardSpacing + 30;
+  const progW = (cardW * 2) + cardSpacing;
+  const progH = 35;
 
   // خلفية الشريط
-  ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-  ctx.strokeStyle = theme.primary;
-  ctx.lineWidth = 3;
-  ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 25;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
   ctx.beginPath();
   ctx.roundRect(infoX, progY, progW, progH, progH/2);
   ctx.fill();
+
+  ctx.strokeStyle = theme.border;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = theme.border;
+  ctx.shadowBlur = 15;
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // التقدم النيون المتدرج
+  // التقدم الممتلئ
   const progFilled = (data.progress / 100) * progW;
   if (progFilled > 0) {
     const grad = ctx.createLinearGradient(infoX, progY, infoX + progFilled, progY);
     if (theme.isSpecial) {
-      // تدرج قوس قزح للمطور
+      // تدرج أحمر نيوني للمطور
       grad.addColorStop(0, theme.particles[0]);
-      grad.addColorStop(0.25, theme.particles[1]);
-      grad.addColorStop(0.5, theme.particles[2]);
-      grad.addColorStop(0.75, theme.particles[3]);
-      grad.addColorStop(1, theme.particles[4]);
+      grad.addColorStop(0.33, theme.particles[1]);
+      grad.addColorStop(0.66, theme.particles[2]);
+      grad.addColorStop(1, theme.particles[3]);
     } else {
       grad.addColorStop(0, theme.primary);
       grad.addColorStop(0.5, theme.accent);
@@ -556,15 +411,15 @@ async function createUltraDetailedCard(data) {
     
     ctx.fillStyle = grad;
     ctx.shadowColor = theme.glow;
-    ctx.shadowBlur = 35;
+    ctx.shadowBlur = 40;
     ctx.beginPath();
     ctx.roundRect(infoX, progY, progFilled, progH, progH/2);
     ctx.fill();
-    
-    // لمعة متحركة
+
+    // لمعة
     const shineGrad = ctx.createLinearGradient(infoX, progY, infoX + progFilled, progY);
     shineGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
-    shineGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.4)");
+    shineGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.5)");
     shineGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
     ctx.fillStyle = shineGrad;
     ctx.beginPath();
@@ -574,133 +429,132 @@ async function createUltraDetailedCard(data) {
   }
 
   // نص النسبة المئوية
-  ctx.font = "bold 22px Arial";
+  ctx.font = "bold 20px Arial";
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 30;
-  ctx.fillText(`${Math.round(data.progress)}%`, infoX + progW/2, progY + 27);
+  ctx.shadowBlur = 25;
+  ctx.fillText(`${Math.round(data.progress)}%`, infoX + progW/2, progY + 24);
   ctx.shadowBlur = 0;
 
   // XP المطلوب
-  ctx.font = "16px Arial";
+  ctx.font = "15px Arial";
   ctx.fillStyle = theme.accent;
   ctx.textAlign = "right";
   ctx.shadowColor = theme.accent;
-  ctx.shadowBlur = 15;
-  ctx.fillText(`${formatNumber(data.expNeeded)} XP needed`, infoX + progW, progY + progH + 25);
+  ctx.shadowBlur = 12;
+  ctx.fillText(`${formatNumber(data.expNeeded)} XP needed`, infoX + progW, progY + progH + 22);
   ctx.shadowBlur = 0;
 
-  // ══════════════ معلومات إضافية ══════════════
-  const extraY = progY + progH + 60;
-  
-  // Streak
+  // ══════════════ Streak ══════════════
   if (data.streak > 0) {
+    const streakY = progY + progH + 55;
     ctx.font = "bold 18px Arial";
-    ctx.fillStyle = theme.isSpecial ? theme.particles[1] : "#ff6b35";
+    ctx.fillStyle = theme.isSpecial ? theme.particles[2] : "#ff6b35";
     ctx.textAlign = "left";
-    ctx.shadowColor = theme.isSpecial ? theme.particles[1] : "#ff6b35";
-    ctx.shadowBlur = 20;
-    ctx.fillText(`🔥 Streak: ${data.streak} days`, infoX, extraY);
+    ctx.shadowColor = theme.isSpecial ? theme.particles[2] : "#ff6b35";
+    ctx.shadowBlur = 18;
+    ctx.fillText(`🔥 STREAK: ${data.streak} DAYS`, infoX, streakY);
     ctx.shadowBlur = 0;
   }
 
-  // توقيع نيون
-  ctx.font = "13px Arial";
+  // ══════════════ التوقيع ══════════════
+  ctx.font = "12px 'Courier New'";
   ctx.fillStyle = theme.secondary;
   ctx.textAlign = "right";
   ctx.shadowColor = theme.secondary;
-  ctx.shadowBlur = 15;
-  ctx.fillText("✨ KIRA BOT • Ultra Neon Profile • by Ayman ✨", W - 35, H - 30);
+  ctx.shadowBlur = 12;
+  ctx.fillText("⚡ KIRA BOT • CYBERPUNK SYSTEM • BY AYMAN ⚡", W - 50, H - 35);
   ctx.shadowBlur = 0;
 
   return canvas.toBuffer("image/png");
 }
 
 // ══════════════════════════════════════════════════════════
-// 🎨 دالة رسم بطاقة إحصائية نيون
+// 🎨 دالة رسم بطاقة إحصائية سايبربانك
 // ══════════════════════════════════════════════════════════
-function drawNeonStatCard(ctx, x, y, w, h, emoji, label, value, theme, subtitle) {
-  // خلفية البطاقة مع توهج
-  ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+function drawCyberStatCard(ctx, x, y, w, h, emoji, label, value, theme, unit) {
+  // خلفية سوداء شفافة
+  ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
   ctx.beginPath();
-  ctx.roundRect(x, y, w, h, 15);
+  ctx.roundRect(x, y, w, h, 12);
   ctx.fill();
   
-  // إطار نيون مزدوج
-  ctx.strokeStyle = theme.primary;
+  // إطار نيون
+  ctx.strokeStyle = theme.border;
   ctx.lineWidth = 3;
-  ctx.shadowColor = theme.primary;
+  ctx.shadowColor = theme.border;
   ctx.shadowBlur = 25;
   ctx.stroke();
   
-  ctx.strokeStyle = theme.secondary;
+  // إطار داخلي
+  ctx.strokeStyle = theme.accent;
   ctx.lineWidth = 1.5;
   ctx.shadowBlur = 15;
   ctx.beginPath();
-  ctx.roundRect(x + 3, y + 3, w - 6, h - 6, 12);
+  ctx.roundRect(x + 3, y + 3, w - 6, h - 6, 10);
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // توهج خلفية داخلي
+  // توهج داخلي
   const innerGrad = ctx.createRadialGradient(x + w/2, y + h/2, 0, x + w/2, y + h/2, w/2);
-  innerGrad.addColorStop(0, `${theme.primary}22`);
+  innerGrad.addColorStop(0, `${theme.primary}18`);
   innerGrad.addColorStop(1, `${theme.primary}00`);
   ctx.fillStyle = innerGrad;
   ctx.beginPath();
-  ctx.roundRect(x, y, w, h, 15);
+  ctx.roundRect(x, y, w, h, 12);
   ctx.fill();
 
   // الإيموجي
-  ctx.font = "40px Arial";
+  ctx.font = "35px Arial";
   ctx.textAlign = "left";
   ctx.shadowColor = theme.accent;
-  ctx.shadowBlur = 20;
-  ctx.fillText(emoji, x + 20, y + 50);
+  ctx.shadowBlur = 18;
+  ctx.fillText(emoji, x + 18, y + 45);
   ctx.shadowBlur = 0;
 
   // العنوان
-  ctx.font = "bold 14px Arial";
+  ctx.font = "bold 13px Arial";
   ctx.fillStyle = theme.accent;
   ctx.textAlign = "right";
   ctx.shadowColor = theme.accent;
-  ctx.shadowBlur = 15;
-  ctx.fillText(label, x + w - 20, y + 28);
+  ctx.shadowBlur = 12;
+  ctx.fillText(label, x + w - 18, y + 25);
   ctx.shadowBlur = 0;
 
   // القيمة
-  ctx.font = "bold 32px Arial";
+  ctx.font = "bold 30px Arial";
   ctx.fillStyle = theme.primary;
   ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 30;
-  ctx.fillText(formatNumber(value), x + w - 20, y + 68);
+  ctx.shadowBlur = 28;
+  ctx.fillText(formatNumberShort(value), x + w - 18, y + 60);
   ctx.shadowBlur = 0;
 
-  // عنوان فرعي
-  if (subtitle) {
-    ctx.font = "12px Arial";
+  // الوحدة
+  if (unit) {
+    ctx.font = "bold 11px Arial";
     ctx.fillStyle = theme.secondary;
     ctx.shadowColor = theme.secondary;
     ctx.shadowBlur = 10;
-    ctx.fillText(subtitle, x + w - 20, y + 88);
+    ctx.fillText(unit, x + w - 18, y + 80);
     ctx.shadowBlur = 0;
   }
 }
 
 // ══════════════════════════════════════════════════════════
-// 🎨 دالة رسم شارة المستوى النيون
+// 🎨 دالة رسم شارة المستوى السايبربانك
 // ══════════════════════════════════════════════════════════
-function drawNeonLevelBadge(ctx, x, y, level, theme) {
-  const badgeSize = 85;
+function drawCyberLevelBadge(ctx, x, y, level, theme) {
+  const badgeSize = 75;
   
-  // دوائر خلفية متوهجة
+  // دوائر توهج خلفية
   for (let i = 3; i >= 0; i--) {
-    const r = badgeSize/2 + (i * 8);
-    const alpha = 0.8 - (i * 0.15);
+    const r = badgeSize/2 + (i * 7);
+    const alpha = 0.7 - (i * 0.15);
     
     ctx.fillStyle = `${theme.primary}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
     ctx.shadowColor = theme.primary;
-    ctx.shadowBlur = 30 - (i * 5);
+    ctx.shadowBlur = 28 - (i * 5);
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI*2);
     ctx.fill();
@@ -712,66 +566,70 @@ function drawNeonLevelBadge(ctx, x, y, level, theme) {
   ctx.arc(x, y, badgeSize/2, 0, Math.PI*2);
   ctx.fill();
   
-  // إطار نيون
-  ctx.strokeStyle = theme.primary;
+  // إطار مزدوج
+  ctx.strokeStyle = theme.border;
   ctx.lineWidth = 4;
-  ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 35;
+  ctx.shadowColor = theme.border;
+  ctx.shadowBlur = 32;
   ctx.stroke();
   
   ctx.strokeStyle = theme.accent;
   ctx.lineWidth = 2;
-  ctx.shadowBlur = 25;
+  ctx.shadowBlur = 22;
   ctx.beginPath();
   ctx.arc(x, y, badgeSize/2 - 5, 0, Math.PI*2);
   ctx.stroke();
   ctx.shadowBlur = 0;
 
   // المستوى
-  ctx.font = "bold 36px Arial";
+  ctx.font = "bold 32px Arial";
   ctx.fillStyle = theme.primary;
   ctx.textAlign = "center";
   ctx.shadowColor = theme.primary;
-  ctx.shadowBlur = 40;
-  ctx.fillText(level, x, y + 12);
+  ctx.shadowBlur = 38;
+  ctx.fillText(level, x, y + 10);
   ctx.shadowBlur = 0;
 }
 
 // ══════════════════════════════════════════════════════════
-// 🎨 دالة رسم زاوية نيون
+// 🎨 دالة رسم زوايا سايبربانك
 // ══════════════════════════════════════════════════════════
-function drawNeonCorner(ctx, x, y, size, color1, color2, position) {
-  // الطبقة الأولى
-  ctx.strokeStyle = color1;
-  ctx.lineWidth = 3;
-  ctx.shadowColor = color1;
-  ctx.shadowBlur = 25;
+function drawCyberCorners(ctx, x, y, w, h, theme) {
+  const size = 35;
+  const thickness = 4;
   
+  // الزاوية العلوية اليسرى
+  ctx.strokeStyle = theme.primary;
+  ctx.lineWidth = thickness;
+  ctx.shadowColor = theme.primary;
+  ctx.shadowBlur = 20;
   ctx.beginPath();
-  if (position === "tl") {
-    ctx.moveTo(x + size, y);
-    ctx.lineTo(x, y);
-    ctx.lineTo(x, y + size);
-  } else if (position === "tr") {
-    ctx.moveTo(x - size, y);
-    ctx.lineTo(x, y);
-    ctx.lineTo(x, y + size);
-  } else if (position === "bl") {
-    ctx.moveTo(x + size, y);
-    ctx.lineTo(x, y);
-    ctx.lineTo(x, y - size);
-  } else if (position === "br") {
-    ctx.moveTo(x - size, y);
-    ctx.lineTo(x, y);
-    ctx.lineTo(x, y - size);
-  }
+  ctx.moveTo(x + size, y + 15);
+  ctx.lineTo(x + 15, y + 15);
+  ctx.lineTo(x + 15, y + size);
   ctx.stroke();
   
-  // الطبقة الثانية
-  ctx.strokeStyle = color2;
-  ctx.lineWidth = 1.5;
-  ctx.shadowBlur = 15;
+  // الزاوية العلوية اليمنى
+  ctx.beginPath();
+  ctx.moveTo(x + w - size, y + 15);
+  ctx.lineTo(x + w - 15, y + 15);
+  ctx.lineTo(x + w - 15, y + size);
   ctx.stroke();
+  
+  // الزاوية السفلية اليسرى
+  ctx.beginPath();
+  ctx.moveTo(x + size, y + h - 15);
+  ctx.lineTo(x + 15, y + h - 15);
+  ctx.lineTo(x + 15, y + h - size);
+  ctx.stroke();
+  
+  // الزاوية السفلية اليمنى
+  ctx.beginPath();
+  ctx.moveTo(x + w - size, y + h - 15);
+  ctx.lineTo(x + w - 15, y + h - 15);
+  ctx.lineTo(x + w - 15, y + h - size);
+  ctx.stroke();
+  
   ctx.shadowBlur = 0;
 }
 
@@ -800,7 +658,7 @@ function hexToRgb(hex) {
     "255, 255, 255";
 }
 
-function formatNumber(num) {
+function formatNumberShort(num) {
   if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
   if (num >= 1000) return (num / 1000).toFixed(1) + "K";
   return num.toString();
