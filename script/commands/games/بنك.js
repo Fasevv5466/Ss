@@ -27,15 +27,16 @@ module.exports.run = async function ({ api, event, args }) {
       targetID = event.messageReply.senderID;
     }
 
+    // جلب البيانات من MongoDB
     const data = await mongodb.getUserData(targetID);
     
     if (!data || !data.currency) {
       return api.sendMessage("❌ لم يتم العثور على بيانات المستخدم!", threadID, messageID);
     }
     
-    const { currency, calculated } = data;
+    const { currency, calculated, user } = data;
     const userInfo = await api.getUserInfo(targetID);
-    const username = data.user.name || userInfo[targetID].name || "مستخدم";
+    const username = user.name || userInfo[targetID].name || "مستخدم";
     
     const isDeveloper = global.config.ADMINBOT && global.config.ADMINBOT.includes(targetID);
     
@@ -55,8 +56,9 @@ module.exports.run = async function ({ api, event, args }) {
       isDeveloper: isDeveloper
     });
     
-    const cachePath = path.join(__dirname, "cache", `void_emperor_${targetID}.png`);
-    await fs.ensureDir(path.join(__dirname, "cache"));
+    const cacheFolderPath = path.join(__dirname, "cache");
+    await fs.ensureDir(cacheFolderPath);
+    const cachePath = path.join(cacheFolderPath, `void_emperor_${targetID}.png`);
     await fs.writeFile(cachePath, card);
     
     return api.sendMessage({
@@ -64,7 +66,7 @@ module.exports.run = async function ({ api, event, args }) {
             `║   🌌 VOID EMPEROR SYSTEM 🌌   ║\n` +
             `╚═══════════════════════════════╝\n\n` +
             `👤 ${username}\n` +
-            `⚡ RANK: ${calculated.rank.name}\n` +
+            `⚡ RANK: ${calculated.rank.name} ${calculated.rank.emoji}\n` +
             `🔱 LEVEL: ${currency.level}\n` +
             `💰 BANK: ${formatNumber(currency.money)}$\n` +
             `⚡ XP: ${formatNumber(currency.exp)}\n` +
@@ -77,8 +79,8 @@ module.exports.run = async function ({ api, event, args }) {
     }, messageID);
     
   } catch (error) {
-    console.error("❌ خطأ:", error);
-    return api.sendMessage("❌ حدث خطأ في النظام!", threadID, messageID);
+    console.error("❌ خطأ في VOID EMPEROR:", error);
+    return api.sendMessage(`❌ حدث خطأ في النظام!\n${error.message}`, threadID, messageID);
   }
 };
 
@@ -89,11 +91,11 @@ function formatNumber(num) {
 // ══════════════════════════════════════════════════════════
 // 🌌 VOID EMPEROR COLOR SYSTEM
 // ══════════════════════════════════════════════════════════
-function getVoidTheme(exp, isDeveloper) {
+function getVoidTheme(rank, isDeveloper) {
   if (isDeveloper) {
     return {
       name: "SYSTEM OWNER",
-      primary: "#8b5cf6",      // Purple
+      primary: "#8b5cf6",
       secondary: "#a78bfa",
       accent: "#c4b5fd",
       neon: "#d8b4fe",
@@ -105,46 +107,63 @@ function getVoidTheme(exp, isDeveloper) {
     };
   }
   
-  if (exp < 200) {
+  // استخدام اسم الرتبة من MongoDB
+  const rankName = rank.name || "مبتدئ";
+  
+  if (rankName === "مبتدئ") {
     return { 
       name: "ROOKIE",
       primary: "#22c55e", secondary: "#4ade80", accent: "#86efac",
       neon: "#bbf7d0", dark: "#166534", glow: "#dcfce7",
       bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e"
     };
-  } else if (exp < 400) {
+  } else if (rankName === "محارب") {
     return { 
       name: "SOLDIER",
       primary: "#eab308", secondary: "#facc15", accent: "#fde047",
       neon: "#fef08a", dark: "#854d0e", glow: "#fef9c3",
       bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e"
     };
-  } else if (exp < 700) {
+  } else if (rankName === "فارس") {
     return { 
       name: "WARRIOR",
       primary: "#06b6d4", secondary: "#22d3ee", accent: "#67e8f9",
       neon: "#a5f3fc", dark: "#164e63", glow: "#cffafe",
       bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e"
     };
-  } else if (exp < 1000) {
-    return { 
-      name: "COMMANDER",
-      primary: "#f97316", secondary: "#fb923c", accent: "#fdba74",
-      neon: "#fed7aa", dark: "#9a3412", glow: "#ffedd5",
-      bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e"
-    };
-  } else if (exp < 2500) {
+  } else if (rankName === "نخبة") {
     return { 
       name: "ELITE",
       primary: "#d97706", secondary: "#f59e0b", accent: "#fbbf24",
       neon: "#fde68a", dark: "#92400e", glow: "#fef3c7",
       bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e"
     };
-  } else {
+  } else if (rankName === "بطل") {
     return { 
-      name: "VOID EMPEROR",
+      name: "HERO",
+      primary: "#f97316", secondary: "#fb923c", accent: "#fdba74",
+      neon: "#fed7aa", dark: "#9a3412", glow: "#ffedd5",
+      bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e"
+    };
+  } else if (rankName === "أسطورة") {
+    return { 
+      name: "LEGEND",
       primary: "#ef4444", secondary: "#f87171", accent: "#fca5a5",
       neon: "#fecaca", dark: "#991b1b", glow: "#fee2e2",
+      bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e"
+    };
+  } else if (rankName === "ملك" || rankName === "إمبراطور") {
+    return { 
+      name: "VOID EMPEROR",
+      primary: "#dc2626", secondary: "#ef4444", accent: "#f87171",
+      neon: "#fca5a5", dark: "#7f1d1d", glow: "#fee2e2",
+      bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e"
+    };
+  } else {
+    return { 
+      name: "IMMORTAL",
+      primary: "#7c3aed", secondary: "#8b5cf6", accent: "#a78bfa",
+      neon: "#c4b5fd", dark: "#5b21b6", glow: "#ede9fe",
       bg1: "#050507", bg2: "#0d0f18", bg3: "#1a1b2e"
     };
   }
@@ -159,7 +178,7 @@ async function createVoidEmperorCard(data) {
   const canvas = Canvas.createCanvas(W, H);
   const ctx = canvas.getContext("2d");
 
-  const theme = getVoidTheme(data.exp, data.isDeveloper);
+  const theme = getVoidTheme(data.rank, data.isDeveloper);
 
   // ══════════════ COSMIC VOID BACKGROUND ══════════════
   createCosmicVoidBackground(ctx, W, H, theme);
@@ -208,7 +227,6 @@ async function createVoidEmperorCard(data) {
 // 🌌 COSMIC VOID BACKGROUND
 // ══════════════════════════════════════════════════════════
 function createCosmicVoidBackground(ctx, W, H, theme) {
-  // Deep gradient
   const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W, H) * 0.7);
   bg.addColorStop(0, theme.bg2);
   bg.addColorStop(0.6, theme.bg1);
@@ -216,7 +234,6 @@ function createCosmicVoidBackground(ctx, W, H, theme) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
   
-  // Vignette effect
   const vignette = ctx.createRadialGradient(W/2, H/2, W * 0.3, W/2, H/2, W * 0.8);
   vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
   vignette.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
@@ -224,16 +241,11 @@ function createCosmicVoidBackground(ctx, W, H, theme) {
   ctx.fillRect(0, 0, W, H);
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 DIGITAL GRID SYSTEM
-// ══════════════════════════════════════════════════════════
 function createDigitalGrid(ctx, W, H, theme) {
   ctx.strokeStyle = `rgba(255, 255, 255, 0.04)`;
   ctx.lineWidth = 0.5;
-  
   const gridSize = 30;
   
-  // Vertical lines
   for (let x = 0; x <= W; x += gridSize) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
@@ -241,7 +253,6 @@ function createDigitalGrid(ctx, W, H, theme) {
     ctx.stroke();
   }
   
-  // Horizontal lines
   for (let y = 0; y <= H; y += gridSize) {
     ctx.beginPath();
     ctx.moveTo(0, y);
@@ -250,14 +261,10 @@ function createDigitalGrid(ctx, W, H, theme) {
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 ENERGY LINES
-// ══════════════════════════════════════════════════════════
 function createEnergyLines(ctx, W, H, theme) {
   ctx.strokeStyle = theme.primary + '15';
   ctx.lineWidth = 1;
   
-  // Diagonal energy lines
   for (let i = 0; i < 8; i++) {
     const startX = Math.random() * W;
     const startY = Math.random() * H;
@@ -280,9 +287,6 @@ function createEnergyLines(ctx, W, H, theme) {
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 DUST PARTICLES
-// ══════════════════════════════════════════════════════════
 function createDustParticles(ctx, W, H, theme) {
   for (let i = 0; i < 100; i++) {
     const x = Math.random() * W;
@@ -297,9 +301,6 @@ function createDustParticles(ctx, W, H, theme) {
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 SYSTEM OWNER WATERMARK
-// ══════════════════════════════════════════════════════════
 function drawSystemOwnerWatermark(ctx, W, H, theme) {
   ctx.save();
   ctx.globalAlpha = 0.08;
@@ -311,14 +312,10 @@ function drawSystemOwnerWatermark(ctx, W, H, theme) {
   ctx.restore();
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 BROKEN FRAME WITH LIGHT CRACKS
-// ══════════════════════════════════════════════════════════
 function drawBrokenFrame(ctx, W, H, theme) {
   const margin = 20;
   const innerMargin = 25;
   
-  // Deep shadow
   ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
   ctx.shadowBlur = 40;
   ctx.shadowOffsetY = 20;
@@ -328,13 +325,10 @@ function drawBrokenFrame(ctx, W, H, theme) {
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
   
-  // Main background
   ctx.fillStyle = theme.bg2 + 'ee';
   drawAngularRect(ctx, margin, margin, W - margin * 2, H - margin * 2, 12);
   ctx.fill();
   
-  // Double neon border
-  // Outer border
   const outerGrad = ctx.createLinearGradient(margin, margin, W - margin, H - margin);
   outerGrad.addColorStop(0, theme.primary + 'aa');
   outerGrad.addColorStop(0.5, theme.accent);
@@ -347,7 +341,6 @@ function drawBrokenFrame(ctx, W, H, theme) {
   drawAngularRect(ctx, margin, margin, W - margin * 2, H - margin * 2, 12);
   ctx.stroke();
   
-  // Inner border
   ctx.strokeStyle = theme.neon + 'dd';
   ctx.lineWidth = 2;
   ctx.shadowBlur = 15;
@@ -355,14 +348,9 @@ function drawBrokenFrame(ctx, W, H, theme) {
   ctx.stroke();
   
   ctx.shadowBlur = 0;
-  
-  // Light cracks
   drawLightCracks(ctx, W, H, theme);
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 ANGULAR RECTANGLE (BROKEN EDGES)
-// ══════════════════════════════════════════════════════════
 function drawAngularRect(ctx, x, y, w, h, cut) {
   ctx.beginPath();
   ctx.moveTo(x + cut, y);
@@ -376,9 +364,6 @@ function drawAngularRect(ctx, x, y, w, h, cut) {
   ctx.closePath();
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 LIGHT CRACKS
-// ══════════════════════════════════════════════════════════
 function drawLightCracks(ctx, W, H, theme) {
   const cracks = [
     { x: 100, y: 50, length: 80, angle: 0.3 },
@@ -414,26 +399,21 @@ function drawLightCracks(ctx, W, H, theme) {
   ctx.shadowBlur = 0;
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 OCTAGONAL AVATAR FRAME
-// ══════════════════════════════════════════════════════════
 async function drawOctagonalAvatar(ctx, userID, theme, isDeveloper) {
   const centerX = 200;
-  const centerY = H / 2;
+  const centerY = 275;
   const size = 200;
   const radius = size / 2;
   
   try {
-    const avatarUrl = `https://graph.facebook.com/${userID}/picture?width=1024&height=1024&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
-    const response = await axios.get(avatarUrl, { responseType: "arraybuffer" });
+    const avatarUrl = `https://graph.facebook.com/${userID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+    const response = await axios.get(avatarUrl, { responseType: "arraybuffer", timeout: 10000 });
     const avatarImg = await Canvas.loadImage(Buffer.from(response.data));
     
-    // Energy halo for developers
     if (isDeveloper) {
       drawEnergyHalo(ctx, centerX, centerY, radius + 60, theme);
     }
     
-    // Outer glow
     for (let i = 6; i >= 0; i--) {
       const glowRadius = radius + 40 + i * 10;
       const alpha = 0.25 - i * 0.035;
@@ -449,7 +429,6 @@ async function drawOctagonalAvatar(ctx, userID, theme, isDeveloper) {
       ctx.fill();
     }
     
-    // Shadow
     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
     ctx.shadowBlur = 30;
     ctx.shadowOffsetY = 15;
@@ -459,14 +438,12 @@ async function drawOctagonalAvatar(ctx, userID, theme, isDeveloper) {
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;
     
-    // Avatar image
     ctx.save();
     drawOctagon(ctx, centerX, centerY, radius);
     ctx.clip();
     ctx.drawImage(avatarImg, centerX - radius, centerY - radius, size, size);
     ctx.restore();
     
-    // Inner shadow overlay
     const overlayGrad = ctx.createRadialGradient(
       centerX - radius/3, centerY - radius/3, 0,
       centerX, centerY, radius
@@ -482,7 +459,6 @@ async function drawOctagonalAvatar(ctx, userID, theme, isDeveloper) {
     ctx.fillRect(centerX - radius, centerY - radius, size, size);
     ctx.restore();
     
-    // Thick neon border
     const borderGrad = ctx.createLinearGradient(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
     borderGrad.addColorStop(0, theme.neon);
     borderGrad.addColorStop(0.5, theme.primary);
@@ -495,17 +471,14 @@ async function drawOctagonalAvatar(ctx, userID, theme, isDeveloper) {
     drawOctagon(ctx, centerX, centerY, radius);
     ctx.stroke();
     
-    // Inner border
     ctx.strokeStyle = theme.accent + 'dd';
     ctx.lineWidth = 3;
     ctx.shadowBlur = 15;
     drawOctagon(ctx, centerX, centerY, radius - 8);
     ctx.stroke();
     
-    // Rotating energy line
     drawRotatingEnergyLine(ctx, centerX, centerY, radius + 15, theme);
     
-    // Developer double frame
     if (isDeveloper) {
       ctx.strokeStyle = theme.primary;
       ctx.lineWidth = 2;
@@ -513,7 +486,6 @@ async function drawOctagonalAvatar(ctx, userID, theme, isDeveloper) {
       drawOctagon(ctx, centerX, centerY, radius + 25);
       ctx.stroke();
       
-      // Electric sparks
       drawElectricSparks(ctx, centerX, centerY, radius + 30, theme);
     }
     
@@ -521,12 +493,18 @@ async function drawOctagonalAvatar(ctx, userID, theme, isDeveloper) {
     
   } catch (error) {
     console.error("Avatar error:", error);
+    
+    ctx.fillStyle = theme.bg3;
+    drawOctagon(ctx, centerX, centerY, radius);
+    ctx.fill();
+    
+    ctx.strokeStyle = theme.primary;
+    ctx.lineWidth = 5;
+    drawOctagon(ctx, centerX, centerY, radius);
+    ctx.stroke();
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 DRAW OCTAGON
-// ══════════════════════════════════════════════════════════
 function drawOctagon(ctx, x, y, radius) {
   ctx.beginPath();
   for (let i = 0; i < 8; i++) {
@@ -539,9 +517,6 @@ function drawOctagon(ctx, x, y, radius) {
   ctx.closePath();
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 ENERGY HALO
-// ══════════════════════════════════════════════════════════
 function drawEnergyHalo(ctx, x, y, radius, theme) {
   for (let i = 0; i < 3; i++) {
     const haloRadius = radius + i * 15;
@@ -558,12 +533,8 @@ function drawEnergyHalo(ctx, x, y, radius, theme) {
   ctx.shadowBlur = 0;
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 ROTATING ENERGY LINE
-// ══════════════════════════════════════════════════════════
 function drawRotatingEnergyLine(ctx, x, y, radius, theme) {
   const segments = 60;
-  const activeSegments = 15;
   
   for (let i = 0; i < segments; i++) {
     const angle = (Math.PI * 2 / segments) * i;
@@ -580,9 +551,6 @@ function drawRotatingEnergyLine(ctx, x, y, radius, theme) {
   }
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 ELECTRIC SPARKS
-// ══════════════════════════════════════════════════════════
 function drawElectricSparks(ctx, x, y, radius, theme) {
   for (let i = 0; i < 8; i++) {
     const angle = (Math.PI * 2 / 8) * i;
@@ -610,25 +578,19 @@ function drawElectricSparks(ctx, x, y, radius, theme) {
   ctx.shadowBlur = 0;
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 USERNAME SECTION
-// ══════════════════════════════════════════════════════════
 function drawUsernameSection(ctx, data, theme) {
   const x = 430;
   const y = 140;
   
-  // Username with glitch effect
   ctx.font = "bold 56px 'Arial'";
   ctx.textAlign = "left";
   
-  // Glitch layers
   ctx.fillStyle = theme.primary + '30';
   ctx.fillText(data.username, x - 2, y - 2);
   
   ctx.fillStyle = theme.accent + '30';
   ctx.fillText(data.username, x + 2, y + 2);
   
-  // Main text
   const textGrad = ctx.createLinearGradient(x, y - 30, x, y + 30);
   textGrad.addColorStop(0, '#ffffff');
   textGrad.addColorStop(1, theme.neon);
@@ -637,13 +599,11 @@ function drawUsernameSection(ctx, data, theme) {
   ctx.shadowBlur = 20;
   ctx.fillText(data.username, x, y);
   
-  // Double glow
   ctx.shadowBlur = 30;
   ctx.fillStyle = theme.primary + '44';
   ctx.fillText(data.username, x, y);
   ctx.shadowBlur = 0;
   
-  // System rank line
   const rankY = y + 55;
   ctx.font = "bold 20px 'Courier New'";
   ctx.fillStyle = theme.accent + 'aa';
@@ -655,7 +615,6 @@ function drawUsernameSection(ctx, data, theme) {
   ctx.fillText(theme.name, x + 170, rankY);
   ctx.shadowBlur = 0;
   
-  // ID line
   const idY = rankY + 35;
   ctx.fillStyle = theme.accent + '66';
   ctx.fillText("ID:", x, idY);
@@ -664,9 +623,6 @@ function drawUsernameSection(ctx, data, theme) {
   ctx.fillText(`#${data.userID}`, x + 45, idY);
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 HUD SYSTEM
-// ══════════════════════════════════════════════════════════
 function drawHUDSystem(ctx, data, theme) {
   const startX = 780;
   const startY = 120;
@@ -683,22 +639,18 @@ function drawHUDSystem(ctx, data, theme) {
   hudData.forEach((item, i) => {
     const y = startY + i * lineHeight;
     
-    // Dark transparent container
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.fillRect(startX - 10, y - 30, 580, 50);
     
-    // Subtle border
     ctx.strokeStyle = theme.primary + '30';
     ctx.lineWidth = 1;
     ctx.strokeRect(startX - 10, y - 30, 580, 50);
     
-    // Label (transparent)
     ctx.font = "bold 22px 'Courier New'";
     ctx.fillStyle = theme.accent + '99';
     ctx.textAlign = "left";
     ctx.fillText(item.label, startX, y);
     
-    // Value (glowing)
     ctx.font = "bold 28px 'Arial'";
     ctx.fillStyle = '#ffffff';
     ctx.shadowColor = item.glow;
@@ -707,7 +659,6 @@ function drawHUDSystem(ctx, data, theme) {
     ctx.fillText(item.value, startX + 560, y);
     ctx.shadowBlur = 0;
     
-    // Neon divider line
     const lineGrad = ctx.createLinearGradient(startX, y + 18, startX + 560, y + 18);
     lineGrad.addColorStop(0, theme.primary + '00');
     lineGrad.addColorStop(0.5, theme.primary + 'aa');
@@ -725,9 +676,6 @@ function drawHUDSystem(ctx, data, theme) {
   });
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 SEGMENTED XP BAR
-// ══════════════════════════════════════════════════════════
 function drawSegmentedXPBar(ctx, data, theme) {
   const x = 430;
   const y = 460;
@@ -738,19 +686,16 @@ function drawSegmentedXPBar(ctx, data, theme) {
   const progress = Math.min((data.exp / (data.exp + data.expNeeded)) * 100, 100);
   const filledSegments = Math.floor((progress / 100) * segments);
   
-  // Label
   ctx.font = "bold 18px 'Courier New'";
   ctx.fillStyle = theme.accent;
   ctx.textAlign = "left";
   ctx.fillText("EXPERIENCE PROGRESS", x, y - 15);
   
-  // Segments
   for (let i = 0; i < segments; i++) {
     const segX = x + i * (segmentWidth + 3);
     const isFilled = i < filledSegments;
     const isPartial = i === filledSegments && progress % (100 / segments) > 0;
     
-    // Background
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(segX, y, segmentWidth, h);
     
@@ -759,7 +704,6 @@ function drawSegmentedXPBar(ctx, data, theme) {
     ctx.strokeRect(segX, y, segmentWidth, h);
     
     if (isFilled || isPartial) {
-      // Filled segment
       const fillGrad = ctx.createLinearGradient(segX, y, segX, y + h);
       fillGrad.addColorStop(0, theme.neon);
       fillGrad.addColorStop(0.5, theme.primary);
@@ -771,12 +715,10 @@ function drawSegmentedXPBar(ctx, data, theme) {
       ctx.fillRect(segX, y, segmentWidth, h);
       ctx.shadowBlur = 0;
       
-      // Glow border
       ctx.strokeStyle = theme.neon + 'aa';
       ctx.lineWidth = 1.5;
       ctx.strokeRect(segX, y, segmentWidth, h);
       
-      // Shine effect
       const shineGrad = ctx.createLinearGradient(segX, y, segX, y + h/3);
       shineGrad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
       shineGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
@@ -785,7 +727,6 @@ function drawSegmentedXPBar(ctx, data, theme) {
     }
   }
   
-  // Pulse at the end
   if (filledSegments < segments) {
     const pulseX = x + filledSegments * (segmentWidth + 3) + segmentWidth;
     const pulseGrad = ctx.createRadialGradient(pulseX, y + h/2, 0, pulseX, y + h/2, 15);
@@ -798,7 +739,6 @@ function drawSegmentedXPBar(ctx, data, theme) {
     ctx.fill();
   }
   
-  // Percentage
   ctx.font = "bold 20px 'Arial'";
   ctx.fillStyle = '#ffffff';
   ctx.shadowColor = theme.glow;
@@ -808,11 +748,7 @@ function drawSegmentedXPBar(ctx, data, theme) {
   ctx.shadowBlur = 0;
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 DEVELOPER EFFECTS
-// ══════════════════════════════════════════════════════════
 function drawDeveloperEffects(ctx, W, H, theme) {
-  // Scan line effect
   const scanY = (Date.now() % 3000) / 3000 * H;
   const scanGrad = ctx.createLinearGradient(0, scanY - 50, 0, scanY + 50);
   scanGrad.addColorStop(0, theme.primary + '00');
@@ -822,7 +758,6 @@ function drawDeveloperEffects(ctx, W, H, theme) {
   ctx.fillStyle = scanGrad;
   ctx.fillRect(0, scanY - 50, W, 100);
   
-  // Digital stars
   for (let i = 0; i < 20; i++) {
     const x = Math.random() * W;
     const y = Math.random() * H;
@@ -836,9 +771,6 @@ function drawDeveloperEffects(ctx, W, H, theme) {
   ctx.shadowBlur = 0;
 }
 
-// ══════════════════════════════════════════════════════════
-// 🌌 GRAIN EFFECT
-// ══════════════════════════════════════════════════════════
 function addGrainEffect(ctx, W, H) {
   ctx.globalAlpha = 0.02;
   for (let i = 0; i < 1000; i++) {
@@ -850,9 +782,6 @@ function addGrainEffect(ctx, W, H) {
   ctx.globalAlpha = 1;
 }
 
-// ══════════════════════════════════════════════════════════
-// 🎨 HELPER FUNCTIONS
-// ══════════════════════════════════════════════════════════
 function formatNumberCompact(num) {
   if (num >= 1000000000) return (num / 1000000000).toFixed(1) + "B";
   if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
