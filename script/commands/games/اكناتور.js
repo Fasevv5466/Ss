@@ -11,7 +11,7 @@ module.exports.config = {
   cooldowns: 5
 };
 
-const GROQ_API_KEY = "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";
+const GROQ_API_KEY = "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";
 const header = `⌬ ━━━━━━━━━━━━ ⌬\n      أكـيـنـاتـور\n⌬ ━━━━━━━━━━━━ ⌬`;
 
 // تخزين جلسات اللعب
