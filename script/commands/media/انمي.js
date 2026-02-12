@@ -1,9 +1,9 @@
 module.exports.config = {
   name: "انمي",
-  version: "4.5.0",
+  version: "4.5.5",
   hasPermssion: 0,
   credits: "Ayman",
-  description: "بحث عن أنمي أو اقتراحات حسب الفئة (اكشن، دراما، رعب، رومانسي، كوميديا، خيال) ✨",
+  description: "بحث عن أنمي أو اقتراحات حسب الفئة ✨",
   commandCategory: "media",
   usages: ".انمي [الاسم] أو [الفئة]",
   cooldowns: 5
@@ -14,62 +14,27 @@ module.exports.run = async function({ api, event, args }) {
   const fs = require("fs-extra");
   const request = require("request");
   const { threadID, messageID } = event;
+  const header = `⌬ ━━━━━━━━━━━━ ⌬\n      🌸 أنـظـمـة الأنـمـي\n⌬ ━━━━━━━━━━━━ ⌬`;
 
-  // 1. تعريف الفئات والقوائم
   const categories = {
-    "دراما": [
-      "Clannad: After Story", "Your Lie in April", "Violet Evergarden", "A Silent Voice", "Anohana", 
-      "March Comes in Like a Lion", "Grave of the Fireflies", "Orange", "Erased", "To Your Eternity", 
-      "Fruits Basket", "Nana", "Plastic Memories", "I Want to Eat Your Pancreas", "The Garden of Words", 
-      "Wolf Children", "Great Teacher Onizuka", "Welcome to the N.H.K.", "Blue Period", "Wonder Egg Priority", 
-      "Josee, the Tiger and the Fish", "ReLIFE", "The Wind Rises", "Rainbow", "Maquia"
-    ],
-    "اكشن": [
-      "Attack on Titan", "One Piece", "Naruto Shippuden", "Hunter x Hunter", "Jujutsu Kaisen", 
-      "Demon Slayer", "Bleach", "Fullmetal Alchemist: Brotherhood", "One Punch Man", "My Hero Academia", 
-      "Vinland Saga", "Chainsaw Man", "Solo Leveling", "Fate/Zero", "Black Clover", 
-      "Dragon Ball Super", "Tokyo Ghoul", "Hellsing Ultimate", "Akame ga Kill!", "Kill la Kill", 
-      "Sword Art Online", "Bungou Stray Dogs", "Mob Psycho 100", "Fire Force", "Seven Deadly Sins"
-    ],
-    "رعب": [
-      "Death Note", "Monster", "Berserk", "Another", "Parasyte: The Maxim", 
-      "When They Cry", "Hellsing", "The Promised Neverland", "Devilman Crybaby", 
-      "Shiki", "Elfen Lied", "Corpse Party", "Perfect Blue", "Ajin", 
-      "Highschool of the Dead", "Gantz", "Hell Girl", "Blood+", "Boogiepop Phantom", 
-      "Terror in Resonance", "Danganronpa", "Angels of Death", "Serial Experiments Lain", "Ghost Hunt"
-    ],
-    "رومانسي": [
-      "Kaguya-sama: Love is War", "Toradora!", "Horimiya", "My Dress-Up Darling", "Your Name", 
-      "Maid Sama!", "Kamisama Kiss", "Golden Time", "Blue Spring Ride", "My Little Monster", 
-      "Snow White with the Red Hair", "Wotakoi", "Love, Chunibyo & Other Delusions", "Say I Love You", "Weathering with You", 
-      "5 Centimeters per Second", "The Pet Girl of Sakurasou", "Lovely Complex", "Rascal Does Not Dream of Bunny Girl Senpai", "Tomo-chan Is a Girl!"
-    ],
-    "كوميديا": [
-      "Gintama", "Konosuba", "Grand Blue", "The Disastrous Life of Saiki K.", "Sakamoto Desu ga?", 
-      "Nichijou", "Asobi Asobase", "Spy x Family", "Hinamatsuri", "Daily Lives of High School Boys", 
-      "Sket Dance", "Prison School", "Devil is a Part-Timer", "Barakamon", "Ouran High School Host Club"
-    ],
-    "خيال": [
-      "Steins;Gate", "No Game No Life", "Sword Art Online", "Re:Zero", "That Time I Got Reincarnated as a Slime", 
-      "Overlord", "Mushoku Tensei", "The Rising of the Shield Hero", "Made in Abyss", "Psycho-Pass", 
-      "Log Horizon", "Code Geass", "Neon Genesis Evangelion", "Cyberpunk: Edgerunners", "Dr. Stone"
-    ]
+    "دراما": ["Clannad: After Story", "Your Lie in April", "Violet Evergarden", "A Silent Voice", "Anohana", "March Comes in Like a Lion", "Grave of the Fireflies", "Orange", "Erased", "To Your Eternity", "Fruits Basket", "Nana", "Plastic Memories", "I Want to Eat Your Pancreas", "The Garden of Words", "Wolf Children", "Great Teacher Onizuka", "Welcome to the N.H.K.", "Blue Period", "Wonder Egg Priority", "Josee, the Tiger and the Fish", "ReLIFE", "The Wind Rises", "Rainbow", "Maquia"],
+    "اكشن": ["Attack on Titan", "One Piece", "Naruto Shippuden", "Hunter x Hunter", "Jujutsu Kaisen", "Demon Slayer", "Bleach", "Fullmetal Alchemist: Brotherhood", "One Punch Man", "My Hero Academia", "Vinland Saga", "Chainsaw Man", "Solo Leveling", "Fate/Zero", "Black Clover", "Dragon Ball Super", "Tokyo Ghoul", "Hellsing Ultimate", "Akame ga Kill!", "Kill la Kill", "Sword Art Online", "Bungou Stray Dogs", "Mob Psycho 100", "Fire Force", "Seven Deadly Sins"],
+    "رعب": ["Death Note", "Monster", "Berserk", "Another", "Parasyte: The Maxim", "When They Cry", "Hellsing", "The Promised Neverland", "Devilman Crybaby", "Shiki", "Elfen Lied", "Corpse Party", "Perfect Blue", "Ajin", "Highschool of the Dead", "Gantz", "Hell Girl", "Blood+", "Boogiepop Phantom", "Terror in Resonance", "Danganronpa", "Angels of Death", "Serial Experiments Lain", "Ghost Hunt"],
+    "رومانسي": ["Kaguya-sama: Love is War", "Toradora!", "Horimiya", "My Dress-Up Darling", "Your Name", "Maid Sama!", "Kamisama Kiss", "Golden Time", "Blue Spring Ride", "My Little Monster", "Snow White with the Red Hair", "Wotakoi", "Love, Chunibyo & Other Delusions", "Say I Love You", "Weathering with You", "5 Centimeters per Second", "The Pet Girl of Sakurasou", "Lovely Complex", "Rascal Does Not Dream of Bunny Girl Senpai", "Tomo-chan Is a Girl!"],
+    "كوميديا": ["Gintama", "Konosuba", "Grand Blue", "The Disastrous Life of Saiki K.", "Sakamoto Desu ga?", "Nichijou", "Asobi Asobase", "Spy x Family", "Hinamatsuri", "Daily Lives of High School Boys", "Sket Dance", "Prison School", "Devil is a Part-Timer", "Barakamon", "Ouran High School Host Club"],
+    "خيال": ["Steins;Gate", "No Game No Life", "Sword Art Online", "Re:Zero", "That Time I Got Reincarnated as a Slime", "Overlord", "Mushoku Tensei", "The Rising of the Shield Hero", "Made in Abyss", "Psycho-Pass", "Log Horizon", "Code Geass", "Neon Genesis Evangelion", "Cyberpunk: Edgerunners", "Dr. Stone"]
   };
 
   let query = args.join(" ");
 
-  // رسالة الواجهة المرتبة الجديدة
   if (!query) {
     return api.sendMessage(
-      "⌬ ━━━━━━ 𝗞𝗜𝗥𝗔 𝗔𝗡𝗜𝗠𝗘━━━━━━ ⌬\n\n" +
-      "يرجى تحديد الفئة سيدي:\n" +
-      "⪼ .انمي اكشن\n" +
-      "⪼ .انمي دراما\n" +
-      "⪼ .انمي رعب\n" +
-      "⪼ .انمي رومانسي\n" +
-      "⪼ .انمي كوميديا\n" +
-      "⪼ .انمي خيال\n\n" +
-      "💡 أو ابحث مباشرة: .انمي [اسم الانمي]", 
+      `${header}\n\n` +
+      `يـرجـى تـحـديـد الـفـئـة سـيـدي:\n` +
+      `⪼ انـمـي اكـشـن | درامـا | رعب\n` +
+      `⪼ انـمـي رومانسي | كـومـيـديـا | خـيـال\n\n` +
+      `💡 أو ابـحـث مـبـاشـرة: .انمي [الاسم]\n` +
+      `⌬ ━━━━━━━━━━━━ ⌬`, 
       threadID, messageID
     );
   }
@@ -77,7 +42,6 @@ module.exports.run = async function({ api, event, args }) {
   let targetAnime = query;
   let isCategory = false;
 
-  // 2. التحقق هل المدخل فئة أم اسم أنمي
   if (categories[query]) {
     targetAnime = categories[query][Math.floor(Math.random() * categories[query].length)];
     isCategory = true;
@@ -88,8 +52,6 @@ module.exports.run = async function({ api, event, args }) {
   }
 
   try {
-    api.sendMessage(isCategory ? `✨ اقتراح فئة (${query}):\n🌸 【 ${targetAnime} 】` : `🔍 جاري البحث عن الأنمي: ${targetAnime}...`, threadID, messageID);
-
     const res = await axios.get(`https://api.popcat.xyz/imdb?q=${encodeURIComponent(targetAnime)}`);
     const data = res.data;
 
@@ -103,16 +65,17 @@ module.exports.run = async function({ api, event, args }) {
 
     const [plotAr, genresAr] = await Promise.all([translate(data.plot), translate(data.genres)]);
 
-    const path = __dirname + `/cache/anime_search.png`;
+    const path = __dirname + `/cache/anime_${Date.now()}.png`;
     const callback = () => {
       api.sendMessage({
-        body: `⌬ ━━━━━━ 𝗞𝗜𝗥𝗔 𝗔𝗡𝗜𝗠𝗘━━━━━━ ⌬\n\n` +
-              `⪼ الاسم: ${data.title}\n` +
-              `⪼ السنة: ${data.year}\n` +
-              `⪼ التقييم: ${data.rating}/10\n` +
-              `⪼ التصنيف: ${genresAr}\n\n` +
-              `⪼ القصة بالعربية:\n${plotAr}\n\n` +
-              `⌬━━━━━━━━━━━━━━━━━━━━━━⌬`,
+        body: `${header}\n\n` +
+              (isCategory ? `✨ اقـتـراح لـك: 【 ${data.title} 】\n\n` : "") +
+              `⪼ الاسـم: ${data.title}\n` +
+              `⪼ الـسـنـة: ${data.year}\n` +
+              `⪼ الـتـقـيـيـم: ${data.rating}/10\n` +
+              `⪼ الـتـصـنـيـف: ${genresAr}\n\n` +
+              `📖 الـقـصـة بـالـعـربـيـة:\n${plotAr}\n\n` +
+              `⌬ ━━━━━━━━━━━━ ⌬`,
         attachment: fs.createReadStream(path)
       }, threadID, () => { if (fs.existsSync(path)) fs.unlinkSync(path); }, messageID);
     };
