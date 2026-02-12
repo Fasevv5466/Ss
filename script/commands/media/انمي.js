@@ -1,6 +1,6 @@
 module.exports.config = {
   name: "انمي",
-  version: "4.5.5",
+  version: "4.5.6",
   hasPermssion: 0,
   credits: "Ayman",
   description: "بحث عن أنمي أو اقتراحات حسب الفئة ✨",
@@ -56,7 +56,7 @@ module.exports.run = async function({ api, event, args }) {
     const res = await axios.get(`https://api.popcat.xyz/imdb?q=${encodeURIComponent(targetAnime)}`);
     const data = res.data;
 
-    if (data.error) return api.sendMessage(`❌ لم أجد نتائج لـ "${targetAnime}".`, threadID, messageID);
+    if (data.error) return api.sendMessage(`❌ لـم أجد نـتائـج لـ "${targetAnime}".`, threadID, messageID);
 
     const translate = async (text) => {
       if (!text) return "غير متوفر";
@@ -83,6 +83,6 @@ module.exports.run = async function({ api, event, args }) {
     return request(encodeURI(data.poster)).pipe(fs.createWriteStream(path)).on("close", callback);
 
   } catch (err) {
-    return api.sendMessage("❌ حدث خطأ، حاول مجدداً.", threadID, messageID);
+    return api.sendMessage("⚠️ حـدث خـطأ، حـاول مـجـدداً.", threadID, messageID);
   }
 };
