@@ -1,9 +1,9 @@
 module.exports.config = {
   name: "انمي",
-  version: "4.5.8",
+  version: "4.5.0",
   hasPermssion: 0,
   credits: "Ayman",
-  description: "بحث عن أنمي أو اقتراحات حسب الفئة ✨",
+  description: "بحث عن أنمي أو اقتراحات حسب الفئة (اكشن، دراما، رعب، رومانسي، كوميديا، خيال) ✨",
   commandCategory: "media",
   usages: ".انمي [الاسم] أو [الفئة]",
   cooldowns: 5
@@ -14,9 +14,8 @@ module.exports.run = async function({ api, event, args }) {
   const fs = require("fs-extra");
   const request = require("request");
   const { threadID, messageID } = event;
-  const header = `⌬ ━━━━━━━━━━━━ ⌬\n      🎬 أنـظـمـة الأنـمـي\n⌬ ━━━━━━━━━━━━ ⌬`;
 
-  // 1. تعريف الفئات والقوائم (نفس الأصلية بالظبط)
+  // 1. تعريف الفئات والقوائم
   const categories = {
     "دراما": [
       "Clannad: After Story", "Your Lie in April", "Violet Evergarden", "A Silent Voice", "Anohana", 
@@ -59,18 +58,18 @@ module.exports.run = async function({ api, event, args }) {
 
   let query = args.join(" ");
 
+  // رسالة الواجهة المرتبة الجديدة
   if (!query) {
     return api.sendMessage(
-      `${header}\n\n` +
-      `يـرجـى تـحـديـد الـفـئـة سـيـدي:\n` +
-      `⪼ انـمـي اكـشـن\n` +
-      `⪼ انـمـي درامـا\n` +
-      `⪼ انـمـي رعب\n` +
-      `⪼ انـمـي رومانسي\n` +
-      `⪼ انـمـي كـومـيـديـا\n` +
-      `⪼ انـمـي خـيـال\n\n` +
-      `💡 أو ابـحـث مـبـاشـرة: .انمي [الاسم]\n` +
-      `⌬ ━━━━━━━━━━━━ ⌬`, 
+      "⌬ ━━━━━━ 𝗞𝗜𝗥𝗔 𝗔𝗡𝗜𝗠𝗘━━━━━━ ⌬\n\n" +
+      "يرجى تحديد الفئة سيدي:\n" +
+      "⪼ .انمي اكشن\n" +
+      "⪼ .انمي دراما\n" +
+      "⪼ .انمي رعب\n" +
+      "⪼ .انمي رومانسي\n" +
+      "⪼ .انمي كوميديا\n" +
+      "⪼ .انمي خيال\n\n" +
+      "💡 أو ابحث مباشرة: .انمي [اسم الانمي]", 
       threadID, messageID
     );
   }
@@ -78,6 +77,7 @@ module.exports.run = async function({ api, event, args }) {
   let targetAnime = query;
   let isCategory = false;
 
+  // 2. التحقق هل المدخل فئة أم اسم أنمي
   if (categories[query]) {
     targetAnime = categories[query][Math.floor(Math.random() * categories[query].length)];
     isCategory = true;
@@ -88,7 +88,7 @@ module.exports.run = async function({ api, event, args }) {
   }
 
   try {
-    api.sendMessage(isCategory ? `⪼ اقتراح فئة (${query}):\n⪼ 【 ${targetAnime} 】` : `🔍 جاري البحث عن الأنمي: ${targetAnime}...`, threadID, messageID);
+    api.sendMessage(isCategory ? `✨ اقتراح فئة (${query}):\n🌸 【 ${targetAnime} 】` : `🔍 جاري البحث عن الأنمي: ${targetAnime}...`, threadID, messageID);
 
     const res = await axios.get(`https://api.popcat.xyz/imdb?q=${encodeURIComponent(targetAnime)}`);
     const data = res.data;
@@ -103,16 +103,16 @@ module.exports.run = async function({ api, event, args }) {
 
     const [plotAr, genresAr] = await Promise.all([translate(data.plot), translate(data.genres)]);
 
-    const path = __dirname + `/cache/anime_search_${Date.now()}.png`;
+    const path = __dirname + `/cache/anime_search.png`;
     const callback = () => {
       api.sendMessage({
-        body: `${header}\n\n` +
-              `⪼ الاسـم: ${data.title}\n` +
-              `⪼ الـسـنـة: ${data.year}\n` +
-              `⪼ الـتـقـيـيـم: ${data.rating}/10\n` +
-              `⪼ الـتـصـنـيـف: ${genresAr}\n\n` +
-              `📖 الـقـصـة بـالـعـربـيـة:\n${plotAr}\n\n` +
-              `⌬ ━━━━━━━━━━━━ ⌬`,
+        body: `⌬ ━━━━━━ 𝗞𝗜𝗥𝗔 𝗔𝗡𝗜𝗠𝗘━━━━━━ ⌬\n\n` +
+              `⪼ الاسم: ${data.title}\n` +
+              `⪼ السنة: ${data.year}\n` +
+              `⪼ التقييم: ${data.rating}/10\n` +
+              `⪼ التصنيف: ${genresAr}\n\n` +
+              `⪼ القصة بالعربية:\n${plotAr}\n\n` +
+              `⌬━━━━━━━━━━━━━━━━━━━━━━⌬`,
         attachment: fs.createReadStream(path)
       }, threadID, () => { if (fs.existsSync(path)) fs.unlinkSync(path); }, messageID);
     };
