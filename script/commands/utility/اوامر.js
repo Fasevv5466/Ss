@@ -1,19 +1,18 @@
 module.exports.config = {
-  name: "help", // غيرت الاسم للإنجليزية لضمان قبول الرد في السيرفر
-  version: "10.4.0",
+  name: "اوامر",
+  version: "10.6.0",
   hasPermssion: 0,
   credits: "ayman",
   description: "قائمة الأوامر بنظام الرد المباشر",
   commandCategory: "utility",
-  usages: "help",
-  cooldowns: 5,
-  aliases: ["اوامر", "الأوامر", "أوامر"] // تقدر تطلبه بكلمة اوامر عادي
+  usages: "اوامر",
+  cooldowns: 5
 };
 
 module.exports.handleReply = async function({ api, event, handleReply }) {
   const { threadID, messageID, body, senderID } = event;
-  
-  // التحقق من هوية المستخدم
+
+  // 1. تحقق صارم من صاحب الرد
   if (String(senderID) !== String(handleReply.author)) return;
 
   const header = `⌬ ━━━━━━━━━━━━ ⌬`;
@@ -27,18 +26,20 @@ module.exports.handleReply = async function({ api, event, handleReply }) {
     "7": { id: "utility", name: "الـخـدمـات" }
   };
 
-  if (body.toLowerCase() === "رجوع" || body === "رجـوع") {
+  // 2. تنظيف النص المدخل
+  const input = body.trim();
+
+  if (input == "رجوع" || input == "رجـوع") {
      api.unsendMessage(handleReply.messageID);
      return module.exports.run({ api, event });
   }
 
-  const choice = categories[body];
+  const choice = categories[input];
   if (!choice) return;
 
-  // جلب الأوامر
-  const commands = Array.from(global.client.commands.values());
-  const categoryCommands = commands
-    .filter(cmd => cmd.config.commandCategory.toLowerCase() === choice.id.toLowerCase())
+  // 3. جلب الأوامر مع فحص وجود الـ config
+  const categoryCommands = Array.from(global.client.commands.values())
+    .filter(cmd => cmd.config && cmd.config.commandCategory && cmd.config.commandCategory.toLowerCase() === choice.id.toLowerCase())
     .map(cmd => cmd.config.name);
 
   api.unsendMessage(handleReply.messageID);
@@ -55,7 +56,7 @@ module.exports.handleReply = async function({ api, event, handleReply }) {
 
   return api.sendMessage(msg, threadID, (err, info) => {
     global.client.handleReply.push({
-      name: "help", // نستخدم نفس الاسم البرمجي
+      name: this.config.name, // استخدام reference مباشر لاسم الكوماند
       messageID: info.messageID,
       author: senderID
     });
@@ -78,8 +79,9 @@ module.exports.run = async function({ api, event }) {
                `⌬ ━━━━━━━━━━━━ ⌬`;
 
   return api.sendMessage(menu, threadID, (err, info) => {
+    if (err) return;
     global.client.handleReply.push({
-      name: "help",
+      name: this.config.name,
       messageID: info.messageID,
       author: senderID
     });
