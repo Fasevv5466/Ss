@@ -1,18 +1,19 @@
 module.exports.config = {
-  name: "اوامر",
-  version: "10.3.0",
+  name: "help", // غيرت الاسم للإنجليزية لضمان قبول الرد في السيرفر
+  version: "10.4.0",
   hasPermssion: 0,
   credits: "ayman",
   description: "قائمة الأوامر بنظام الرد المباشر",
   commandCategory: "utility",
-  usages: "اوامر",
-  cooldowns: 5
+  usages: "help",
+  cooldowns: 5,
+  aliases: ["اوامر", "الأوامر", "أوامر"] // تقدر تطلبه بكلمة اوامر عادي
 };
 
 module.exports.handleReply = async function({ api, event, handleReply }) {
   const { threadID, messageID, body, senderID } = event;
   
-  // التأكد أن الشخص اللي رد هو نفسه اللي طلب الأمر
+  // التحقق من هوية المستخدم
   if (String(senderID) !== String(handleReply.author)) return;
 
   const header = `⌬ ━━━━━━━━━━━━ ⌬`;
@@ -26,22 +27,19 @@ module.exports.handleReply = async function({ api, event, handleReply }) {
     "7": { id: "utility", name: "الـخـدمـات" }
   };
 
-  // معالجة خيار الرجوع
   if (body.toLowerCase() === "رجوع" || body === "رجـوع") {
      api.unsendMessage(handleReply.messageID);
      return module.exports.run({ api, event });
   }
 
   const choice = categories[body];
-  if (!choice) return; // إذا الرد مو رقم من القائمة يتجاهله
+  if (!choice) return;
 
-  // جلب الأوامر المتاحة في السيرفر وتصفيتها حسب الفئة
-  const categoryCommands = [];
-  for (const [name, command] of global.client.commands) {
-    if (command.config.commandCategory.toLowerCase() === choice.id.toLowerCase()) {
-      categoryCommands.push(command.config.name);
-    }
-  }
+  // جلب الأوامر
+  const commands = Array.from(global.client.commands.values());
+  const categoryCommands = commands
+    .filter(cmd => cmd.config.commandCategory.toLowerCase() === choice.id.toLowerCase())
+    .map(cmd => cmd.config.name);
 
   api.unsendMessage(handleReply.messageID);
 
@@ -57,7 +55,7 @@ module.exports.handleReply = async function({ api, event, handleReply }) {
 
   return api.sendMessage(msg, threadID, (err, info) => {
     global.client.handleReply.push({
-      name: "اوامر", // يجب أن يطابق اسم الكوماند تماماً
+      name: "help", // نستخدم نفس الاسم البرمجي
       messageID: info.messageID,
       author: senderID
     });
@@ -80,9 +78,8 @@ module.exports.run = async function({ api, event }) {
                `⌬ ━━━━━━━━━━━━ ⌬`;
 
   return api.sendMessage(menu, threadID, (err, info) => {
-    if (err) return;
     global.client.handleReply.push({
-      name: "اوامر",
+      name: "help",
       messageID: info.messageID,
       author: senderID
     });
