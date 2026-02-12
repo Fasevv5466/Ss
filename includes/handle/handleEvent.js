@@ -1,10 +1,11 @@
-// ════════════════════════════════════════════════════════════
-// 🔧 إصلاح handleEvent.js - نسخة محسّنة
-// ════════════════════════════════════════════════════════════
-//
-// استبدل محتوى: includes/handle/handleEvent.js بهذا الكود
-//
-// ════════════════════════════════════════════════════════════
+/**
+ * ═══════════════════════════════════════════════════════════
+ * 🔧 handleEvent.js - نسخة محسّنة ومصححة
+ * ═══════════════════════════════════════════════════════════
+ * الغرض: معالجة جميع أحداث Events بشكل صحيح
+ * التحسينات: error handling + logging + دعم الطريقتين
+ * ═══════════════════════════════════════════════════════════
+ */
 
 module.exports = function ({ api, models, Users, Threads, Currencies }) {
     const logger = require("../../utils/log.js");
@@ -12,7 +13,6 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
 
     return async function ({ event }) {
         const timeStart = Date.now();
-        // التوقيت بتوقيت العراق
         const time = moment.tz("Asia/Baghdad").format("HH:mm:ss DD/MM/YYYY");
         
         const { userBanned, threadBanned } = global.data;
@@ -28,7 +28,6 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
         // ════════════════════════════════════════════════════════════
         
         if (type === "message_reaction" && messageReply?.senderID === api.getCurrentUserID()) {
-            // قائمة التفاعلات التي تؤدي للحذف
             const deleteReactions = ["👍", "😡", "🗑️", "❌", "💔", "🚫", "⛔"];
             
             if (deleteReactions.includes(reaction)) {
@@ -41,12 +40,11 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
                 try {
                     await api.unsendMessage(messageReply.messageID);
                     console.log(`   ✅ تم الحذف بنجاح!\n`);
-                    return; // توقف عن معالجة الأحداث الأخرى
+                    return;
                     
                 } catch (error) {
                     console.error(`   ❌ فشل الحذف: ${error.message}`);
                     
-                    // محاولة ثانية بعد ثانية
                     setTimeout(async () => {
                         try {
                             await api.unsendMessage(messageReply.messageID);
@@ -71,72 +69,117 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
         }
 
         // ════════════════════════════════════════════════════════════
-        // ⚙️ معالجة الأحداث
+        // ⚙️ معالجة الأحداث - النسخة المحسّنة
         // ════════════════════════════════════════════════════════════
         
-        for (const [key, value] of events.entries()) {
-            if (value.config.eventType && 
-                value.config.eventType.includes(event.type || event.logMessageType)) {
+        const currentEventType = event.type || event.logMessageType;
+        let processedEvents = 0;
+        
+        // Logging للتتبع (في وضع التطوير فقط)
+        if (DeveloperMode) {
+            console.log(`\n📊 ═══ handleEvent Debug ═══`);
+            console.log(`   Event Type: ${currentEventType}`);
+            console.log(`   Thread: ${threadID}`);
+            console.log(`   Sender: ${senderID}`);
+            console.log(`   Loaded Events: ${events.size}`);
+        }
+        
+        for (const [eventName, eventModule] of events.entries()) {
+            
+            // التحقق من وجود eventType
+            if (!eventModule.config || !eventModule.config.eventType) {
+                if (DeveloperMode) {
+                    console.log(`   ⚠️ ${eventName}: مفقود eventType`);
+                }
+                continue;
+            }
+            
+            const eventTypes = eventModule.config.eventType;
+            
+            // التحقق من تطابق نوع الحدث
+            if (!eventTypes.includes(currentEventType)) {
+                continue;
+            }
+            
+            try {
+                // إنشاء كائن الحدث
+                const eventObject = {
+                    api,
+                    event,
+                    models,
+                    Users,
+                    Threads,
+                    Currencies
+                };
                 
-                const eventRun = events.get(key);
-                
-                try {
-                    const eventObject = {
-                        api,
-                        event,
-                        models,
-                        Users,
-                        Threads,
-                        Currencies
-                    };
+                // تنفيذ الحدث (دعم الطريقتين)
+                if (typeof eventModule.run === 'function') {
+                    await eventModule.run(eventObject);
+                    processedEvents++;
                     
-                    // تنفيذ الحدث
-                    if (eventRun.handleEvent) {
-                        await eventRun.handleEvent(eventObject);
-                    } else if (eventRun.run) {
-                        await eventRun.run(eventObject);
-                    }
+                } else if (typeof eventModule.handleEvent === 'function') {
+                    await eventModule.handleEvent(eventObject);
+                    processedEvents++;
+                    
+                } else {
+                    console.warn(`⚠️ Event ${eventName} لا يحتوي على run أو handleEvent`);
+                    continue;
+                }
 
-                    // تسجيل في وضع التطوير
-                    if (DeveloperMode == true) {
-                        const eventType = event.type || event.logMessageType || 'unknown';
-                        logger(
-                            `[ Event ] ${eventRun.config.name} | ` +
-                            `النوع: ${eventType} | ` +
-                            `المجموعة: ${threadID} | ` +
-                            `${time}`, 
-                            "EVENT"
-                        );
-                    }
-                    
-                } catch (error) {
-                    console.error(`\n❌ ═══ خطأ في Event: ${eventRun.config.name} ═══`);
-                    console.error(`   الوقت: ${time}`);
-                    console.error(`   المجموعة: ${threadID}`);
-                    console.error(`   الخطأ: ${error.message}`);
-                    console.error(`   Stack: ${error.stack}\n`);
-                    
+                // تسجيل النجاح في وضع التطوير
+                if (DeveloperMode) {
+                    const executionTime = Date.now() - timeStart;
                     logger(
-                        `[ Event Error ] ${eventRun.config.name}: ${error.message}`, 
-                        "error"
+                        `✅ Event: ${eventName} | ` +
+                        `Type: ${currentEventType} | ` +
+                        `Time: ${executionTime}ms | ` +
+                        `Thread: ${threadID}`, 
+                        "EVENT"
                     );
                 }
+                
+            } catch (error) {
+                console.error(`\n❌ ═══ خطأ في Event: ${eventName} ═══`);
+                console.error(`   الوقت: ${time}`);
+                console.error(`   المجموعة: ${threadID}`);
+                console.error(`   النوع: ${currentEventType}`);
+                console.error(`   الخطأ: ${error.message}`);
+                console.error(`   Stack:\n${error.stack}\n`);
+                
+                logger(
+                    `❌ Event Error: ${eventName} - ${error.message}`, 
+                    "error"
+                );
             }
+        }
+        
+        // Logging النتيجة النهائية
+        if (DeveloperMode && processedEvents > 0) {
+            const totalTime = Date.now() - timeStart;
+            console.log(`   ✅ معالجة: ${processedEvents} events في ${totalTime}ms`);
+            console.log(`   ═══════════════════════════\n`);
+        } else if (DeveloperMode && processedEvents === 0) {
+            console.log(`   ℹ️ لم يتم معالجة أي events لهذا النوع`);
+            console.log(`   ═══════════════════════════\n`);
         }
         
         return;
     };
 };
 
-// ════════════════════════════════════════════════════════════
-// 📝 التحسينات في هذه النسخة:
-// ════════════════════════════════════════════════════════════
-//
-// ✅ نظام حذف محسّن مع إعادة محاولة تلقائية
-// ✅ دعم 7 تفاعلات مختلفة للحذف
-// ✅ Logging مفصّل لتتبع الأخطاء
-// ✅ معالجة async/await صحيحة
-// ✅ توافق مع handleEvent و run في الأحداث
-// ✅ عدم معالجة أحداث أخرى بعد الحذف
-//
-// ════════════════════════════════════════════════════════════
+/**
+ * ═══════════════════════════════════════════════════════════
+ * 📝 التحسينات في هذه النسخة:
+ * ═══════════════════════════════════════════════════════════
+ * 
+ * ✅ دعم كامل لـ run و handleEvent
+ * ✅ error handling شامل لكل event
+ * ✅ logging مفصّل في وضع التطوير
+ * ✅ قياس وقت التنفيذ
+ * ✅ التحقق من صحة الهيكل قبل التنفيذ
+ * ✅ رسائل خطأ واضحة ومفصلة
+ * ✅ عدّاد للـ events المعالجة
+ * ✅ نظام حذف رسائل محسّن مع إعادة محاولة
+ * 
+ * ═══════════════════════════════════════════════════════════
+ */
