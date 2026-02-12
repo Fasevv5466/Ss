@@ -5,98 +5,126 @@ const { exec } = require("child_process");
 
 module.exports.config = {
     name: "سمعني",
-    version: "6.0.0",
+    version: "4.0.0",
     hasPermssion: 0,
     credits: "KIRA SYSTEM",
-    description: "تحميل مباشر من يوتيوب باستخدام yt-dlp على Render",
+    description: "تحميل وتشغيل الأغاني من YouTube",
     commandCategory: "media",
     usages: "[اسم الأغنية]",
-    cooldowns: 5
+    cooldowns: 10
 };
 
 module.exports.run = async function ({ api, event, args }) {
-    const { threadID, messageID } = event;
+    const { threadID, messageID, senderID } = event;
     const query = args.join(" ");
     
-    // 1. التحقق من المدخلات
-    if (!query) return api.sendMessage("⚠️ اكتب اسم الأغنية يا وحش!", threadID, messageID);
+    if (!query) {
+        return api.sendMessage("⚠️ الرجاء كتابة اسم الأغنية!\n📝 مثال: .سمعني hope", threadID, messageID);
+    }
 
-    const waitMsg = await api.sendMessage(`🔍 جاري البحث والتحميل: ${query}...`, threadID);
+    const waitMsg = await api.sendMessage(`🔍 جاري البحث عن: ${query}...`, threadID);
 
     try {
-        // 2. البحث عن النتيجة الأولى باستخدام YouTube API الخاص بك
         const searchUrl = `https://www.googleapis.com/youtube/v3/search`;
         const params = {
             part: 'snippet',
             q: query,
             type: 'video',
-            maxResults: 1,
-            key: 'AIzaSyCLyuBSAeTt6XkwGyP0nTh8O7sZXEEpV0Q' 
+            maxResults: 5,
+            key: 'AIzaSyCLyuBSAeTt6XkwGyP0nTh8O7sZXEEpV0Q' // تأكد من أن المفتاح شغال
         };
 
         const searchResponse = await axios.get(searchUrl, { params });
-        const video = searchResponse.data.items[0];
+        const videos = searchResponse.data.items;
 
-        if (!video) {
+        if (!videos || videos.length === 0) {
             api.unsendMessage(waitMsg.messageID);
             return api.sendMessage(`❌ لم أجد نتائج لـ: ${query}`, threadID, messageID);
         }
 
-        const videoId = video.id.videoId;
-        const title = video.snippet.title;
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        let resultMsg = `📋 نتائج البحث عن: ${query}\n\n`;
+        videos.forEach((video, index) => {
+            resultMsg += `${index + 1}. ${video.snippet.title}\n👤 ${video.snippet.channelTitle}\n\n`;
+        });
+        resultMsg += `⚠️ رد برقم الأغنية (1-${videos.length})`;
 
-        // 3. إعداد المسارات والمجلد المؤقت
+        api.unsendMessage(waitMsg.messageID);
+
+        return api.sendMessage(resultMsg, threadID, (err, info) => {
+            // إضافة الرد إلى القائمة العالمية للبوت
+            global.client.handleReply.push({
+                name: "سمعني", // يجب أن يطابق تماماً name في config
+                messageID: info.messageID,
+                author: senderID,
+                videos: videos
+            });
+        }, messageID);
+
+    } catch (error) {
+        api.unsendMessage(waitMsg.messageID);
+        return api.sendMessage(`❌ خطأ: ${error.message}`, threadID, messageID);
+    }
+};
+
+module.exports.handleReply = async function ({ api, event, handleReply }) {
+    const { threadID, messageID, body, senderID } = event;
+    
+    // التحقق من صاحب الرد
+    if (senderID !== handleReply.author) return;
+
+    const choice = parseInt(body);
+    const { videos } = handleReply;
+
+    if (isNaN(choice) || choice < 1 || choice > videos.length) {
+        return api.sendMessage(`⚠️ اختر رقماً صحيحاً من 1 إلى ${videos.length}`, threadID, messageID);
+    }
+
+    const selectedVideo = videos[choice - 1];
+    const videoId = selectedVideo.id.videoId;
+    const title = selectedVideo.snippet.title;
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+    api.unsendMessage(handleReply.messageID);
+    const downloadMsg = await api.sendMessage(`⬇️ جاري تحميل: ${title}...`, threadID);
+
+    try {
+        // إنشاء مجلد مؤقت في جذر المشروع
         const tempDir = path.join(process.cwd(), "temp_audio");
         if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
         const outputPath = path.join(tempDir, `${Date.now()}.mp3`);
         
-        // 4. تحديد مسار برنامج yt-dlp الذي قمت بتحميله عبر الـ Build Command
-        const ytDlpPath = path.join(process.cwd(), "yt-dlp");
-        
-        // التأكد من وجود الأداة، وإذا لم توجد نستخدم الأمر الافتراضي
-        const ytDlpBinary = fs.existsSync(ytDlpPath) ? ytDlpPath : "yt-dlp";
+        // استخدام مسار yt-dlp المحلي إذا كان موجوداً (للموافقة مع Render)
+        const ytDlpPath = fs.existsSync(path.join(process.cwd(), "yt-dlp")) ? path.join(process.cwd(), "yt-dlp") : "yt-dlp";
 
-        // 5. أمر التحميل (MP3، جودة عالية، بدون قائمة تشغيل)
-        const command = `${ytDlpBinary} -x --audio-format mp3 --audio-quality 0 --no-playlist --no-check-certificate -o "${outputPath}" "${videoUrl}"`;
+        const command = `${ytDlpPath} -x --audio-format mp3 --audio-quality 0 --no-playlist --no-check-certificate -o "${outputPath}" "${videoUrl}"`;
 
-        exec(command, { maxBuffer: 1024 * 1024 * 20 }, async (error, stdout, stderr) => {
+        exec(command, { maxBuffer: 1024 * 1024 * 20 }, async (error) => {
             if (error) {
-                console.error("Download Error:", error);
-                api.unsendMessage(waitMsg.messageID);
-                return api.sendMessage(`❌ فشل التحميل.\nتأكد من كتابة Build Command في Render بشكل صحيح.`, threadID, messageID);
+                api.unsendMessage(downloadMsg.messageID);
+                return api.sendMessage(`❌ فشل التحميل! تأكد من إعدادات السيرفر.`, threadID, messageID);
             }
 
-            if (!fs.existsSync(outputPath)) {
-                api.unsendMessage(waitMsg.messageID);
-                return api.sendMessage(`❌ حدث خطأ: لم يتم إنتاج ملف الصوت.`, threadID, messageID);
-            }
-
-            // 6. التحقق من حجم الملف (فيسبوك يسمح بـ 25MB)
             const stats = fs.statSync(outputPath);
             const fileSizeInMB = stats.size / (1024 * 1024);
 
             if (fileSizeInMB > 26) {
                 fs.unlinkSync(outputPath);
-                api.unsendMessage(waitMsg.messageID);
-                return api.sendMessage(`❌ الأغنية كبيرة جداً (${fileSizeInMB.toFixed(1)}MB). جرب أغنية أصغر.`, threadID, messageID);
+                api.unsendMessage(downloadMsg.messageID);
+                return api.sendMessage(`❌ الحجم كبير جداً (${fileSizeInMB.toFixed(1)}MB).`, threadID, messageID);
             }
 
-            // 7. إرسال الأغنية للمستخدم وتنظيف السيرفر
-            api.unsendMessage(waitMsg.messageID);
+            api.unsendMessage(downloadMsg.messageID);
             return api.sendMessage({
-                body: `🎵 تفضل الأغنية يا بطل:\n🎧 ${title}\n📦 الحجم: ${fileSizeInMB.toFixed(2)} MB`,
+                body: `✅ تم التحميل:\n🎧 ${title}`,
                 attachment: fs.createReadStream(outputPath)
             }, threadID, () => {
-                // حذف الملف بعد الإرسال للحفاظ على مساحة السيرفر في Render
                 if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
             }, messageID);
         });
 
     } catch (error) {
-        if (waitMsg && waitMsg.messageID) api.unsendMessage(waitMsg.messageID);
-        console.error("System Error:", error);
-        return api.sendMessage(`❌ خطأ في النظام: ${error.message}`, threadID, messageID);
+        api.unsendMessage(downloadMsg.messageID);
+        api.sendMessage(`❌ خطأ: ${error.message}`, threadID, messageID);
     }
 };
