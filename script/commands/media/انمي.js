@@ -1,9 +1,9 @@
-  module.exports.config = {
+module.exports.config = {
   name: "انمي",
-  version: "4.5.1",
+  version: "4.5.2",
   hasPermssion: 0,
   credits: "Ayman",
-  description: "بحث عن أنمي أو اقتراحات حسب الفئة (اكشن، دراما، رعب، رومانسي، كوميديا، خيال) ✨",
+  description: "بحث عن أنمي أو اقتراحات حسب الفئة ✨",
   commandCategory: "media",
   usages: "انمي [الاسم] أو [الفئة]",
   cooldowns: 5
@@ -59,7 +59,7 @@ module.exports.run = async function({ api, event, args }) {
 
   let query = args.join(" ");
 
-  // رسالة الواجهة باستخدام الأسهم
+  // واجهة الأوامر المعدلة بالأسهم
   if (!query) {
     return api.sendMessage(
       `${header}\n\n` +
@@ -70,7 +70,7 @@ module.exports.run = async function({ api, event, args }) {
       `⪼ انمي رومانسي\n` +
       `⪼ انمي كوميديا\n` +
       `⪼ انمي خيال\n\n` +
-      `💡 أو ابحث مباشرة: .انمي [الاسم]\n` +
+      `💡 أو ابـحـث مـبـاشـرة: .انمي [الاسم]\n` +
       `⌬ ━━━━━━━━━━━━ ⌬`, 
       threadID, messageID
     );
@@ -94,7 +94,7 @@ module.exports.run = async function({ api, event, args }) {
     const res = await axios.get(`https://api.popcat.xyz/imdb?q=${encodeURIComponent(targetAnime)}`);
     const data = res.data;
 
-    if (data.error) return api.sendMessage(`❌ لم يتم العثور على نتائج لـ "${targetAnime}".`, threadID, messageID);
+    if (data.error) return api.sendMessage(`❌ لم أجد نتائج لـ "${targetAnime}".`, threadID, messageID);
 
     const translate = async (text) => {
       if (!text) return "غير متوفر";
@@ -104,7 +104,7 @@ module.exports.run = async function({ api, event, args }) {
 
     const [plotAr, genresAr] = await Promise.all([translate(data.plot), translate(data.genres)]);
 
-    const path = __dirname + `/cache/anime_search.png`;
+    const path = __dirname + `/cache/anime_${Date.now()}.png`;
     const callback = () => {
       api.sendMessage({
         body: `${header}\n\n` +
@@ -112,7 +112,7 @@ module.exports.run = async function({ api, event, args }) {
               `⪼ الـسـنـة: ${data.year}\n` +
               `⪼ الـتـقـيـيـم: ${data.rating}/10\n` +
               `⪼ الـتـصـنـيـف: ${genresAr}\n\n` +
-              `⪼ الـقـصـة:\n${plotAr}\n\n` +
+              `📖 الـقـصـة:\n${plotAr}\n\n` +
               `⌬ ━━━━━━━━━━━━ ⌬`,
         attachment: fs.createReadStream(path)
       }, threadID, () => { if (fs.existsSync(path)) fs.unlinkSync(path); }, messageID);
@@ -121,6 +121,6 @@ module.exports.run = async function({ api, event, args }) {
     return request(encodeURI(data.poster)).pipe(fs.createWriteStream(path)).on("close", callback);
 
   } catch (err) {
-    return api.sendMessage("⚠️ حدث خطأ في استدعاء البيانات.", threadID, messageID);
+    return api.sendMessage("⚠️ حدث خطأ أثناء جلب البيانات.", threadID, messageID);
   }
 };
