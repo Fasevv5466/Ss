@@ -1,6 +1,6 @@
 module.exports.config = {
   name: "اوامر",
-  version: "10.2.5",
+  version: "10.3.0",
   hasPermssion: 0,
   credits: "ayman",
   description: "قائمة الأوامر بنظام الرد المباشر",
@@ -11,7 +11,9 @@ module.exports.config = {
 
 module.exports.handleReply = async function({ api, event, handleReply }) {
   const { threadID, messageID, body, senderID } = event;
-  if (senderID !== handleReply.author) return;
+  
+  // التأكد أن الشخص اللي رد هو نفسه اللي طلب الأمر
+  if (String(senderID) !== String(handleReply.author)) return;
 
   const header = `⌬ ━━━━━━━━━━━━ ⌬`;
   const categories = {
@@ -24,34 +26,38 @@ module.exports.handleReply = async function({ api, event, handleReply }) {
     "7": { id: "utility", name: "الـخـدمـات" }
   };
 
-  if (body.toLowerCase() === "رجوع") {
+  // معالجة خيار الرجوع
+  if (body.toLowerCase() === "رجوع" || body === "رجـوع") {
      api.unsendMessage(handleReply.messageID);
      return module.exports.run({ api, event });
   }
 
   const choice = categories[body];
-  if (!choice) return;
+  if (!choice) return; // إذا الرد مو رقم من القائمة يتجاهله
 
-  const allCommands = Array.from(global.client.commands.values());
-  const categoryCommands = allCommands
-    .filter(cmd => cmd.config.commandCategory.toLowerCase() === choice.id.toLowerCase())
-    .map(cmd => cmd.config.name);
+  // جلب الأوامر المتاحة في السيرفر وتصفيتها حسب الفئة
+  const categoryCommands = [];
+  for (const [name, command] of global.client.commands) {
+    if (command.config.commandCategory.toLowerCase() === choice.id.toLowerCase()) {
+      categoryCommands.push(command.config.name);
+    }
+  }
 
   api.unsendMessage(handleReply.messageID);
 
   if (categoryCommands.length === 0) {
-    return api.sendMessage(`${header}\n⚠️ لا تـوجـد أوامـر فـي فـئـة ${choice.name}\n${header}`, threadID, messageID);
+    return api.sendMessage(`${header}\n⚠️ لا تـوجـد أوامـر فـي فـئـة [ ${choice.name} ]\n${header}`, threadID, messageID);
   }
 
   const msg = `${header}\n      📁 فـئـة: ${choice.name}\n${header}\n\n` +
-              `${categoryCommands.join(" - ")}\n\n` +
-              `⪼ عـدد الأوامـر: ${categoryCommands.length}\n` +
-              `⪼ لـلـعـودة أرسـل: رجـوع\n` +
+              `⪼ ${categoryCommands.join(" - ")}\n\n` +
+              `💠 عـدد الأوامـر: ${categoryCommands.length}\n` +
+              `💠 لـلـعـودة أرسـل: رجـوع\n` +
               `${header}`;
 
   return api.sendMessage(msg, threadID, (err, info) => {
     global.client.handleReply.push({
-      name: "اوامر",
+      name: "اوامر", // يجب أن يطابق اسم الكوماند تماماً
       messageID: info.messageID,
       author: senderID
     });
@@ -74,6 +80,7 @@ module.exports.run = async function({ api, event }) {
                `⌬ ━━━━━━━━━━━━ ⌬`;
 
   return api.sendMessage(menu, threadID, (err, info) => {
+    if (err) return;
     global.client.handleReply.push({
       name: "اوامر",
       messageID: info.messageID,
