@@ -1,4 +1,4 @@
- module.exports.config = {
+module.exports.config = {
   name: "اللقب_التلقائي",
   eventType: ["log:subscribe"],
   version: "1.0.0",
@@ -8,7 +8,16 @@
 
 module.exports.run = async function({ api, event, Users }) {
   const { threadID, logMessageData } = event;
-  const bold = (text) => global.utils.toBoldSans(text);
+  
+  // حماية من عدم وجود global.utils
+  const bold = (text) => {
+    try {
+      return global.utils?.toBoldSans?.(text) || text;
+    } catch {
+      return text;
+    }
+  };
+  
   const header = `⌬ ━━━ ${bold("KIRA AUTO-NAME")} ━━━ ⌬`;
 
   // استبعاد البوت من العملية
@@ -40,5 +49,4 @@ module.exports.run = async function({ api, event, Users }) {
       }
     }
   }
-
-  
+}; // ✅ إضافة الإغلاق الناقص
