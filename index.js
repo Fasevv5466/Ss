@@ -1,39 +1,54 @@
 /**
- * ═══════════════════════════════════════════════════════════
- * 🔧 جزء محسّن من index.js - تحميل Events
- * ═══════════════════════════════════════════════════════════
- * استبدل قسم "تحميل الأحداث" في index.js (السطور 174-184)
- * بهذا الكود المحسّن
- * ═══════════════════════════════════════════════════════════
+ * ════════════════════════════════════════════════════════════
+ * 🔧 تعديل بسيط لـ index.js - قسم تحميل Events
+ * ════════════════════════════════════════════════════════════
+ * 
+ * ✅ نسخة آمنة - ما تخرب شي
+ * ✅ فقط تحسينات بسيطة
+ * 
+ * استبدل السطور 174-184 في index.js بهذا الكود:
+ * ════════════════════════════════════════════════════════════
  */
 
-// تحميل الأحداث - النسخة المحسّنة
+// تحميل الأحداث - نسخة محسّنة
 const eventsPath = join(global.client.mainPath, 'script', 'events');
-
 if (existsSync(eventsPath)) {
-    console.log(chalk.bold.hex("#03f0fc")("\n[ EVENTS ] ") + chalk.hex("#fcba03")("Loading events..."));
+    const events = readdirSync(eventsPath).filter(ev => ev.endsWith('.js'));
     
-    const eventFiles = readdirSync(eventsPath).filter(ev => ev.endsWith('.js'));
-    let successCount = 0;
-    let failCount = 0;
-    
-    for (const eventFile of eventFiles) {
+    for (const ev of events) {
         try {
-            const eventPath = join(eventsPath, eventFile);
+            const eventPath = join(eventsPath, ev);
+            const event = require(eventPath);
             
-            // حذف الكاش للتأكد من تحميل آخر نسخة
-            delete require.cache[require.resolve(eventPath)];
+            // التحقق البسيط
+            if (event.config && event.config.name) {
+                global.client.events.set(event.config.name, event);
+                logger.loader(`✅ ${event.config.name}`);
+            } else {
+                logger.loader(`⚠️ ${ev}: مفقود config.name`, "warn");
+            }
             
-            // تحميل الـ event
-            const eventModule = require(eventPath);
-            
-            // ════════════════════════════════════════════════════════
-            // 🔍 التحقق من صحة الهيكل
-            // ════════════════════════════════════════════════════════
-            
-            // التحقق من وجود config
-            if (!eventModule.config) {
-                console.log(chalk.red(`   ❌ ${eventFile}: مفقود module.exports.config`));
+        } catch (err) { 
+            logger.loader(`❌ Fail load event: ${ev} - ${err.message}`, "error"); 
+        }
+    }
+}
+
+/**
+ * ════════════════════════════════════════════════════════════
+ * 📝 التعليمات:
+ * ════════════════════════════════════════════════════════════
+ * 
+ * 1. افتح index.js
+ * 2. روح للسطر 174
+ * 3. احذف من السطر 174 لغاية 184 (11 سطر فقط)
+ * 4. الصق هذا الكود مكانهم
+ * 5. احفظ الملف
+ * 
+ * ⚠️ لا تمسح أي شي قبل السطر 174 أو بعد السطر 184!
+ * 
+ * ════════════════════════════════════════════════════════════
+ */
                 failCount++;
                 continue;
             }
