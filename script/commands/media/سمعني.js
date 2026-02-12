@@ -4,10 +4,10 @@ const yts = require("yt-search");
 
 module.exports.config = {
     name: "سمعني",
-    version: "1.2.5",
+    version: "1.3.0",
     hasPermssion: 0,
     credits: "ayman",
-    description: "البحث عن الأغاني وتحميلها صوتاً بدون أخطاء",
+    description: "تحميل الأغاني بصيغة Buffer لضمان العمل 100%",
     commandCategory: "media",
     usages: "[اسم الأغنية]",
     cooldowns: 5
@@ -18,72 +18,46 @@ module.exports.run = async function ({ api, event, args }) {
     const songName = args.join(" ");
     const header = `⌬ ━━━━━━━━━━━━ ⌬\n      🎵 طـرب كـيـرا\n⌬ ━━━━━━━━━━━━ ⌬`;
 
-    if (!songName) {
-        return api.sendMessage(`${header}\n⚠️ يـرجـى كـتـابـة اسـم الأغـنـيـة!\n${header}`, threadID, messageID);
-    }
+    if (!songName) return api.sendMessage(`${header}\n⚠️ يـرجـى كـتـابـة اسـم الأغـنـيـة!\n${header}`, threadID, messageID);
 
     try {
-        api.sendMessage(`🔍 جـاري الـبـحـث والـتـحـمـيـل: [ ${songName} ]...`, threadID, messageID);
+        api.sendMessage(`🔍 جـاري الـبـحـث والـتـحـمـيـل...`, threadID, messageID);
 
-        // 1. البحث عن الأغنية في يوتيوب
         const searchResults = await yts(songName);
-        if (!searchResults.videos.length) {
-            return api.sendMessage("❌ لـم أتـمـكـن مـن الـعـثـور عـلى الأغـنـيـة.", threadID, messageID);
-        }
+        if (!searchResults.videos.length) return api.sendMessage("❌ لم أجد الأغنية.", threadID, messageID);
 
         const video = searchResults.videos[0];
-        const videoUrl = video.url;
+        // استخدام رابط API بديل وأسرع
+        const downloadUrl = `https://api.aggitech.top/videodl?url=${encodeURIComponent(video.url)}`;
+
+        // تحميل الملف كـ Buffer (هنا الحل)
+        const response = await axios.get(downloadUrl, { responseType: "arraybuffer" });
+        const musicBuffer = Buffer.from(response.data, "utf-8");
+
+        // مسار الحفظ
+        const path = __dirname + `/cache/song_${Date.now()}.mp3`;
         
-        // إنشاء مسار الملف في مجلد cache
-        const cacheDir = __dirname + "/cache/";
-        if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
-        const streamPath = cacheDir + `song_${Date.now()}.mp3`;
+        // التأكد من المجلد وحفظ الملف
+        if (!fs.existsSync(__dirname + "/cache/")) fs.mkdirSync(__dirname + "/cache/");
+        fs.writeFileSync(path, musicBuffer);
 
-        // 2. استخدام API خارجي مستقر للتحميل لتجنب مشاكل ytdl-core
-        const downloadUrl = `https://api.aggitech.top/videodl?url=${encodeURIComponent(videoUrl)}`;
-        
-        const response = await axios({
-            method: 'get',
-            url: downloadUrl,
-            responseType: 'stream'
-        });
+        const stats = fs.statSync(path);
+        if (stats.size > 26214400) { // 25MB
+            fs.unlinkSync(path);
+            return api.sendMessage("⚠️ الملف كبير جداً (أكثر من 25MB).", threadID, messageID);
+        }
 
-        // 3. كتابة الملف باستخدام fs-extra
-        const writer = fs.createWriteStream(streamPath);
-        response.data.pipe(writer);
+        const msg = {
+            body: `${header}\n✅ تـم الـتـحـمـيـل بـنـجـاح\n\n⪼ الـعـنـوان: ${video.title}\n⪼ الـمـدة: ${video.timestamp}\n${header}`,
+            attachment: fs.createReadStream(path)
+        };
 
-        writer.on("finish", async () => {
-            try {
-                const stats = fs.statSync(streamPath);
-                
-                // التأكد أن حجم الملف لا يتجاوز 25 ميجا (حد ماسينجر)
-                if (stats.size > 26214400) {
-                    fs.unlinkSync(streamPath);
-                    return api.sendMessage("⚠️ الأغـنـيـة كـبـيـرة جـداً، جـرب أغـنـيـة أقـصـر.", threadID, messageID);
-                }
-
-                const msg = {
-                    body: `${header}\n✅ تـم الـتـحـمـيـل بـنـجـاح\n\n⪼ الـعـنـوان: ${video.title}\n⪼ الـمـدة: ${video.timestamp}\n${header}`,
-                    attachment: fs.createReadStream(streamPath)
-                };
-
-                return api.sendMessage(msg, threadID, () => {
-                    if (fs.existsSync(streamPath)) fs.unlinkSync(streamPath);
-                }, messageID);
-
-            } catch (err) {
-                console.error(err);
-                return api.sendMessage("❌ حـدث خـطأ أثـنـاء إرسـال الـصـوت.", threadID, messageID);
-            }
-        });
-
-        writer.on("error", (err) => {
-            console.error(err);
-            api.sendMessage("⚠️ فـشـل تـحـمـيـل الـمـلـف مـن الـسـيـرفـر.", threadID, messageID);
-        });
+        return api.sendMessage(msg, threadID, () => {
+            if (fs.existsSync(path)) fs.unlinkSync(path);
+        }, messageID);
 
     } catch (error) {
         console.error(error);
-        return api.sendMessage("⚠️ حـدث خـطأ فـي الـنـظـام، حـاول مـجـدداً.", threadID, messageID);
+        return api.sendMessage("❌ حدث خطأ! السيرفر قد يكون مضغوطاً حالياً.", threadID, messageID);
     }
 };
