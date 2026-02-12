@@ -1,9 +1,9 @@
 module.exports.config = {
   name: "انمي",
-  version: "4.6.0",
+  version: "4.7.0",
   hasPermssion: 0,
   credits: "Ayman",
-  description: "بحث عن أنمي أو اقتراحات حسب الفئة ✨",
+  description: "بحث عن أنمي مع إصلاح شامل لجلب الصور ✨",
   commandCategory: "media",
   usages: ".انمي [الاسم] أو [الفئة]",
   cooldowns: 5
@@ -58,16 +58,29 @@ module.exports.run = async function({ api, event, args }) {
     // دالة الترجمة
     const translate = async (text) => {
       if (!text) return "غير متوفر";
-      const tRes = await axios.get(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ar&dt=t&q=${encodeURIComponent(text)}`);
-      return tRes.data[0].map(x => x[0]).join("");
+      try {
+        const tRes = await axios.get(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ar&dt=t&q=${encodeURIComponent(text)}`);
+        return tRes.data[0].map(x => x[0]).join("");
+      } catch { return text; }
     };
 
     const [plotAr, genresAr] = await Promise.all([translate(data.plot), translate(data.genres)]);
-    const path = __dirname + `/cache/anime_${Date.now()}.png`;
+    
+    // إنشاء مجلد الكاش إذا لم يكن موجوداً
+    const cachePath = __dirname + "/cache/";
+    if (!fs.existsSync(cachePath)) fs.mkdirSync(cachePath, { recursive: true });
+    
+    const path = cachePath + `anime_${Date.now()}.png`;
 
-    // جلب الصورة باستخدام axios لضمان الاستقرار
-    const imageBuffer = await axios.get(data.poster, { responseType: 'arraybuffer' });
-    fs.writeFileSync(path, Buffer.from(imageBuffer.data));
+    // جلب الصورة مع إضافة Headers لفك الحماية
+    const imageRes = await axios.get(data.poster, { 
+      responseType: 'arraybuffer',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+    
+    fs.writeFileSync(path, Buffer.from(imageRes.data));
 
     const msg = {
       body: `${header}\n\n` +
@@ -87,6 +100,6 @@ module.exports.run = async function({ api, event, args }) {
 
   } catch (err) {
     console.error(err);
-    return api.sendMessage("⚠️ عـذراً، حـدث خـطأ فـي جـلـب الـبـيـانـات أو الـصـورة.", threadID, messageID);
+    return api.sendMessage("⚠️ عـذراً، حـدث خـطأ فـي جـلـب الـبـيـانـات أو الـصـورة. تأكد من الاسم بالإنجليزية.", threadID, messageID);
   }
 };
