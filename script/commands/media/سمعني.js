@@ -1,55 +1,89 @@
-const axios = require("axios");
-const yts = require("yt-search");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports.config = {
     name: "سمعني",
-    version: "2.1.0",
+    version: "3.0.0",
     hasPermssion: 0,
     credits: "KIRA SYSTEM",
-    description: "تحميل اغاني يوتيوب باحترافية",
+    description: "البحث في مكتبة الأغاني المحلية واختيارها بالرقم",
     commandCategory: "media",
-    usages: "[اسم الاغنية]",
+    usages: "[اسم الأغنية]",
     cooldowns: 5
 };
 
 module.exports.run = async function ({ api, event, args }) {
-    const { threadID, messageID } = event;
-    const songName = args.join(" ");
+    const { threadID, messageID, senderID } = event;
+    const query = args.join(" ").toLowerCase();
+    
+    // المسار اللي حملت فيه الأغاني من GitHub
+    const songsDir = path.join(__dirname, "../../commands/media/song"); 
+    const header = `⌬ ━━━━━━━━━━━━ ⌬\n      🎵 مـكـتـبـة كـيـرا\n⌬ ━━━━━━━━━━━━ ⌬`;
 
-    if (!songName)
-        return api.sendMessage("⚠️ اكتب اسم الاغنية يا وحش.", threadID, messageID);
+    if (!query) return api.sendMessage(`${header}\n⚠️ يـرجـى كـتـابـة اسـم الأغـنـيـة لـلـبـحـث!\n${header}`, threadID, messageID);
 
     try {
-        api.sendMessage(`🔍 جاري البحث عن: ${songName}`, threadID, messageID);
-
-        // 1️⃣ البحث باستخدام yt-search
-        const search = await yts(songName);
-        if (!search.videos.length)
-            return api.sendMessage("❌ ما لقيت نتيجة لهالاسم.", threadID, messageID);
-
-        const video = search.videos[0];
-        const videoUrl = video.url;
-
-        // 2️⃣ جلب رابط تحميل مباشر (Stream) لتجنب مشاكل ytdl-core
-        // نستخدم محول خارجي يرجع ملف mp3 مباشرة للماسينجر
-        const downloadApiUrl = `https://api.aggitech.top/videodl?url=${encodeURIComponent(videoUrl)}`;
-        const res = await axios.get(downloadApiUrl);
-        
-        if (!res.data || !res.data.data || !res.data.data.audio) {
-            return api.sendMessage("❌ فشل استخراج رابط الصوت، جرب لاحقاً.", threadID, messageID);
+        if (!fs.existsSync(songsDir)) {
+            return api.sendMessage("❌ مـجـلـد الأغـانـي غـيـر مـوجـود. اسـتـخـدم [جلب_الداتا] أولاً.", threadID, messageID);
         }
 
-        const audioUrl = res.data.data.audio;
-        const stream = (await axios.get(audioUrl, { responseType: "stream" })).data;
+        // قراءة كل الملفات في المجلد
+        const allFiles = fs.readdirSync(songsDir).filter(file => file.endsWith(".mp3") || file.endsWith(".m4a"));
+        
+        // البحث عن الأغاني اللي فيها الكلمة المطلوبة
+        const matches = allFiles.filter(f => f.toLowerCase().includes(query)).slice(0, 10);
 
-        // 3️⃣ الإرسال
-        return api.sendMessage({
-            body: `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗠𝗨𝗦𝗜𝗖 ━━ ⌬\n🎵 ${video.title}\n⏱ ${video.timestamp}\n👁 ${video.views.toLocaleString()} مشاهدة\n⌬ ━━━━━━━━━━━━━━━ ⌬`,
-            attachment: stream
-        }, threadID, messageID);
+        if (matches.length === 0) {
+            return api.sendMessage("❌ لـم أجـد هـذه الأغـنـيـة فـي الـمـكـتـبـة الـمـحـلـيـة.", threadID, messageID);
+        }
 
-    } catch (err) {
-        console.error(err);
-        return api.sendMessage("❌ حدث خطأ في النظام أو الـ API، حاول مجدداً.", threadID, messageID);
+        // بناء القائمة للمستخدم
+        let msg = `${header}\n🔍 نـتـائـج الـبـحـث عـن: [ ${query} ]\n\n`;
+        matches.forEach((song, index) => {
+            msg += `${index + 1}. 🎵 ${song.replace(/\.(mp3|m4a)/g, "")}\n`;
+        });
+        msg += `\n⚠️ رد بـرقـم الأغـنـيـة لـتـشـغـيـلـهـا.\n${header}`;
+
+        return api.sendMessage(msg, threadID, (err, info) => {
+            global.client.handleReply.push({
+                name: this.config.name,
+                messageID: info.messageID,
+                author: senderID,
+                matches: matches,
+                songsDir: songsDir
+            });
+        }, messageID);
+
+    } catch (e) {
+        console.error(e);
+        return api.sendMessage("⚠️ حـدث خـطأ فـي قـراءة الـمـكـتـبـة.", threadID, messageID);
+    }
+};
+
+module.exports.handleReply = async function ({ api, event, handleReply }) {
+    const { threadID, messageID, body, senderID } = event;
+    if (senderID !== handleReply.author) return;
+
+    const choice = parseInt(body);
+    const { matches, songsDir } = handleReply;
+    const header = `⌬ ━━━━━━━━━━━━ ⌬\n      🎵 مـكـتـبـة كـيـرا\n⌬ ━━━━━━━━━━━━ ⌬`;
+
+    if (isNaN(choice) || choice < 1 || choice > matches.length) {
+        return api.sendMessage(`⚠️ اخـتـيـار غـيـر صـحـيـح، اخـتـر مـن 1 إلـى ${matches.length}`, threadID, messageID);
+    }
+
+    const selectedSong = matches[choice - 1];
+    const songPath = path.join(songsDir, selectedSong);
+
+    api.unsendMessage(handleReply.messageID); // حذف قائمة الخيارات لتنظيف الشات
+
+    try {
+        const msg = {
+            body: `${header}\n✅ جـاري إرسـال: ${selectedSong.replace(/\.(mp3|m4a)/g, "")}\n${header}`,
+            attachment: fs.createReadStream(songPath)
+        };
+        return api.sendMessage(msg, threadID, messageID);
+    } catch (e) {
+        return api.sendMessage("❌ فـشـل إرسـال الـمـلـف الـصـوتـي.", threadID, messageID);
     }
 };
