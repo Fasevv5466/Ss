@@ -1,12 +1,10 @@
 const path = require("path");
-const mongoPath = path.join(process.cwd(), "includes", "mongodb.js");
-const mongoDB = require(mongoPath);
 
 module.exports = {
     config: {
         name: "xpControl",
         eventType: ["message", "message_reply"],
-        version: "3.0.0",
+        version: "3.0.1",
         author: "Kira AI - Enhanced by Ayman",
         description: "نظام XP محسّن مع إشعارات Level Up"
     },
@@ -23,6 +21,16 @@ module.exports = {
             body.startsWith(prefix) || 
             type == "log:subscribe" || 
             type == "log:unsubscribe") {
+            return;
+        }
+
+        // ✅ معالجة محسّنة للتحقق من MongoDB
+        let mongoDB;
+        try {
+            const mongoPath = path.join(process.cwd(), "includes", "mongodb.js");
+            mongoDB = require(mongoPath);
+        } catch (error) {
+            // MongoDB غير متوفر - تجاهل XP بصمت
             return;
         }
 
@@ -69,13 +77,14 @@ module.exports = {
             }
 
         } catch (err) {
+            // ✅ تسجيل مفصّل للأخطاء
             console.error("⌬ ━━ [XP CLOUD ERROR] ━━ ⌬");
             console.error(`Timestamp: ${new Date().toISOString()}`);
             console.error(`User ID: ${senderID}`);
             console.error(`Thread ID: ${threadID}`);
             console.error(`Message Length: ${body?.length || 0}`);
             console.error(`Error: ${err.message}`);
-            console.error(`Stack: ${err.stack}`);
+            // لا نطبع stack trace كامل لتجنب تلوث console
         }
     }
 };
