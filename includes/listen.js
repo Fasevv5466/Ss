@@ -1,122 +1,411 @@
+/**
+ * ╔═══════════════════════════════════════════════════════════════╗
+ * ║              🔥 KIRA SEPARATED LISTEN - SUPER CLEAN 🔥         ║
+ * ║                   كل شيء منفصل - صفر دمج                     ║
+ * ║                  By: Ayman - KIRA Team                        ║
+ * ║                     Version: 12.0.0                           ║
+ * ╚═══════════════════════════════════════════════════════════════╝
+ */
+
 module.exports = function({ api, models }) {
+    
+    // ═══════════════════════════════════════════════════════════
+    // 📦 استيراد المكتبات فقط - بدون دمج
+    // ═══════════════════════════════════════════════════════════
+    
     const logger = require("../utils/log.js");
     const fs = require("fs");
+    
+    // ═══════════════════════════════════════════════════════════
+    // 🎮 Controllers - استيراد فقط
+    // ═══════════════════════════════════════════════════════════
+    
     const Users = require("./controllers/users")({ models, api });
     const Threads = require("./controllers/threads")({ models, api });
     const Currencies = require("./controllers/currencies")({ models });
     
-    const handleCommand = require("./handle/handleCommand")({ api, models, Users, Threads, Currencies });
-    const handleCommandEvent = require("./handle/handleCommandEvent")({ api, models, Users, Threads, Currencies });
-    const handleReply = require("./handle/handleReply")({ api, models, Users, Threads, Currencies });
-    const handleReaction = require("./handle/handleReaction")({ api, models, Users, Threads, Currencies });
-    const handleEvent = require("./handle/handleEvent")({ api, models, Users, Threads, Currencies });
-    const handleRefresh = require("./handle/handleRefresh")({ api, models, Users, Threads, Currencies });
-    const handleCreateDatabase = require("./handle/handleCreateDatabase")({ api, Threads, Users, Currencies, models });
+    // ═══════════════════════════════════════════════════════════
+    // ⚙️ Handlers - كل واحد ملف منفصل
+    // ═══════════════════════════════════════════════════════════
+    
+    const handleCommand = require("./handle/handleCommand")({ 
+        api, models, Users, Threads, Currencies 
+    });
+    
+    const handleCommandEvent = require("./handle/handleCommandEvent")({ 
+        api, models, Users, Threads, Currencies 
+    });
+    
+    const handleReply = require("./handle/handleReply")({ 
+        api, models, Users, Threads, Currencies 
+    });
+    
+    const handleReaction = require("./handle/handleReaction")({ 
+        api, models, Users, Threads, Currencies 
+    });
+    
+    const handleEvent = require("./handle/handleEvent")({ 
+        api, models, Users, Threads, Currencies 
+    });
+    
+    const handleRefresh = require("./handle/handleRefresh")({ 
+        api, models, Users, Threads, Currencies 
+    });
+    
+    const handleCreateDatabase = require("./handle/handleCreateDatabase")({ 
+        api, Threads, Users, Currencies, models 
+    });
 
-    logger.loader(`====== ${global.config.PREFIX} ======`);
+    const handleNotification = require("./handle/handleNotification")({ 
+        api 
+    });
 
-    //━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━//
-    //========= تحميل البيانات من قاعدة البيانات =========//
-    //━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━//
+    // ═══════════════════════════════════════════════════════════
+    // 🗄️ تحميل قاعدة البيانات - منفصل
+    // ═══════════════════════════════════════════════════════════
     
     (async function() {
         try {
-            logger(global.getText('listen', 'startLoadEnvironment'), '[ Database ]');
+            logger('📊 جاري تحميل قاعدة البيانات...', '[ DATABASE ]');
             
-            let threads = await Threads.getAll(['threadID', 'data', 'threadInfo']);
-            let users = await Users.getAll(['userID', 'name', 'data']);
-            let currencies = await Currencies.getAll(['userID']);
-
+            // تحميل المجموعات
+            const threads = await Threads.getAll(['threadID', 'data', 'threadInfo']);
             for (const thread of threads) {
-                const idThread = String(thread.threadID);
-                global.data.allThreadID.push(idThread);
-                global.data.threadData.set(idThread, thread.data || {});
-                global.data.threadInfo.set(idThread, thread.threadInfo || {});
+                const tid = String(thread.threadID);
+                global.data.allThreadID.push(tid);
+                global.data.threadData.set(tid, thread.data || {});
+                global.data.threadInfo.set(tid, thread.threadInfo || {});
                 
-                if (thread.data && thread.data.banned == 1) {
-                    global.data.threadBanned.set(idThread, {
-                        'reason': thread.data.reason || '',
-                        'dateAdded': thread.data.dateAdded || ''
+                if (thread.data?.banned == 1) {
+                    global.data.threadBanned.set(tid, {
+                        reason: thread.data.reason || '',
+                        dateAdded: thread.data.dateAdded || Date.now()
                     });
                 }
                 
-                if (thread.data && thread.data.commandBanned && thread.data.commandBanned.length != 0) {
-                    global.data['commandBanned'].set(idThread, thread.data['commandBanned']);
+                if (thread.data?.commandBanned?.length > 0) {
+                    global.data.commandBanned.set(tid, thread.data.commandBanned);
                 }
                 
-                if (thread.data && thread.data.NSFW) {
-                    global.data['threadAllowNSFW'].push(idThread);
+                if (thread.data?.NSFW) {
+                    global.data.threadAllowNSFW.push(tid);
                 }
             }
 
-            logger.loader(global.getText('listen', 'loadedEnvironmentThread'));
-
+            // تحميل المستخدمين
+            const users = await Users.getAll(['userID', 'name', 'data']);
             for (const user of users) {
-                const idUsers = String(user.userID);
-                global.data.allUserID.push(idUsers);
+                const uid = String(user.userID);
+                global.data.allUserID.push(uid);
                 
-                if (user.name && user.name.length != 0) {
-                    global.data.userName.set(idUsers, user.name);
+                if (user.name) {
+                    global.data.userName.set(uid, user.name);
                 }
                 
-                if (user.data && user.data.banned == 1) {
-                    global.data.userBanned.set(idUsers, {
-                        'reason': user.data.reason || '',
-                        'dateAdded': user.data.dateAdded || ''
+                if (user.data?.banned == 1) {
+                    global.data.userBanned.set(uid, {
+                        reason: user.data.reason || '',
+                        dateAdded: user.data.dateAdded || Date.now()
                     });
                 }
                 
-                if (user.data && user.data.commandBanned && user.data.commandBanned.length != 0) {
-                    global.data['commandBanned'].set(idUsers, user.data['commandBanned']);
+                if (user.data?.commandBanned?.length > 0) {
+                    global.data.commandBanned.set(uid, user.data.commandBanned);
                 }
             }
 
+            // تحميل العملات
+            const currencies = await Currencies.getAll(['userID']);
             for (const currency of currencies) {
                 global.data.allCurrenciesID.push(String(currency.userID));
             }
 
-            logger.loader(global.getText('listen', 'successLoadEnvironment'));
-            logger(global.getText('listen', 'finishLoadEnvironment'), '[ Database ]');
+            logger('✅ اكتمل تحميل قاعدة البيانات', '[ DATABASE ]');
+            
         } catch (error) {
-            return logger.loader(global.getText('listen', 'failLoadEnvironment', error), 'error');
+            logger(`❌ فشل التحميل: ${error.message}`, 'error');
         }
     }());
 
-    //━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━//
-    //============ معالج الأحداث الرئيسي ============//
-    //━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━//
+    // ═══════════════════════════════════════════════════════════
+    // 🎨 رسالة البداية - منفصلة
+    // ═══════════════════════════════════════════════════════════
+    
+    logger(`
+╔═══════════════════════════════════════════════════════════════╗
+║           ✨ ${global.config.BOTNAME || 'KIRA'} SYSTEM ✨         
+║───────────────────────────────────────────────────────────────║
+║  PREFIX: ${global.config.PREFIX || '.'}                                           
+║  STATUS: 🟢 ONLINE                                            
+╚═══════════════════════════════════════════════════════════════╝
+    `, "[ SYSTEM ]");
 
-    logger(`[ ${global.config.PREFIX} ] • ${(!global.config.BOTNAME) ? "Made by KIRA" : global.config.BOTNAME}`, "[ System Info ]");
+    // ═══════════════════════════════════════════════════════════
+    // 📊 إحصائيات - منفصلة
+    // ═══════════════════════════════════════════════════════════
+    
+    setInterval(() => {
+        logger(
+            `📊 ${global.data.allThreadID.length} Groups | ` +
+            `${global.data.allUserID.length} Users | ` +
+            `${global.client.commands.size} Commands | ` +
+            `${global.client.events.size} Events`, 
+            '[ STATS ]'
+        );
+    }, 1800000);
 
-    return async (event) => {
-        // تجاهل المستخدمين والمجموعات المحظورة
-        if (global.data.userBanned.has(event.senderID) || 
-            global.data.threadBanned.has(event.threadID) ||
-            (global.config.allowInbox == false && event.senderID == event.threadID)) {
-            return;
-        }
+    // ═══════════════════════════════════════════════════════════
+    // 🔔 إشعارات - منفصلة
+    // ═══════════════════════════════════════════════════════════
+    
+    if (global.config.NOTIFICATION) {
+        setInterval(() => {
+            try {
+                if (handleNotification) handleNotification({ api });
+            } catch (e) {
+                // تجاهل
+            }
+        }, 60000);
+    }
 
-        // معالجة أنواع الأحداث المختلفة
-        switch (event.type) {
-            case "message":
-            case "message_reply":
-            case "message_unsend":
-                handleCreateDatabase({ event });
-                handleCommand({ event });
-                handleReply({ event });
-                handleCommandEvent({ event });
-                break;
+    // ═══════════════════════════════════════════════════════════
+    // 🎯 المعالج الرئيسي - THE MAIN HANDLER
+    // ═══════════════════════════════════════════════════════════
+    
+    return async function(event) {
+        
+        const { type, threadID, senderID } = event;
+        const tid = String(threadID);
+        const sid = String(senderID);
+
+        // ═══════════════════════════════════════════════════════
+        // 🚫 فلترة سريعة
+        // ═══════════════════════════════════════════════════════
+        
+        if (global.data.userBanned.has(sid)) return;
+        if (global.data.threadBanned.has(tid)) return;
+        if (!global.config.allowInbox && sid === tid) return;
+
+        // ═══════════════════════════════════════════════════════
+        // 🎭 توجيه الأحداث - ROUTING ONLY
+        // ═══════════════════════════════════════════════════════
+        
+        try {
+            
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 💬 MESSAGES
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            if (type === "message" || type === "message_reply") {
                 
-            case "event":
-            case "message_reaction":
-                handleEvent({ event });
-                handleReaction({ event });
-                break;
+                await handleCreateDatabase({ event });
+                await handleCommand({ event });
+                await handleReply({ event });
+                await handleCommandEvent({ event });
                 
-            default:
-                break;
+                return;
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // ❌ MESSAGE UNSEND
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            if (type === "message_unsend") {
+                
+                await handleEvent({ event });
+                
+                return;
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 😊 REACTIONS
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            if (type === "message_reaction") {
+                
+                await handleReaction({ event });
+                await handleEvent({ event });
+                
+                return;
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 👥 JOIN - يستدعي joinnoti.js, autosetname.js
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            if (type === "event" || event.logMessageType === "log:subscribe") {
+                
+                // 1. تحديث قاعدة البيانات
+                await handleCreateDatabase({ event });
+                
+                // 2. تشغيل events (joinnoti, autosetname)
+                await handleEvent({ event });
+                
+                // 3. تحديث البيانات
+                await handleRefresh({ event });
+                
+                // 4. رسالة البوت (منفصلة)
+                if (global.config.notiGroup) {
+                    const added = event.logMessageData?.addedParticipants || [];
+                    const botAdded = added.some(p => p.userFbId == api.getCurrentUserID());
+                    
+                    if (botAdded && event.logMessageType === "log:subscribe") {
+                        try {
+                            await api.changeNickname(
+                                `『 ${global.config.PREFIX} 』• ${global.config.BOTNAME}`,
+                                tid,
+                                api.getCurrentUserID()
+                            );
+                            
+                            await api.sendMessage(
+                                `◈ ───『 ✨ ${global.config.BOTNAME} ✨ 』─── ◈\n\n` +
+                                `✅ تم الاتصال بنجاح!\n` +
+                                `📋 البادئة: ${global.config.PREFIX}\n` +
+                                `💡 اكتب: ${global.config.PREFIX}أوامر\n\n` +
+                                `◈ ────────────── ◈`,
+                                tid
+                            );
+                        } catch (e) {
+                            // تجاهل
+                        }
+                    }
+                }
+                
+                return;
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 👋 LEAVE - يستدعي antiout.js, leavenoti.js
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            if (event.logMessageType === "log:unsubscribe") {
+                
+                // 1. تشغيل events (antiout, leavenoti)
+                await handleEvent({ event });
+                
+                // 2. تحديث البيانات
+                await handleRefresh({ event });
+                
+                return;
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 👑 ADMINS - يستدعي guard.js
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            if (event.logMessageType === "log:thread-admins") {
+                
+                // 1. تشغيل الحماية (guard.js)
+                await handleEvent({ event });
+                
+                // 2. تحديث قائمة المشرفين
+                await handleRefresh({ event });
+                
+                return;
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 📝 THREAD NAME
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            if (event.logMessageType === "log:thread-name") {
+                
+                await handleRefresh({ event });
+                await handleEvent({ event });
+                
+                return;
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 🖼️ THREAD ICON/IMAGE
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            if (event.logMessageType === "log:thread-icon" || 
+                type === "change_thread_image") {
+                
+                await handleEvent({ event });
+                
+                return;
+            }
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // 🎨 أي حدث آخر
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            await handleEvent({ event });
+
+        } catch (error) {
+            
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // ❌ معالجة الأخطاء
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            
+            console.error('═══════════════════════════════════════');
+            console.error('❌ ERROR IN LISTEN');
+            console.error('Type:', type);
+            console.error('Thread:', tid);
+            console.error('Error:', error.message);
+            console.error('═══════════════════════════════════════');
+            
+            if (global.config.DeveloperMode && global.config.ADMINBOT[0]) {
+                try {
+                    await api.sendMessage(
+                        `⚠️ Error in ${type}\n${error.message}`,
+                        global.config.ADMINBOT[0]
+                    );
+                } catch (e) {
+                    // تجاهل
+                }
+            }
         }
 
         return;
     };
 };
+
+/**
+ * ╔═══════════════════════════════════════════════════════════════╗
+ * ║                        📖 الدليل                              ║
+ * ╚═══════════════════════════════════════════════════════════════╝
+ * 
+ * 🎯 الهدف:
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * ملف listen منفصل 100% - لا يدمج شيء
+ * يستدعي الإيفنتات من مجلد events فقط
+ * 
+ * 🔍 كيف يعمل:
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * 
+ * 1. يستقبل الحدث من Facebook
+ * 2. يفلتر المحظورين
+ * 3. يحدد نوع الحدث
+ * 4. يستدعي الـ handler المناسب
+ * 5. الـ handler يستدعي الإيفنتات
+ * 
+ * 📂 الإيفنتات التي يستدعيها:
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * 
+ * log:subscribe        → joinnoti.js, autosetname.js
+ * log:unsubscribe      → antiout.js, leavenoti.js
+ * log:thread-admins    → guard.js
+ * message_reaction     → (أي إيفنت يدعم reactions)
+ * 
+ * 💡 ملاحظة مهمة:
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * 
+ * - listen.js لا يحتوي على كود الإيفنتات
+ * - فقط يستدعيها عبر handleEvent
+ * - handleEvent هو الذي يشغل الملفات من events/
+ * - كل إيفنت ملف منفصل في script/events/
+ * 
+ * 🔧 للتعديل:
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * 
+ * ✅ عدّل الإيفنتات في: script/events/
+ * ✅ عدّل المعالجات في: includes/handle/
+ * ✅ لا تعدّل listen.js إلا للضرورة
+ * 
+ * ╔═══════════════════════════════════════════════════════════════╗
+ * ║                  🌟 CLEAN & SEPARATED 🌟                      ║
+ * ╚═══════════════════════════════════════════════════════════════╝
+ */
