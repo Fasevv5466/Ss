@@ -5,7 +5,7 @@ const util = require("util");
 module.exports.config = {
   name: "تيست",
   version: "2.0.0",
-  hasPermssion: 2,
+  hasPermssion: 1,
   credits: "ايمن",
   description: "رفع الأكواد وتجربتها برمجياً",
   commandCategory: "developer",
