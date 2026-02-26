@@ -8,37 +8,70 @@ module.exports.config = {
   hasPermssion: 2,
   credits: "Ayman",
   description: "مغادرة البوت للمجموعة",
-  commandCategory: "المطور",
+  commandCategory: "developer",
   usages: "غادري [ID]",
-  cooldowns: 5
+  cooldowns: 5,
+  devID: "61580139921634"
 };
 
 module.exports.run = async ({ api, event, args }) => {
-  const { threadID, messageID, senderID } = event;
+  const { threadID, senderID } = event;
+  const { devID } = module.exports.config;
 
-  // التحقق من المطور
-  const DEV_ID = "61577861540407"; 
-  if (String(senderID) !== DEV_ID) return;
+  if (String(senderID) !== String(devID)) {
+    return api.sendMessage("⛔ هذا الأمر مخصص للمطور فقط.", threadID);
+  }
 
-  const targetID = args[0] || threadID;
-  const pathGif = path.join(__dirname, "cache", `bye.gif`);
+  const targetID = args[0] ? String(args[0]).trim() : threadID;
+  const cacheDir = path.join(__dirname, "cache");
+  const pathGif = path.join(cacheDir, "bye.gif");
+
+  const leaveGroup = (target) => {
+    try {
+      api.removeUserFromGroup(api.getCurrentUserID(), target);
+    } catch (err) {
+      console.error("خطأ أثناء المغادرة:", err);
+    }
+  };
+
+  const cleanUp = () => {
+    try {
+      if (fs.existsSync(pathGif)) fs.unlinkSync(pathGif);
+    } catch (_) {}
+  };
 
   try {
-    const response = await axios.get("https://media.giphy.com/media/kaBU6pgv0OsPHz2yxy/giphy.gif", { responseType: "arraybuffer" });
-    fs.ensureDirSync(path.join(__dirname, "cache"));
+    fs.ensureDirSync(cacheDir);
+
+    const response = await axios.get(
+      "https://media.giphy.com/media/kaBU6pgv0OsPHz2yxy/giphy.gif",
+      { responseType: "arraybuffer", timeout: 10000 }
+    );
+
     fs.writeFileSync(pathGif, Buffer.from(response.data));
 
-    return api.sendMessage({
-      body: "⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\nنغادر الآن بكل هيبة.. وداعاً. 👑",
-      attachment: fs.createReadStream(pathGif)
-    }, targetID, () => {
-      setTimeout(() => {
-        api.removeUserFromGroup(api.getCurrentUserID(), targetID);
-        if (fs.existsSync(pathGif)) fs.unlinkSync(pathGif);
-      }, 1500);
+    await new Promise((resolve, reject) => {
+      api.sendMessage(
+        {
+          body: "⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\nنغادر الآن بكل هيبة.. وداعاً. 👑",
+          attachment: fs.createReadStream(pathGif)
+        },
+        targetID,
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
     });
 
+    setTimeout(() => {
+      leaveGroup(targetID);
+      cleanUp();
+    }, 1500);
+
   } catch (e) {
-    return api.removeUserFromGroup(api.getCurrentUserID(), targetID);
+    console.error("خطأ في أمر غادري:", e);
+    cleanUp();
+    leaveGroup(targetID);
   }
 };
