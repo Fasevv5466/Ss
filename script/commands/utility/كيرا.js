@@ -15,8 +15,8 @@ module.exports.config = {
   cooldowns: 3,
 };
 
-const GROQ_API_KEY = "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";
-const ADMIN_ID = "61577861540407"; // أيمن
+const GROQ_API_KEY = "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";
+const ADMIN_ID = "61580139921634"; // أيمن
 
 // ===== كشف اللهجة =====
 const detectDialect = (text) => {
