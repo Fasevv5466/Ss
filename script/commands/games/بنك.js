@@ -6,7 +6,7 @@ const mongodb = require(path.join(process.cwd(), "includes", "mongodb.js"));
 
 module.exports.config = {
   name: "بنك",
-  version: "5.0.0",
+  version: "6.0.0",
   hasPermssion: 0,
   credits: "Ayman",
   description: "بطاقة بنك كونية",
@@ -31,24 +31,24 @@ function rRect(ctx, x, y, w, h, r) {
 }
 
 function getTheme(rank, isDev) {
-  if (isDev) return { c1: "#f0abfc", c2: "#c084fc", c3: "#3b0764", glow: "#e879f9" };
+  if (isDev) return { c1: "#f0abfc", c2: "#c084fc", c3: "#3b0764", glow: "#e879f9", accent: "#a855f7" };
   const map = {
-    "مبتدئ":     { c1: "#6ee7b7", c2: "#34d399", c3: "#064e3b", glow: "#6ee7b7" },
-    "محارب":     { c1: "#fde68a", c2: "#fbbf24", c3: "#78350f", glow: "#fde68a" },
-    "فارس":      { c1: "#7dd3fc", c2: "#38bdf8", c3: "#0c4a6e", glow: "#7dd3fc" },
-    "نخبة":      { c1: "#fdba74", c2: "#fb923c", c3: "#7c2d12", glow: "#fdba74" },
-    "بطل":       { c1: "#fda4af", c2: "#fb7185", c3: "#881337", glow: "#fda4af" },
-    "أسطورة":    { c1: "#c4b5fd", c2: "#a78bfa", c3: "#4c1d95", glow: "#c4b5fd" },
-    "ملك":       { c1: "#67e8f9", c2: "#22d3ee", c3: "#164e63", glow: "#67e8f9" },
-    "إمبراطور":  { c1: "#fcd34d", c2: "#f59e0b", c3: "#78350f", glow: "#fcd34d" },
-    "إله":       { c1: "#f9a8d4", c2: "#ec4899", c3: "#831843", glow: "#f9a8d4" },
-    "خالد":      { c1: "#fca5a5", c2: "#ef4444", c3: "#7f1d1d", glow: "#fca5a5" },
+    "مبتدئ":    { c1: "#6ee7b7", c2: "#34d399", c3: "#064e3b", glow: "#6ee7b7", accent: "#10b981" },
+    "محارب":    { c1: "#fde68a", c2: "#fbbf24", c3: "#78350f", glow: "#fde68a", accent: "#f59e0b" },
+    "فارس":     { c1: "#7dd3fc", c2: "#38bdf8", c3: "#0c4a6e", glow: "#7dd3fc", accent: "#0ea5e9" },
+    "نخبة":     { c1: "#fdba74", c2: "#fb923c", c3: "#7c2d12", glow: "#fdba74", accent: "#f97316" },
+    "بطل":      { c1: "#fda4af", c2: "#fb7185", c3: "#881337", glow: "#fda4af", accent: "#f43f5e" },
+    "أسطورة":   { c1: "#c4b5fd", c2: "#a78bfa", c3: "#4c1d95", glow: "#c4b5fd", accent: "#8b5cf6" },
+    "ملك":      { c1: "#67e8f9", c2: "#22d3ee", c3: "#164e63", glow: "#67e8f9", accent: "#06b6d4" },
+    "إمبراطور": { c1: "#fcd34d", c2: "#f59e0b", c3: "#78350f", glow: "#fcd34d", accent: "#d97706" },
+    "إله":      { c1: "#f9a8d4", c2: "#ec4899", c3: "#831843", glow: "#f9a8d4", accent: "#db2777" },
+    "خالد":     { c1: "#fca5a5", c2: "#ef4444", c3: "#7f1d1d", glow: "#fca5a5", accent: "#dc2626" },
   };
   return map[rank] || map["مبتدئ"];
 }
 
 function getRankInfo(rank, isDev) {
-  if (isDev) return { label: "SYSTEM LORD" };
+  if (isDev) return { label: "SYSTEM LORD", tier: "DEV" };
   const map = {
     "مبتدئ": "BEGINNER", "محارب": "WARRIOR", "فارس": "KNIGHT",
     "نخبة": "ELITE", "بطل": "HERO", "أسطورة": "LEGEND",
@@ -57,7 +57,6 @@ function getRankInfo(rank, isDev) {
   return { label: map[rank] || "BEGINNER" };
 }
 
-// ✅ إصلاح formatNum
 function formatNum(n) {
   n = Math.floor(Number(n) || 0);
   if (n >= 1e18) return (n / 1e18).toFixed(1) + "QT";
@@ -69,107 +68,321 @@ function formatNum(n) {
   return n.toString();
 }
 
+// رسم نجوم الخلفية
 function drawStars(ctx, W, H) {
   let s = 99991;
   const rand = () => { s = (s * 1664525 + 1013904223) & 0xffffffff; return (s >>> 0) / 0xffffffff; };
-  for (let i = 0; i < 180; i++) {
+  for (let i = 0; i < 250; i++) {
+    const size = rand() * 1.8 + 0.2;
+    const alpha = rand() * 0.7 + 0.2;
     ctx.save();
-    ctx.globalAlpha = rand() * 0.5 + 0.15;
+    ctx.globalAlpha = alpha;
     ctx.fillStyle = "#ffffff";
+    ctx.shadowColor = "#ffffff";
+    ctx.shadowBlur = size * 3;
     ctx.beginPath();
-    ctx.arc(rand() * W, rand() * H, rand() * 1.4 + 0.3, 0, Math.PI * 2);
+    ctx.arc(rand() * W, rand() * H, size, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 }
 
+// رسم scan lines
+function drawScanLines(ctx, W, H) {
+  ctx.save();
+  ctx.globalAlpha = 0.025;
+  ctx.fillStyle = "#000000";
+  for (let y = 0; y < H; y += 3) {
+    ctx.fillRect(0, y, W, 1);
+  }
+  ctx.restore();
+}
+
+// رسم grid pattern
+function drawGrid(ctx, W, H, T) {
+  ctx.save();
+  ctx.globalAlpha = 0.07;
+  ctx.strokeStyle = T.c2;
+  ctx.lineWidth = 0.5;
+  const gs = 40;
+  for (let x = 0; x < W; x += gs) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += gs) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// رسم أيقونة دائرية بدل إيموجي
+function drawIcon(ctx, x, y, type, color, size = 14) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 8;
+
+  if (type === "money") {
+    // $ دائرة مع خطوط
+    ctx.beginPath();
+    ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.font = `bold ${size - 2}px serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("$", x, y);
+  } else if (type === "exp") {
+    // نجمة 6 أضلاع
+    const r = size / 2;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * Math.PI) / 3 - Math.PI / 2;
+      const px = x + r * Math.cos(angle);
+      const py = y + r * Math.sin(angle);
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.globalAlpha = 0.4;
+    ctx.fill();
+  } else if (type === "level") {
+    // مثلث صاعد
+    ctx.beginPath();
+    ctx.moveTo(x, y - size / 2);
+    ctx.lineTo(x + size / 2, y + size / 2);
+    ctx.lineTo(x - size / 2, y + size / 2);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.globalAlpha = 0.35;
+    ctx.fill();
+  } else if (type === "msg") {
+    // مربع كلام
+    ctx.beginPath();
+    rRect(ctx, x - size / 2, y - size / 2 + 2, size, size - 4, 3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x - 4, y + size / 2 - 2);
+    ctx.lineTo(x - size / 2, y + size / 2 + 3);
+    ctx.lineTo(x + 2, y + size / 2 - 2);
+    ctx.stroke();
+  } else if (type === "id") {
+    // بطاقة هوية
+    rRect(ctx, x - size / 2, y - size / 3, size, size * 0.66, 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x - size / 5, y, size / 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x + 1, y - 2, size / 3, 1.5);
+    ctx.fillRect(x + 1, y + 1, size / 4, 1.5);
+  }
+  ctx.restore();
+}
+
+// رسم progress bar دائري
+function drawCircularProgress(ctx, cx, cy, radius, progress, T) {
+  const startAngle = -Math.PI / 2;
+  const endAngle = startAngle + (progress / 100) * Math.PI * 2;
+
+  // خلفية
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,0.08)";
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // التقدم
+  ctx.save();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 20;
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+
+  const grad = ctx.createLinearGradient(
+    cx - radius, cy, cx + radius, cy
+  );
+  grad.addColorStop(0, T.c3 + "cc");
+  grad.addColorStop(0.5, T.c2);
+  grad.addColorStop(1, T.c1);
+  ctx.strokeStyle = grad;
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, startAngle, endAngle);
+  ctx.stroke();
+  ctx.restore();
+
+  // نقطة نهاية متوهجة
+  const ex = cx + radius * Math.cos(endAngle);
+  const ey = cy + radius * Math.sin(endAngle);
+  ctx.save();
+  ctx.shadowColor = "#ffffff";
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(ex, ey, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// ───────────── createCard ─────────────
 async function createCard(data) {
-  const W = 920, H = 820; // زيادة H من 780 إلى 820 // ✅ كانفاس أكبر
+  const W = 960, H = 480;
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext("2d");
   const T = getTheme(data.rank, data.isDeveloper);
   const RI = getRankInfo(data.rank, data.isDeveloper);
 
-  // ── الخلفية ──
-  ctx.fillStyle = "#04020e";
+  // ── الخلفية الأساسية ──
+  const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+  bgGrad.addColorStop(0, "#020008");
+  bgGrad.addColorStop(0.5, "#04020e");
+  bgGrad.addColorStop(1, "#000510");
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, W, H);
 
-  // سديم خفيف فقط في الزوايا (مش على كل شي)
-  const neb1 = ctx.createRadialGradient(0, 0, 0, 0, 0, 350);
-  neb1.addColorStop(0, T.c3 + "30");
-  neb1.addColorStop(1, "transparent");
-  ctx.fillStyle = neb1;
+  // سديم الرتبة
+  const neb = ctx.createRadialGradient(W * 0.65, H * 0.3, 0, W * 0.65, H * 0.3, 380);
+  neb.addColorStop(0, T.c3 + "40");
+  neb.addColorStop(0.6, T.c3 + "15");
+  neb.addColorStop(1, "transparent");
+  ctx.fillStyle = neb;
   ctx.fillRect(0, 0, W, H);
 
-  const neb2 = ctx.createRadialGradient(W, H, 0, W, H, 350);
-  neb2.addColorStop(0, T.c3 + "25");
+  // سديم ثانوي
+  const neb2 = ctx.createRadialGradient(100, H - 50, 0, 100, H - 50, 250);
+  neb2.addColorStop(0, T.c2 + "20");
   neb2.addColorStop(1, "transparent");
   ctx.fillStyle = neb2;
   ctx.fillRect(0, 0, W, H);
 
+  drawGrid(ctx, W, H, T);
   drawStars(ctx, W, H);
+  drawScanLines(ctx, W, H);
 
-  // ── الإطار ──
+  // ── الإطار الرئيسي ──
   ctx.save();
   ctx.shadowColor = T.glow;
-  ctx.shadowBlur = 30;
-  ctx.strokeStyle = T.c2 + "90";
+  ctx.shadowBlur = 40;
+  ctx.strokeStyle = T.c2 + "80";
   ctx.lineWidth = 2;
-  rRect(ctx, 16, 16, W - 32, H - 32, 22);
+  rRect(ctx, 12, 12, W - 24, H - 24, 18);
   ctx.stroke();
   ctx.restore();
 
-  // طبقة زجاجية داخل
+  // طبقة زجاجية
   ctx.save();
-  ctx.fillStyle = "rgba(4, 2, 18, 0.65)";
-  rRect(ctx, 16, 16, W - 32, H - 32, 22);
+  const glass = ctx.createLinearGradient(0, 0, 0, H);
+  glass.addColorStop(0, "rgba(255,255,255,0.04)");
+  glass.addColorStop(1, "rgba(0,0,0,0.2)");
+  ctx.fillStyle = glass;
+  rRect(ctx, 12, 12, W - 24, H - 24, 18);
   ctx.fill();
   ctx.restore();
 
-  // خط علوي
+  // خط علوي متوهج
   ctx.save();
   ctx.shadowColor = T.glow;
-  ctx.shadowBlur = 18;
-  const tl = ctx.createLinearGradient(0, 0, W, 0);
-  tl.addColorStop(0, "transparent");
-  tl.addColorStop(0.5, T.c1);
-  tl.addColorStop(1, "transparent");
-  ctx.strokeStyle = tl;
-  ctx.lineWidth = 2;
+  ctx.shadowBlur = 20;
+  const topLine = ctx.createLinearGradient(0, 0, W, 0);
+  topLine.addColorStop(0, "transparent");
+  topLine.addColorStop(0.3, T.c1);
+  topLine.addColorStop(0.7, T.c1);
+  topLine.addColorStop(1, "transparent");
+  ctx.strokeStyle = topLine;
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(80, 17); ctx.lineTo(W - 80, 17);
+  ctx.moveTo(60, 13); ctx.lineTo(W - 60, 13);
   ctx.stroke();
   ctx.restore();
 
-  // ── صورة البروفايل ──
-  const AX = W / 2, AY = 140, AR = 88;
+  // ── KIRA BANK لوجو (أعلى يسار) ──
+  ctx.save();
+  // خلفية صغيرة للشعار
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  rRect(ctx, 22, 22, 155, 34, 6);
+  ctx.fill();
+  ctx.strokeStyle = T.c2 + "60";
+  ctx.lineWidth = 1;
+  rRect(ctx, 22, 22, 155, 34, 6);
+  ctx.stroke();
+
+  // مربعات صغيرة زخرفية
+  ctx.fillStyle = T.c1;
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 10;
+  ctx.fillRect(30, 32, 6, 6);
+  ctx.fillStyle = T.c2;
+  ctx.fillRect(38, 32, 4, 4);
+  ctx.fillStyle = T.c1 + "80";
+  ctx.fillRect(44, 34, 3, 3);
+
+  ctx.font = "bold 16px monospace";
+  ctx.fillStyle = T.c1;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 12;
+  ctx.fillText("KIRA", 52, 39);
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowBlur = 0;
+  ctx.fillText("BANK", 93, 39);
+  ctx.restore();
+
+  // ── الرتبة (أعلى يمين) ──
+  ctx.save();
+  const rankW = 130, rankH = 34;
+  const rankX = W - rankW - 22;
+  // خلفية متوهجة
+  ctx.fillStyle = T.c3 + "aa";
+  rRect(ctx, rankX, 22, rankW, rankH, 6);
+  ctx.fill();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 20;
+  ctx.strokeStyle = T.c1 + "cc";
+  ctx.lineWidth = 1.5;
+  rRect(ctx, rankX, 22, rankW, rankH, 6);
+  ctx.stroke();
+
+  ctx.font = "bold 13px monospace";
+  ctx.fillStyle = T.c1;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(RI.label, rankX + rankW / 2, 39);
+  ctx.restore();
+
+  // ── صورة البروفايل (يسار) ──
+  const AX = 90, AY = H / 2, AR = 120;
 
   try {
     const avatarURL = `https://graph.facebook.com/${data.userID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
     const res = await axios.get(avatarURL, { responseType: "arraybuffer", timeout: 10000 });
     const avatar = await loadImage(Buffer.from(res.data));
 
-    // توهج خلف الصورة
-    ctx.save();
-    const ag = ctx.createRadialGradient(AX, AY, 0, AX, AY, AR * 2.2);
-    ag.addColorStop(0, T.c2 + "35");
+    // توهج خارجي
+    const ag = ctx.createRadialGradient(AX, AY, 0, AX, AY, AR * 2.5);
+    ag.addColorStop(0, T.c2 + "30");
+    ag.addColorStop(0.5, T.c3 + "15");
     ag.addColorStop(1, "transparent");
     ctx.fillStyle = ag;
     ctx.fillRect(AX - AR * 2.5, AY - AR * 2.5, AR * 5, AR * 5);
-    ctx.restore();
 
-    // حلقة متقطعة
-    ctx.save();
-    ctx.strokeStyle = T.c1 + "55";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5, 7]);
-    ctx.beginPath();
-    ctx.arc(AX, AY, AR + 20, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
+    // حلقات دائرية
+    for (let i = 3; i >= 1; i--) {
+      ctx.save();
+      ctx.globalAlpha = 0.1 / i;
+      ctx.strokeStyle = T.c1;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 8]);
+      ctx.beginPath();
+      ctx.arc(AX, AY, AR + i * 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
 
-    // قص الصورة
+    // clip الصورة
     ctx.save();
     ctx.beginPath();
     ctx.arc(AX, AY, AR, 0, Math.PI * 2);
@@ -177,14 +390,23 @@ async function createCard(data) {
     ctx.drawImage(avatar, AX - AR, AY - AR, AR * 2, AR * 2);
     ctx.restore();
 
-    // حلقة داخلية
+    // حلقة داخلية متوهجة
     ctx.save();
     ctx.shadowColor = T.glow;
-    ctx.shadowBlur = 28;
+    ctx.shadowBlur = 35;
     ctx.strokeStyle = T.c1;
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.arc(AX, AY, AR + 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // حلقة ثانية أرق
+    ctx.save();
+    ctx.strokeStyle = T.c2 + "55";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(AX, AY, AR + 10, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
 
@@ -194,174 +416,204 @@ async function createCard(data) {
     pg.addColorStop(0, T.c3 + "dd");
     pg.addColorStop(1, "#04020e");
     ctx.fillStyle = pg;
+    ctx.shadowColor = T.glow;
+    ctx.shadowBlur = 30;
     ctx.beginPath();
     ctx.arc(AX, AY, AR, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowColor = T.glow;
-    ctx.shadowBlur = 25;
     ctx.strokeStyle = T.c1;
     ctx.lineWidth = 4;
     ctx.stroke();
     ctx.restore();
   }
 
-  // ── الاسم ──
+  // ── رتبة بادج تحت الصورة ──
+  ctx.save();
+  const bw = 110, bh = 26;
+  const bx = AX - bw / 2, by = AY + AR + 14;
+  ctx.fillStyle = T.c3 + "cc";
+  rRect(ctx, bx, by, bw, bh, 13);
+  ctx.fill();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 20;
+  ctx.strokeStyle = T.c1;
+  ctx.lineWidth = 1.5;
+  rRect(ctx, bx, by, bw, bh, 13);
+  ctx.stroke();
+  ctx.font = "bold 13px sans-serif";
+  ctx.fillStyle = T.c1;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(data.rank, AX, by + bh / 2);
+  ctx.restore();
+
+  // ── الاسم (يمين الصورة، في المنتصف أفقياً) ──
+  const infoX = AX + AR + 38;
+  const infoW = W - infoX - 30;
+
+  // الاسم
   ctx.save();
   ctx.shadowColor = T.glow;
-  ctx.shadowBlur = 22;
-  ctx.font = "bold 44px sans-serif"; // ✅ sans-serif بدل Arial لتجنب مشاكل الخط
-  ctx.fillStyle = "#ffffff";
-  ctx.textAlign = "center";
+  ctx.shadowBlur = 25;
+  let nameFontSize = 46;
+  ctx.font = `bold ${nameFontSize}px sans-serif`;
+  while (ctx.measureText(data.username).width > infoW && nameFontSize > 26) {
+    nameFontSize -= 1;
+    ctx.font = `bold ${nameFontSize}px sans-serif`;
+  }
+  // gradient للاسم
+  const nameGrad = ctx.createLinearGradient(infoX, 0, infoX + infoW, 0);
+  nameGrad.addColorStop(0, "#ffffff");
+  nameGrad.addColorStop(0.5, T.c1);
+  nameGrad.addColorStop(1, T.c2);
+  ctx.fillStyle = nameGrad;
+  ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  let name = data.username;
-  while (ctx.measureText(name).width > W - 120 && name.length > 3)
-    name = name.slice(0, -1);
-  if (name !== data.username) name += "..";
-  ctx.fillText(name, W / 2, 255);
+  ctx.fillText(data.username, infoX, 72);
   ctx.restore();
 
   // خط تحت الاسم
   ctx.save();
   ctx.shadowColor = T.glow;
   ctx.shadowBlur = 12;
-  const ul = ctx.createLinearGradient(W / 2 - 200, 0, W / 2 + 200, 0);
-  ul.addColorStop(0, "transparent");
-  ul.addColorStop(0.5, T.c1);
-  ul.addColorStop(1, "transparent");
-  ctx.strokeStyle = ul;
+  const nameUnderline = ctx.createLinearGradient(infoX, 0, infoX + 300, 0);
+  nameUnderline.addColorStop(0, T.c1);
+  nameUnderline.addColorStop(0.7, T.c2 + "55");
+  nameUnderline.addColorStop(1, "transparent");
+  ctx.strokeStyle = nameUnderline;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(W / 2 - 200, 312); ctx.lineTo(W / 2 + 200, 312);
+  ctx.moveTo(infoX, 128); ctx.lineTo(infoX + infoW, 128);
   ctx.stroke();
   ctx.restore();
 
-  // الرتبة (بدون إيموجي) ✅
+  // معرف المستخدم صغير
   ctx.save();
-  ctx.shadowColor = T.glow;
-  ctx.shadowBlur = 15;
-  ctx.font = "bold 20px sans-serif";
-  ctx.fillStyle = T.c2;
-  ctx.textAlign = "center";
-  ctx.fillText(`[ ${data.rank} ]  ·  ${RI.label}`, W / 2, 322);
+  ctx.font = "11px monospace";
+  ctx.fillStyle = T.c2 + "77";
+  ctx.textAlign = "left";
+  ctx.fillText("ID: " + data.userID, infoX, 134);
   ctx.restore();
 
-  // ── الصفوف ──
+  // ── صفوف المعلومات ──
   const rowData = [
-    { label: "الرصيد",   value: formatNum(data.money) + " $",  c: T.c1 },
-    { label: "الخبرة",   value: formatNum(data.exp) + " XP",   c: T.c2 },
-    { label: "المستوى",  value: `LV.${data.level}`,             c: T.c1 },
-    { label: "الرسائل", value: formatNum(data.msg),             c: T.c2 },
-    { label: "المعرف",  value: data.userID,                    c: T.c1 },
+    { label: "الرصيد",   value: formatNum(data.money) + " $", icon: "money", c: T.c1 },
+    { label: "الخبرة",   value: formatNum(data.exp) + " XP",  icon: "exp",   c: T.c2 },
+    { label: "المستوى",  value: `LV. ${data.level}`,           icon: "level", c: T.c1 },
+    { label: "الرسائل", value: formatNum(data.msg),            icon: "msg",   c: T.c2 },
   ];
 
-  const rowH = 62, rowStartY = 368, rX = 55, rW = W - 110;
+  const rowStartY = 158;
+  const rowH = 52;
+  const rW = infoW;
 
   rowData.forEach((row, i) => {
     const ry = rowStartY + i * rowH;
 
-    // خلفية الصف
+    // خلفية
     ctx.save();
-    ctx.fillStyle = i % 2 === 0
-      ? "rgba(255,255,255,0.035)"
-      : "rgba(255,255,255,0.02)";
-    rRect(ctx, rX, ry, rW, rowH - 8, 12);
+    ctx.fillStyle = i % 2 === 0 ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)";
+    rRect(ctx, infoX, ry, rW, rowH - 6, 10);
     ctx.fill();
     ctx.restore();
 
-    // خط جانبي
+    // شريط جانبي
     ctx.save();
     ctx.shadowColor = row.c;
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur = 15;
     ctx.fillStyle = row.c;
-    rRect(ctx, rX, ry, 4, rowH - 8, 2);
+    rRect(ctx, infoX, ry, 3, rowH - 6, 2);
     ctx.fill();
     ctx.restore();
+
+    // أيقونة
+    drawIcon(ctx, infoX + 18, ry + (rowH - 6) / 2, row.icon, row.c, 16);
 
     // التسمية
     ctx.save();
-    ctx.font = "bold 20px sans-serif";
+    ctx.font = "bold 18px sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     ctx.fillStyle = row.c + "cc";
     ctx.shadowColor = row.c;
-    ctx.shadowBlur = 10;
-    ctx.fillText(row.label, rX + 20, ry + (rowH - 8) / 2);
+    ctx.shadowBlur = 8;
+    ctx.fillText(row.label, infoX + 34, ry + (rowH - 6) / 2);
     ctx.restore();
 
-    // القيمة — تصغير الخط تلقائياً ✅
+    // القيمة
     ctx.save();
     let fs2 = 22;
-    ctx.font = `bold ${fs2}px sans-serif`;
-    while (ctx.measureText(row.value).width > rW * 0.5 && fs2 > 13) {
-      fs2 -= 1;
-      ctx.font = `bold ${fs2}px sans-serif`;
+    ctx.font = `bold ${fs2}px monospace`;
+    while (ctx.measureText(row.value).width > rW * 0.48 && fs2 > 13) {
+      fs2--; ctx.font = `bold ${fs2}px monospace`;
     }
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
     ctx.shadowColor = row.c;
     ctx.shadowBlur = 15;
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(row.value, rX + rW - 16, ry + (rowH - 8) / 2);
+    ctx.fillText(row.value, infoX + rW - 14, ry + (rowH - 6) / 2);
     ctx.restore();
   });
 
-  // ── شريط الخبرة ──
-  const BX = rX;
-  const BY = rowStartY + rowData.length * rowH + 18; // ✅ مسافة كافية
-  const BW = rW, BH = 22;
+  // ── شريط Progress دائري + XP ──
+  const progY = rowStartY + rowData.length * rowH + 8;
+  const circR = 34;
+  const circX = infoX + circR + 4;
+  const circY = progY + circR + 4;
 
+  drawCircularProgress(ctx, circX, circY, circR, data.progress, T);
+
+  // نسبة في المنتصف
   ctx.save();
-  ctx.font = "bold 15px sans-serif";
-  ctx.textAlign = "left";
-  ctx.fillStyle = T.c2 + "cc";
-  ctx.shadowColor = T.glow;
-  ctx.shadowBlur = 8;
-  ctx.fillText("LEVEL PROGRESS", BX, BY - 16);
-  ctx.textAlign = "right";
+  ctx.font = "bold 16px monospace";
   ctx.fillStyle = T.c1;
-  ctx.fillText(`${Math.round(data.progress)}%`, BX + BW, BY - 16);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 10;
+  ctx.fillText(`${Math.round(data.progress)}%`, circX, circY);
   ctx.restore();
 
-  // خلفية الشريط
+  // XP نص جانب الدائرة
   ctx.save();
-  ctx.fillStyle = "rgba(255,255,255,0.07)";
-  rRect(ctx, BX, BY, BW, BH, BH / 2);
-  ctx.fill();
+  ctx.font = "bold 13px monospace";
+  ctx.fillStyle = T.c2 + "cc";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText("LEVEL PROGRESS", circX + circR + 14, progY + 8);
+  ctx.font = "bold 20px monospace";
+  ctx.fillStyle = T.c1;
+  ctx.fillText(formatNum(data.exp) + " XP", circX + circR + 14, progY + 28);
   ctx.restore();
 
-  // تعبئة
-  const fw = Math.max((data.progress / 100) * BW, BH);
+  // ── فاصل عمودي بين الصورة والمحتوى ──
   ctx.save();
   ctx.shadowColor = T.glow;
-  ctx.shadowBlur = 22;
-  const bg2 = ctx.createLinearGradient(BX, BY, BX + fw, BY);
-  bg2.addColorStop(0, T.c3 + "ee");
-  bg2.addColorStop(0.5, T.c2);
-  bg2.addColorStop(1, T.c1);
-  ctx.fillStyle = bg2;
-  rRect(ctx, BX, BY, fw, BH, BH / 2);
-  ctx.fill();
-  ctx.restore();
-
-  // نقطة نهاية
-  ctx.save();
-  ctx.shadowColor = "#ffffff";
-  ctx.shadowBlur = 18;
-  ctx.fillStyle = "#ffffff";
+  ctx.shadowBlur = 10;
+  const divGrad = ctx.createLinearGradient(0, 60, 0, H - 40);
+  divGrad.addColorStop(0, "transparent");
+  divGrad.addColorStop(0.3, T.c2 + "55");
+  divGrad.addColorStop(0.7, T.c2 + "55");
+  divGrad.addColorStop(1, "transparent");
+  ctx.strokeStyle = divGrad;
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.arc(BX + fw, BY + BH / 2, BH / 2 + 2, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.moveTo(infoX - 18, 60); ctx.lineTo(infoX - 18, H - 40);
+  ctx.stroke();
   ctx.restore();
 
   // ── زوايا زخرفية ──
   ctx.save();
-  ctx.strokeStyle = T.c2 + "55";
+  ctx.strokeStyle = T.c2 + "66";
   ctx.lineWidth = 2.5;
+  ctx.shadowColor = T.c2;
+  ctx.shadowBlur = 8;
   [
-    [W - 52, 22, W - 22, 22, W - 22, 52],
-    [22, H - 52, 22, H - 22, 52, H - 22],
-    [22, 52, 22, 22, 52, 22],
-    [W - 52, H - 22, W - 22, H - 22, W - 22, H - 52]
+    [W - 52, 18, W - 18, 18, W - 18, 52],
+    [18, H - 52, 18, H - 18, 52, H - 18],
+    [18, 52, 18, 18, 52, 18],
+    [W - 52, H - 18, W - 18, H - 18, W - 18, H - 52]
   ].forEach(([x1, y1, x2, y2, x3, y3]) => {
     ctx.beginPath();
     ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3);
@@ -369,12 +621,26 @@ async function createCard(data) {
   });
   ctx.restore();
 
-  // ── التوقيع ✅ داخل الكانفاس ──
-  ctx.font = "13px sans-serif";
-  ctx.fillStyle = T.c2 + "45";
+  // نقاط عند الزوايا
+  [[18, 18], [W - 18, 18], [18, H - 18], [W - 18, H - 18]].forEach(([px, py]) => {
+    ctx.save();
+    ctx.fillStyle = T.c1;
+    ctx.shadowColor = T.glow;
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // ── التوقيع ──
+  ctx.save();
+  ctx.font = "11px monospace";
+  ctx.fillStyle = T.c2 + "40";
   ctx.textAlign = "right";
-  ctx.shadowBlur = 0;
-  ctx.fillText("KIRA SYSTEM", W - 36, H - 26);
+  ctx.textBaseline = "bottom";
+  ctx.fillText("KIRA SYSTEM v6.0", W - 28, H - 20);
+  ctx.restore();
 
   return canvas.toBuffer("image/png");
 }
