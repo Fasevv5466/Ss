@@ -1,58 +1,69 @@
-const axios = require("axios");
+
+const axios = require('axios');
 
 module.exports.config = {
   name: "رابط",
   version: "1.0.0",
   hasPermssion: 0,
-  credits: "ايمن",
-  description: "رفع الصور إلى Imgur",
+  credits: "Ayman",
+  description: "تحويل الوسائط إلى روابط دائمة",
   commandCategory: "utility",
-  usages: "قم بالرد على صورة",
+  usages: "رابط [رد على صورة/فيديو]",
   cooldowns: 5
 };
 
-module.exports.run = async function({ api, event }) {
-  const { threadID, messageID, messageReply } = event;
+module.exports.run = async ({ api, event }) => {
+  const { threadID, messageID, messageReply, attachments } = event;
+
+  let mediaLinks = [];
+
+  if (messageReply?.attachments?.length > 0) {
+    mediaLinks = messageReply.attachments.map(a => a.url);
+  } else if (attachments?.length > 0) {
+    mediaLinks = attachments.map(a => a.url);
+  }
+
+  if (mediaLinks.length === 0) {
+    return api.sendMessage(
+      "⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\n⚠️ قم بالرد على صورة أو فيديو.",
+      threadID, messageID
+    );
+  }
+
+  api.sendMessage(
+    `⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\n⏳ جاري رفع ${mediaLinks.length} ملف...`,
+    threadID
+  );
 
   try {
-    const attachment = messageReply?.attachments[0];
+    const results = [];
 
-    if (!attachment || attachment.type !== "photo") {
-      return api.sendMessage(
-        "⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n⚠️ يرجى الرد على صورة لرفعها",
-        threadID,
-        messageID
-      );
+    for (const url of mediaLinks) {
+      try {
+        const res = await axios.get(
+          `https://api.vyturex.com/imgur?url=${encodeURIComponent(url)}`,
+          { timeout: 15000 }
+        );
+        if (res.data?.image) results.push(res.data.image);
+      } catch (e) {
+        console.error("فشل رفع:", e.message);
+      }
     }
 
-    const waitMsg = await api.sendMessage(
-      "⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n⏳ جاري رفع الصورة...",
-      threadID
-    );
+    if (results.length === 0) throw new Error("فشل رفع جميع الملفات");
 
-    const apiUrl = "https://catbox-mnib.onrender.com/imgur";
-    const { data } = await axios.get(apiUrl, {
-      params: { url: attachment.url }
-    });
-
-    api.unsendMessage(waitMsg.messageID);
-
-    if (!data || !data.link) {
-      throw new Error("فشل رفع الصورة");
-    }
+    const links = results.map((r, i) => `${i + 1}. 🔗 ${r}`).join("\n");
 
     return api.sendMessage(
-      `⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n✅ تم رفع الصورة بنجاح\n\n🔗 الرابط:\n${data.link}`,
-      threadID,
-      messageID
+      `⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\n✅ تم رفع ${results.length}/${mediaLinks.length} ملف:\n\n${links}`,
+      threadID, messageID
     );
 
-  } catch (error) {
-    console.error("رابط - خطأ:", error);
+  } catch (e) {
+    console.error(e);
     return api.sendMessage(
-      `⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n❌ حدث خطأ أثناء رفع الصورة\n📝 ${error.message}`,
-      threadID,
-      messageID
+      "⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\n❌ فشل الرفع، حاول لاحقاً.",
+      threadID, messageID
     );
   }
 };
