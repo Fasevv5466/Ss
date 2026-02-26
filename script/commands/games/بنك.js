@@ -1,21 +1,413 @@
-const Canvas = require("@napi-rs/canvas");
+
+const { createCanvas, loadImage } = require("@napi-rs/canvas");
 const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
-
 const mongodb = require(path.join(process.cwd(), "includes", "mongodb.js"));
 
 module.exports.config = {
   name: "بنك",
-  version: "17.0.2",
+  version: "2.0.0",
   hasPermssion: 0,
-  credits: "VOID SYSTEM",
-  description: "Void Neon Emperor Card - التصميم الأعظم",
+  credits: "Ayman",
+  description: "بطاقة بنك المستخدم",
   commandCategory: "games",
-  usages: "[@منشن/رد]",
+  usages: "بنك [@منشن/رد]",
   cooldowns: 5
 };
 
+// ══════════════════════════════════════════
+// دالة رسم مستطيل مدور (بدل prototype)
+// ══════════════════════════════════════════
+function rRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ══════════════════════════════════════════
+// ألوان الرتب
+// ══════════════════════════════════════════
+function getTheme(rank, isDev) {
+  if (isDev) return { a: "#f0abfc", b: "#c084fc", c: "#7c3aed", glow: "#e879f9", bg: "#0d0015" };
+  const map = {
+    "مبتدئ":    { a: "#86efac", b: "#22c55e", c: "#14532d", glow: "#4ade80", bg: "#000d05" },
+    "محارب":    { a: "#fef08a", b: "#eab308", c: "#713f12", glow: "#fde047", bg: "#0d0a00" },
+    "فارس":     { a: "#7dd3fc", b: "#0ea5e9", c: "#0c4a6e", glow: "#38bdf8", bg: "#00080d" },
+    "نخبة":     { a: "#fbbf24", b: "#d97706", c: "#7c2d12", glow: "#f59e0b", bg: "#0d0700" },
+    "بطل":      { a: "#fca5a5", b: "#ef4444", c: "#7f1d1d", glow: "#f87171", bg: "#0d0000" },
+    "أسطورة":   { a: "#c4b5fd", b: "#8b5cf6", c: "#4c1d95", glow: "#a78bfa", bg: "#05000d" },
+    "ملك":      { a: "#67e8f9", b: "#06b6d4", c: "#164e63", glow: "#22d3ee", bg: "#000b0d" },
+    "إمبراطور": { a: "#fde68a", b: "#f59e0b", c: "#78350f", glow: "#fbbf24", bg: "#0d0800" },
+    "إله":      { a: "#fbcfe8", b: "#ec4899", c: "#831843", glow: "#f472b6", bg: "#0d0008" },
+    "خالد":     { a: "#fecaca", b: "#dc2626", c: "#450a0a", glow: "#ef4444", bg: "#0d0000" },
+  };
+  return map[rank] || map["مبتدئ"];
+}
+
+// ══════════════════════════════════════════
+// إيموجي الرتبة
+// ══════════════════════════════════════════
+function getRankEmoji(rank, isDev) {
+  if (isDev) return "👑";
+  const e = { "مبتدئ": "🔰", "محارب": "⚔️", "فارس": "🛡️", "نخبة": "💎", "بطل": "🏆", "أسطورة": "⚡", "ملك": "🔱", "إمبراطور": "🌟", "إله": "🔥", "خالد": "😈" };
+  return e[rank] || "🔰";
+}
+
+// ══════════════════════════════════════════
+// رسم البطاقة
+// ══════════════════════════════════════════
+async function createCard(data) {
+  const W = 1200, H = 520;
+  const canvas = createCanvas(W, H);
+  const ctx = canvas.getContext("2d");
+  const T = getTheme(data.rank, data.isDeveloper);
+
+  // ─── الخلفية ───
+  ctx.fillStyle = T.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // تدرج جانبي
+  const sideFade = ctx.createLinearGradient(0, 0, W, 0);
+  sideFade.addColorStop(0, T.c + "cc");
+  sideFade.addColorStop(0.4, "transparent");
+  sideFade.addColorStop(1, "transparent");
+  ctx.fillStyle = sideFade;
+  ctx.fillRect(0, 0, W, H);
+
+  // تأثير ضوء من الأعلى
+  const topLight = ctx.createRadialGradient(W * 0.3, 0, 0, W * 0.3, 0, H * 1.2);
+  topLight.addColorStop(0, T.glow + "22");
+  topLight.addColorStop(1, "transparent");
+  ctx.fillStyle = topLight;
+  ctx.fillRect(0, 0, W, H);
+
+  // نقاط زخرفية (grid dots)
+  ctx.fillStyle = T.b + "18";
+  for (let x = 0; x < W; x += 30) {
+    for (let y = 0; y < H; y += 30) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // ─── الإطار الخارجي ───
+  ctx.save();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 35;
+  ctx.strokeStyle = T.b + "90";
+  ctx.lineWidth = 2.5;
+  rRect(ctx, 20, 20, W - 40, H - 40, 32);
+  ctx.stroke();
+  ctx.restore();
+
+  // إطار داخلي شفاف
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,0.025)";
+  rRect(ctx, 20, 20, W - 40, H - 40, 32);
+  ctx.fill();
+  ctx.restore();
+
+  // ─── الشريط الجانبي الأيسر ───
+  ctx.save();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 25;
+  const sideBar = ctx.createLinearGradient(45, 0, 45, H);
+  sideBar.addColorStop(0, "transparent");
+  sideBar.addColorStop(0.5, T.b);
+  sideBar.addColorStop(1, "transparent");
+  ctx.fillStyle = sideBar;
+  ctx.fillRect(44, 60, 4, H - 120);
+  ctx.restore();
+
+  // ─── صورة البروفايل ───
+  const AX = 160, AY = 200, AR = 110;
+  try {
+    const avatarURL = `https://graph.facebook.com/${data.userID}/picture?width=512&height=512`;
+    const res = await axios.get(avatarURL, { responseType: "arraybuffer", timeout: 8000 });
+    const avatar = await loadImage(res.data);
+
+    // توهج خلف الصورة
+    ctx.save();
+    ctx.shadowColor = T.glow;
+    ctx.shadowBlur = 60;
+    ctx.fillStyle = T.b + "40";
+    ctx.beginPath();
+    ctx.arc(AX, AY, AR + 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // حلقة خارجية متقطعة
+    ctx.save();
+    ctx.shadowColor = T.glow;
+    ctx.shadowBlur = 20;
+    ctx.strokeStyle = T.a + "60";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.arc(AX, AY, AR + 20, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // قص الصورة دائري
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(AX, AY, AR, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(avatar, AX - AR, AY - AR, AR * 2, AR * 2);
+    ctx.restore();
+
+    // حلقة داخلية متوهجة
+    ctx.save();
+    ctx.shadowColor = T.glow;
+    ctx.shadowBlur = 30;
+    ctx.strokeStyle = T.a;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(AX, AY, AR + 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+  } catch (_) {
+    // placeholder إذا فشلت الصورة
+    ctx.save();
+    ctx.shadowColor = T.glow;
+    ctx.shadowBlur = 40;
+    const pg = ctx.createRadialGradient(AX, AY, 10, AX, AY, AR);
+    pg.addColorStop(0, T.b + "80");
+    pg.addColorStop(1, T.c);
+    ctx.fillStyle = pg;
+    ctx.beginPath();
+    ctx.arc(AX, AY, AR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.font = "70px 'Segoe UI Emoji'";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("👤", AX, AY);
+  }
+
+  // شارة الرتبة تحت الصورة
+  ctx.save();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = T.c;
+  rRect(ctx, AX - 65, AY + AR + 15, 130, 36, 18);
+  ctx.fill();
+  ctx.strokeStyle = T.b + "80";
+  ctx.lineWidth = 1.5;
+  rRect(ctx, AX - 65, AY + AR + 15, 130, 36, 18);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.font = "bold 18px Arial";
+  ctx.fillStyle = T.a;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.fillText(`${getRankEmoji(data.rank, data.isDeveloper)} ${data.rank}`, AX, AY + AR + 22);
+
+  // ─── الاسم ───
+  const NX = 330, NY = 65;
+  ctx.save();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 25;
+  ctx.font = "bold 52px Arial";
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillText(data.username, NX, NY);
+  ctx.restore();
+
+  // خط متوهج تحت الاسم
+  const nameW = ctx.measureText(data.username).width;
+  ctx.save();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 15;
+  const lineGrad = ctx.createLinearGradient(NX, 0, NX + nameW, 0);
+  lineGrad.addColorStop(0, T.a);
+  lineGrad.addColorStop(1, "transparent");
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(NX, NY + 62);
+  ctx.lineTo(NX + nameW, NY + 62);
+  ctx.stroke();
+  ctx.restore();
+
+  // وسام المطور
+  if (data.isDeveloper) {
+    ctx.save();
+    ctx.shadowColor = T.glow;
+    ctx.shadowBlur = 30;
+    ctx.fillStyle = T.c + "cc";
+    rRect(ctx, NX, NY + 72, 210, 34, 17);
+    ctx.fill();
+    ctx.strokeStyle = T.b;
+    ctx.lineWidth = 1.5;
+    rRect(ctx, NX, NY + 72, 210, 34, 17);
+    ctx.stroke();
+    ctx.font = "bold 18px Arial";
+    ctx.fillStyle = T.a;
+    ctx.fillText("👑 SYSTEM LORD", NX + 12, NY + 79);
+    ctx.restore();
+  }
+
+  // ─── بطاقات الإحصائيات (2×2) ───
+  const stats = [
+    { icon: "💰", label: "الرصيد", value: `${data.money.toLocaleString()}$` },
+    { icon: "⭐", label: "الخبرة", value: `${data.exp} XP` },
+    { icon: "📈", label: "المستوى", value: `LV.${data.level}` },
+    { icon: "💬", label: "الرسائل", value: `${data.msg}` }
+  ];
+
+  const cardW = 195, cardH = 90, cardGap = 14;
+  const startX = 330, startY = 160;
+
+  stats.forEach((s, i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const cx = startX + col * (cardW + cardGap);
+    const cy = startY + row * (cardH + cardGap);
+
+    // خلفية البطاقة
+    ctx.save();
+    ctx.fillStyle = "rgba(255,255,255,0.04)";
+    ctx.strokeStyle = T.b + "35";
+    ctx.lineWidth = 1.5;
+    rRect(ctx, cx, cy, cardW, cardH, 14);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // شريط لوني علوي
+    ctx.save();
+    ctx.shadowColor = T.glow;
+    ctx.shadowBlur = 8;
+    const topBar = ctx.createLinearGradient(cx, cy, cx + cardW, cy);
+    topBar.addColorStop(0, T.b + "cc");
+    topBar.addColorStop(1, T.b + "00");
+    ctx.fillStyle = topBar;
+    ctx.fillRect(cx + 14, cy, cardW - 28, 3);
+    ctx.restore();
+
+    // الأيقونة
+    ctx.font = "26px 'Segoe UI Emoji'";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText(s.icon, cx + 12, cy + 12);
+
+    // التسمية
+    ctx.font = "16px Arial";
+    ctx.fillStyle = T.a + "aa";
+    ctx.fillText(s.label, cx + 48, cy + 14);
+
+    // القيمة
+    ctx.save();
+    ctx.shadowColor = T.glow;
+    ctx.shadowBlur = 10;
+    ctx.font = "bold 26px Arial";
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(s.value, cx + 12, cy + 48);
+    ctx.restore();
+  });
+
+  // ─── قسم يمين: معلومات إضافية ───
+  const RX = 750, RY = 160;
+
+  // المعرف
+  ctx.save();
+  ctx.fillStyle = "rgba(255,255,255,0.04)";
+  ctx.strokeStyle = T.b + "30";
+  ctx.lineWidth = 1;
+  rRect(ctx, RX, RY, 390, 50, 12);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.font = "16px Arial";
+  ctx.fillStyle = T.a + "99";
+  ctx.textAlign = "left";
+  ctx.fillText("🆔 USER ID", RX + 15, RY + 10);
+  ctx.font = "bold 20px Arial";
+  ctx.fillStyle = T.a;
+  ctx.fillText(data.userID, RX + 15, RY + 28);
+
+  // ─── شريط الخبرة ───
+  const BX = 330, BY = 390, BW = 810, BH = 22;
+
+  // عنوان الشريط
+  ctx.font = "bold 18px Arial";
+  ctx.fillStyle = T.a + "cc";
+  ctx.textAlign = "left";
+  ctx.fillText("✦ تقدم المستوى", BX, BY - 22);
+  ctx.font = "bold 18px Arial";
+  ctx.fillStyle = T.a;
+  ctx.textAlign = "right";
+  ctx.fillText(`${Math.round(data.progress)}%`, BX + BW, BY - 22);
+
+  // خلفية الشريط
+  ctx.fillStyle = "rgba(255,255,255,0.06)";
+  rRect(ctx, BX, BY, BW, BH, BH / 2);
+  ctx.fill();
+
+  // تعبئة الشريط
+  const fillW = Math.max((data.progress / 100) * BW, 20);
+  ctx.save();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 25;
+  const barGrad = ctx.createLinearGradient(BX, BY, BX + fillW, BY);
+  barGrad.addColorStop(0, T.b);
+  barGrad.addColorStop(0.7, T.a);
+  barGrad.addColorStop(1, "#ffffff");
+  ctx.fillStyle = barGrad;
+  rRect(ctx, BX, BY, fillW, BH, BH / 2);
+  ctx.fill();
+  ctx.restore();
+
+  // نقطة نهاية متوهجة
+  ctx.save();
+  ctx.shadowColor = T.glow;
+  ctx.shadowBlur = 30;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(BX + fillW, BY + BH / 2, BH / 2 + 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // ─── التوقيع ───
+  ctx.font = "15px Arial";
+  ctx.fillStyle = T.b + "55";
+  ctx.textAlign = "right";
+  ctx.fillText("✦ KIRA SYSTEM ✦", W - 35, H - 30);
+
+  // ─── زاوية زخرفية ───
+  ctx.save();
+  ctx.strokeStyle = T.b + "40";
+  ctx.lineWidth = 2;
+  // زاوية يمين علوي
+  ctx.beginPath(); ctx.moveTo(W - 65, 35); ctx.lineTo(W - 35, 35); ctx.lineTo(W - 35, 65); ctx.stroke();
+  // زاوية يسار سفلي
+  ctx.beginPath(); ctx.moveTo(35, H - 65); ctx.lineTo(35, H - 35); ctx.lineTo(65, H - 35); ctx.stroke();
+  ctx.restore();
+
+  return canvas.toBuffer("image/png");
+}
+
+// ══════════════════════════════════════════
+// تشغيل الأمر
+// ══════════════════════════════════════════
 module.exports.run = async function ({ api, event }) {
   const { threadID, messageID, senderID, type, messageReply, mentions } = event;
 
@@ -26,41 +418,30 @@ module.exports.run = async function ({ api, event }) {
 
     const data = await mongodb.getUserData(targetID);
     if (!data || !data.currency)
-      return api.sendMessage("❌ لا توجد بيانات مسجلة لهذا المستخدم.", threadID, messageID);
+      return api.sendMessage("❌ لا توجد بيانات لهذا المستخدم.", threadID, messageID);
 
     const { currency, calculated } = data;
     const userInfo = await api.getUserInfo(targetID);
+    const username = (data.user?.name || userInfo[targetID]?.name || "USER").toUpperCase();
+    const isDeveloper = global.config?.ADMINBOT?.includes(targetID) || false;
+    const progress = calculated?.progress || 0;
 
-    const username =
-      data.user?.name || (userInfo[targetID]?.name || "USER");
-
-    const isDeveloper =
-      global.config.ADMINBOT && global.config.ADMINBOT.includes(targetID);
-
-    const exp = currency.exp || 0;
-    const expNeeded = calculated?.expNeeded || 100;
-    const progress = Math.min(Math.floor((exp / expNeeded) * 100), 100);
-
-    // تفاعل التحميل
-    if (api.setMessageReaction) {
-      api.setMessageReaction("⌛", messageID, () => {}, true);
-    }
+    if (api.setMessageReaction) api.setMessageReaction("⌛", messageID, () => {}, true);
 
     const card = await createCard({
       userID: targetID,
-      username: username.toUpperCase(),
+      username,
       money: currency.money || 0,
-      exp,
+      exp: currency.exp || 0,
       level: currency.level || 1,
       msg: currency.messageCount || 0,
-      rank: calculated?.rank?.name || "مبتدئ",
+      rank: currency.rank || "مبتدئ",
       progress,
       isDeveloper
     });
 
-    const cacheDir = path.join(__dirname, "cache");
-    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
-
+    const cacheDir = path.join(process.cwd(), "cache");
+    fs.ensureDirSync(cacheDir);
     const cachePath = path.join(cacheDir, `bank_${targetID}.png`);
     await fs.writeFile(cachePath, card);
 
@@ -69,311 +450,13 @@ module.exports.run = async function ({ api, event }) {
       threadID,
       () => {
         if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
-        if (api.setMessageReaction) {
-          api.setMessageReaction("✅", messageID, () => {}, true);
-        }
+        if (api.setMessageReaction) api.setMessageReaction("✅", messageID, () => {}, true);
       },
       messageID
     );
 
   } catch (e) {
-    console.error("❌ خطأ في أمر البنك:", e);
-    api.sendMessage("❌ حدث خطأ في النظام الفراغي.", threadID, messageID);
+    console.error("❌ خطأ في البنك:", e);
+    return api.sendMessage("❌ حدث خطأ: " + e.message, threadID, messageID);
   }
-};
-
-// ══════════════════════════════════════════════════════════
-// دالة الألوان حسب الرتبة
-// ══════════════════════════════════════════════════════════
-function getTheme(rank, isDev) {
-  if (isDev) return { primary: "#c084fc", secondary: "#a855f7", neon: "#e879f9", accent: "#f0abfc", dark: "#2e1065" };
-  switch (rank) {
-    case "مبتدئ": return { primary: "#22c55e", secondary: "#16a34a", neon: "#4ade80", accent: "#86efac", dark: "#14532d" };
-    case "محارب": return { primary: "#eab308", secondary: "#ca8a04", neon: "#fde047", accent: "#fef08a", dark: "#854d0e" };
-    case "فارس": return { primary: "#0ea5e9", secondary: "#0284c7", neon: "#38bdf8", accent: "#7dd3fc", dark: "#0c4a6e" };
-    case "نخبة": return { primary: "#d97706", secondary: "#b45309", neon: "#f59e0b", accent: "#fbbf24", dark: "#7c2d12" };
-    case "بطل": return { primary: "#ef4444", secondary: "#dc2626", neon: "#f87171", accent: "#fca5a5", dark: "#7f1d1d" };
-    default: return { primary: "#22c55e", secondary: "#16a34a", neon: "#4ade80", accent: "#86efac", dark: "#14532d" };
-  }
-}
-
-// ══════════════════════════════════════════════════════════
-// تأثير النويز الخفيف
-// ══════════════════════════════════════════════════════════
-function applyNoise(ctx, w, h) {
-  try {
-    const imageData = ctx.getImageData(0, 0, w, h);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      const noise = Math.random() * 15;
-      data[i] = Math.min(255, data[i] + noise);
-      data[i + 1] = Math.min(255, data[i + 1] + noise);
-      data[i + 2] = Math.min(255, data[i + 2] + noise);
-    }
-    ctx.putImageData(imageData, 0, 0);
-  } catch (e) {}
-}
-
-// ══════════════════════════════════════════════════════════
-// تصميم البطاقة الرئيسي (معدل بالكامل)
-// ══════════════════════════════════════════════════════════
-async function createCard(data) {
-  const W = 1400;
-  const H = 550;
-  const canvas = Canvas.createCanvas(W, H);
-  const ctx = canvas.getContext("2d");
-
-  const theme = getTheme(data.rank, data.isDeveloper);
-
-  // الخلفية الكونية
-  const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, 800);
-  bgGrad.addColorStop(0, "#0b0e14");
-  bgGrad.addColorStop(0.7, "#03050a");
-  bgGrad.addColorStop(1, "#000000");
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, W, H);
-
-  // شبكة خفيفة
-  ctx.strokeStyle = "rgba(255,255,255,0.04)";
-  ctx.lineWidth = 0.6;
-  for (let i = 0; i < W; i += 40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke(); }
-  for (let i = 0; i < H; i += 40) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke(); }
-
-  // إطار زجاجي متوهج
-  const borderRadius = 40;
-  ctx.save();
-  ctx.shadowColor = theme.neon + "80";
-  ctx.shadowBlur = 40;
-  ctx.fillStyle = "rgba(18, 22, 36, 0.55)";
-  ctx.strokeStyle = theme.primary + "30";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(40, 40, W - 80, H - 80, borderRadius);
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
-
-  // إطار داخلي نيون
-  ctx.save();
-  ctx.shadowColor = theme.neon;
-  ctx.shadowBlur = 30;
-  ctx.strokeStyle = theme.primary + "80";
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-  ctx.restore();
-
-  // ========== صورة البروفايل ==========
-  const avatarX = 200, avatarY = 275, avatarRadius = 120;
-  try {
-    // رابط مباشر بدون توكن – يعمل بشكل أفضل
-    const avatarURL = `https://graph.facebook.com/${data.userID}/picture?width=512&height=512`;
-    const res = await axios.get(avatarURL, { responseType: "arraybuffer" });
-    const avatar = await Canvas.loadImage(res.data);
-
-    // ظل خلفي
-    ctx.save();
-    ctx.shadowColor = theme.neon;
-    ctx.shadowBlur = 40;
-    ctx.beginPath();
-    ctx.arc(avatarX, avatarY, avatarRadius + 5, 0, Math.PI * 2);
-    ctx.fillStyle = theme.dark;
-    ctx.fill();
-    ctx.restore();
-
-    // قص الصورة
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(avatarX, avatarY, avatarRadius, 0, Math.PI * 2);
-    ctx.clip();
-    ctx.drawImage(avatar, avatarX - avatarRadius, avatarY - avatarRadius, avatarRadius * 2, avatarRadius * 2);
-    ctx.restore();
-
-    // حلقات متوهجة
-    ctx.save();
-    ctx.shadowColor = theme.neon;
-    ctx.shadowBlur = 35;
-    ctx.strokeStyle = theme.accent;
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.arc(avatarX, avatarY, avatarRadius + 2, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.shadowBlur = 20;
-    ctx.strokeStyle = theme.primary;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(avatarX, avatarY, avatarRadius + 8, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-  } catch (err) {
-    // إذا فشل تحميل الصورة
-    ctx.save();
-    ctx.shadowColor = theme.neon;
-    ctx.shadowBlur = 40;
-    ctx.fillStyle = theme.dark;
-    ctx.beginPath();
-    ctx.arc(avatarX, avatarY, avatarRadius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  // ========== الاسم والرتبة ==========
-  ctx.textAlign = "left";
-  ctx.textBaseline = "top";
-
-  // اسم المستخدم
-  ctx.save();
-  ctx.shadowColor = theme.neon;
-  ctx.shadowBlur = 30;
-  ctx.font = "bold 58px 'Arial Black', 'Helvetica Bold', 'Arial', sans-serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText(data.username, 420, 110);
-  ctx.restore();
-
-  // خط تحت الاسم
-  ctx.save();
-  ctx.shadowColor = theme.neon;
-  ctx.shadowBlur = 25;
-  ctx.strokeStyle = theme.accent;
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(420, 180);
-  ctx.lineTo(420 + ctx.measureText(data.username).width, 180);
-  ctx.stroke();
-  ctx.restore();
-
-  // شارة الرتبة
-  ctx.save();
-  ctx.shadowColor = theme.neon;
-  ctx.shadowBlur = 25;
-  ctx.fillStyle = theme.dark;
-  ctx.beginPath();
-  ctx.roundRect(420, 200, 280, 50, 25);
-  ctx.fill();
-  ctx.fillStyle = theme.primary;
-  ctx.font = "bold 28px 'Arial'";
-  ctx.fillText(`⚡ ${data.rank} ⚡`, 440, 210);
-  ctx.restore();
-
-  // ========== لوحة الإحصائيات ==========
-  const stats = [
-    { icon: "📊", label: "المستوى", value: data.level },
-    { icon: "✨", label: "الخبرة", value: `${data.exp} XP` },
-    { icon: "💰", label: "البنك", value: `${data.money.toLocaleString()} $` },
-    { icon: "💬", label: "الرسائل", value: data.msg }
-  ];
-
-  stats.forEach((stat, i) => {
-    const y = 270 + i * 55;
-
-    // خلفية شفافة
-    ctx.fillStyle = "rgba(255,255,255,0.03)";
-    ctx.beginPath();
-    ctx.roundRect(410, y - 5, 500, 45, 10);
-    ctx.fill();
-
-    // أيقونة
-    ctx.font = "30px 'Segoe UI Emoji', 'Arial'";
-    ctx.fillStyle = theme.accent;
-    ctx.fillText(stat.icon, 420, y);
-
-    // التسمية
-    ctx.font = "bold 26px 'Arial'";
-    ctx.fillStyle = "#aaa";
-    ctx.fillText(stat.label, 480, y + 2);
-
-    // القيمة
-    ctx.font = "bold 32px 'Arial'";
-    ctx.fillStyle = "#ffffff";
-    ctx.textAlign = "right";
-    ctx.fillText(stat.value, 900, y);
-    ctx.textAlign = "left";
-  });
-
-  // ========== شريط الخبرة ==========
-  const barX = 420;
-  const barY = 490;
-  const barW = 800;
-  const barH = 24;
-
-  // خلفية الشريط
-  ctx.fillStyle = "rgba(20,20,30,0.8)";
-  ctx.beginPath();
-  ctx.roundRect(barX, barY, barW, barH, 12);
-  ctx.fill();
-
-  // التعبئة
-  const fillW = (data.progress / 100) * barW;
-  const grad = ctx.createLinearGradient(barX, barY, barX + fillW, barY + barH);
-  grad.addColorStop(0, theme.neon);
-  grad.addColorStop(1, theme.primary);
-
-  ctx.save(); // ✅ حفظ الحالة قبل إضافة الظل
-  ctx.shadowColor = theme.neon;
-  ctx.shadowBlur = 30;
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.roundRect(barX, barY, fillW, barH, 12);
-  ctx.fill();
-  ctx.restore(); // ✅ استرجاع الحالة بعد الظل
-
-  // إطار الشريط
-  ctx.save();
-  ctx.shadowColor = theme.neon;
-  ctx.shadowBlur = 15;
-  ctx.strokeStyle = theme.accent + "80";
-  ctx.lineWidth = 1.8;
-  ctx.beginPath();
-  ctx.roundRect(barX, barY, barW, barH, 12);
-  ctx.stroke();
-  ctx.restore();
-
-  // نسبة التقدم
-  ctx.font = "bold 24px 'Arial'";
-  ctx.fillStyle = "#ffffff";
-  ctx.shadowColor = "#000000";
-  ctx.shadowBlur = 10;
-  ctx.fillText(`${data.progress}%`, barX + barW + 30, barY + 5);
-  ctx.shadowBlur = 0;
-
-  // ========== وسام المطور ==========
-  if (data.isDeveloper) {
-    ctx.save();
-    ctx.shadowColor = theme.neon;
-    ctx.shadowBlur = 40;
-    ctx.font = "bold 38px 'Arial'";
-    ctx.fillStyle = theme.primary;
-    ctx.fillText("👑 SYSTEM LORD", 420, 40);
-    ctx.restore();
-  }
-
-  // ========== توقيع VOID ==========
-  ctx.font = "20px 'Arial'";
-  ctx.fillStyle = "rgba(255,255,255,0.2)";
-  ctx.textAlign = "right";
-  ctx.fillText("✦ VOID NEON CARD ✦", W - 80, H - 50);
-  ctx.textAlign = "left";
-
-  // تأثير نويز خفيف
-  applyNoise(ctx, W, H);
-
-  return canvas.toBuffer("image/png");
-}
-
-// ══════════════════════════════════════════════════════════
-// بروتوتايب لرسم المستطيل المدور
-// ══════════════════════════════════════════════════════════
-Canvas.CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-  if (w < 2 * r) r = w / 2;
-  if (h < 2 * r) r = h / 2;
-  this.moveTo(x + r, y);
-  this.lineTo(x + w - r, y);
-  this.quadraticCurveTo(x + w, y, x + w, y + r);
-  this.lineTo(x + w, y + h - r);
-  this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  this.lineTo(x + r, y + h);
-  this.quadraticCurveTo(x, y + h, x, y + h - r);
-  this.lineTo(x, y + r);
-  this.quadraticCurveTo(x, y, x + r, y);
-  return this;
 };
