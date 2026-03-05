@@ -2,7 +2,7 @@ module.exports.config = {
   name: "ضغط",
   version: "1.2.0",
   hasPermssion: 0,
-  credits: "أيمن",
+  credits: "أنس",
   description: "تقليل حجم الصور بتنسيق كيرا",
   commandCategory: "pic",
   usages: "[رد على صورة]",
@@ -37,7 +37,7 @@ module.exports.run = async ({ api, event }) => {
 
     // --- الزخرفة المتفق عليها ---
     const msg = {
-      body: `⌬ ━━━ 𝗞𝗜𝗥𝗔 𝗧𝗢𝗢𝗟𝗦 ━━━ ⌬\n\n` +
+      body: `⌬ ━━━ SOMI 𝗧𝗢𝗢𝗟𝗦 ━━━ ⌬\n\n` +
             `📉 تـم ضـغـط الـصـورة بنـجـاح!\n\n` +
             `📁 قـبـل: ${oldSize} KB\n` +
             `✅ بـعـد: ${newSize} KB\n` +
