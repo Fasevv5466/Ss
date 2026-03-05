@@ -7,7 +7,7 @@ module.exports.config = {
   name: "صور",
   version: "3.1.0",
   hasPermssion: 0,
-  credits: "ايمن",
+  credits: "انس",
   description: "البحث في بنترست بـ Headers أصلية (رد بمزيد أو 👍)",
   commandCategory: "pic",
   usages: "صور [نص البحث]",
@@ -39,7 +39,7 @@ module.exports.run = async function({ api, event, args, isAction, newOffset }) {
 
   if (!name) {
     api.setMessageReaction("⚠️", messageID, () => {}, true);
-    return api.sendMessage("⌬ ━━ 𝗞𝗜𝗥𝗔 ━━ ⌬\n\nيرجى كتابة ما تريد البحث عنه!", threadID, messageID);
+    return api.sendMessage("⌬ ━━ SOMI ━━ ⌬\n\nيرجى كتابة ما تريد البحث عنه!", threadID, messageID);
   }
 
   api.setMessageReaction("⏳", messageID, () => {}, true);
@@ -88,7 +88,7 @@ module.exports.run = async function({ api, event, args, isAction, newOffset }) {
       }
 
       return api.sendMessage({
-        body: `⌬ ━━ 𝗞𝗜𝗥𝗔 𝗣𝗜𝗖 ━━ ⌬\n\n✅ تم جلب ${attachments.length} صور لـ: ${name}\n\n💡 رد بـ "مزيد" أو 👍 للمزيد.`,
+        body: `⌬ ━━ SOMI 𝗣𝗜𝗖 ━━ ⌬\n\n✅ تم جلب ${attachments.length} صور لـ: ${name}\n\n💡 رد بـ "مزيد" أو 👍 للمزيد.`,
         attachment: attachments
       }, threadID, (err, info) => {
         // حذف الكاش بعد الإرسال
