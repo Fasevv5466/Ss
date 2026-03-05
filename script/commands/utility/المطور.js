@@ -1,55 +1,74 @@
-const axios = require("axios");
-const fs = require("fs-extra");
-const path = require("path");
+const fs = require('fs-extra');
+const axios = require('axios');
 
 module.exports.config = {
-  name: "المطور",
-  version: "3.2.0",
+  name: 'المطور',
+  version: '1.5.0',
   hasPermssion: 0,
-  credits: "أيمن",
-  description: "معلومات المطور برمز السهم التقني",
-  commandCategory: "utility",
-  usages: "المطور",
+  credits: 'anas تطوير وتنسيق',
+  description: 'عرض معلومات المطور بشكل فخم وراقي',
+  commandCategory: '〘 المجموعات 〙',
+  usages: 'المطور',
+  usePrefix: false,
   cooldowns: 5
 };
 
-module.exports.run = async function ({ api, event }) {
-  const { threadID, messageID } = event;
-  const header = `⌬ ━━━━━━━━━━━━ ⌬\n      👑 الـمـطـور\n⌬ ━━━━━━━━━━━━ ⌬`;
+module.exports.run = async ({ api, event }) => {
 
-  api.setMessageReaction("⏳", messageID, () => {}, true);
-
-  const gifs = [
-    "https://media.giphy.com/media/kXdo4BgGoFC80/giphy.gif",
-    "https://media.giphy.com/media/FB5EOw0CaaQM0/giphy.gif",
-    "https://media.giphy.com/media/EdInbVEktp3sA/giphy.gif",
-    "https://media.giphy.com/media/UC0nxqFk0Sxa/giphy.gif"
+  // صـــــور فخــــمة للمطــــور
+  const imageUrls = [
+    "https://i.ibb.co/nsHdtqBx/18ca32294c3f.gif",
+    "https://i.ibb.co/Q2BKRfZ/63f4b2bf747d.gif"
   ];
 
-  const randomGif = gifs[Math.floor(Math.random() * gifs.length)];
-  const gifPath = path.join(__dirname, "cache", `dev_arrow_${Date.now()}.gif`);
+  const cachePath = __dirname + "/cache/dev_info.jpg";
+  const selectedImage = imageUrls[Math.floor(Math.random() * imageUrls.length)];
 
-  try {
-    const response = await axios.get(randomGif, { responseType: "arraybuffer" });
-    await fs.outputFile(gifPath, Buffer.from(response.data));
+  // ════════════════════
+  // 💎 الرسالة الفخمة
+  // ════════════════════
 
-    const msg = {
-      body: `${header}\n\n` +
-            `⪼ الاسـم: أيـمـن\n` +
-            `⪼ الـديـانة: مـسيحي\n` +
-            `⪼ الـسـكن: الـعراق\n` +
-            `⪼ انـسـتا: x_v_k¹\n\n` +
-            `👾 كـيـرا بـوت - 𝟐𝟎𝟐𝟔`,
-      attachment: fs.createReadStream(gifPath)
-    };
+  const message = 
+`⟣━━━━━━━『 👑 مـعـلـومــات الـمــطــور 👑 』━━━━━━━⟢
 
-    return api.sendMessage(msg, threadID, () => {
-      if (fs.existsSync(gifPath)) fs.unlinkSync(gifPath);
-      api.setMessageReaction("✅", messageID, () => {}, true);
-    }, messageID);
+⚡️╎الاسم: 𝐀𝐍𝐀𝐒 𝐀𝐋𝐒𝐀𝐑𝐔𝐑𝐈
+🔥╎العمر: 20 سنة
+🌍╎البلد: اليمن 🇾🇪
 
-  } catch (error) {
-    api.setMessageReaction("❌", messageID, () => {}, true);
-    return api.sendMessage(`❌ خطأ في عرض البيانات.`, threadID, messageID);
-  }
+🜲 ┈•┈•┈•❀•┈•┈•┈ 🜲
+
+🧩╎رابط المطـور:
+↳ m.me/61584059280197
+
+📸╎انستقــرام:
+↳ https://www.instagram.com/shblsd3829?igsh=MTY2YWdwY3I5MTZoZg==
+
+🜲 ┈•┈•┈•❀•┈•┈•┈ 🜲
+
+⚠️╎واجهت خــطأ؟
+اكتب:  .تقرير
+
+⟣━━━━━━━『 🔱  انس 🔱 』━━━━━━━⟢`;
+
+  // ════════════════════
+  // 📩 تحميل الصورة + إرسال الرسالة
+  // ════════════════════
+
+  axios.get(encodeURI(selectedImage), { responseType: "stream" })
+    .then(res => {
+      res.data.pipe(fs.createWriteStream(cachePath))
+        .on("close", () => {
+          api.sendMessage(
+            {
+              body: message,
+              attachment: fs.createReadStream(cachePath)
+            },
+            event.threadID,
+            () => fs.unlinkSync(cachePath)
+          );
+        });
+    })
+    .catch(() => {
+      api.sendMessage("⚠️ حدث خطأ أثناء تحميل الصورة.", event.threadID);
+    });
 };
