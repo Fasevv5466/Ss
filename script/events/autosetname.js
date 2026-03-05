@@ -2,7 +2,7 @@ module.exports.config = {
   name: "اللقب_التلقائي",
   eventType: ["log:subscribe"],
   version: "1.0.0",
-  credits: "ayman",
+  credits: "anas",
   description: "تغيير لقب الأعضاء الجدد تلقائياً فور دخولهم"
 };
 
@@ -18,7 +18,7 @@ module.exports.run = async function({ api, event, Users }) {
     }
   };
   
-  const header = `⌬ ━━━ ${bold("KIRA AUTO-NAME")} ━━━ ⌬`;
+  const header = `⌬ ━━━ ${bold("SOMI AUTO-NAME")} ━━━ ⌬`;
 
   // استبعاد البوت من العملية
   const botID = api.getCurrentUserID();
