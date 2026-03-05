@@ -2,7 +2,7 @@ module.exports.config = {
   name: "طرد",
   version: "1.2.0",
   hasPermssion: 1,
-  credits: "ايمن",
+  credits: "أنس",
   description: "طرد عضو مع حماية مطوري البوت من الكونسق",
   commandCategory: "admin",
   usages: "[@منشن] أو رد على رسالة",
