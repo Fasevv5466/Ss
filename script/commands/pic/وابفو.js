@@ -4,7 +4,7 @@ module.exports.config = {
   name: "وايفو",
   version: "3.5",
   hasPermssion: 0,
-  credits: "  أيمن",
+  credits: "  أنس",
   description: "إرسال صور أنمي متنوعة (حضن، قبلة، رقص، إلخ)",
   commandCategory: "pic",
   usages: "<النوع>",
@@ -27,7 +27,7 @@ module.exports.run = async function ({ api, event, args }) {
   // 1. عرض القائمة إذا لم يتم اختيار نوع
   if (!name) {
     let keys = Object.keys(typesMap);
-    let list = "⌬ ━━━ 𝗞𝗜𝗥𝗔 𝗔𝗡𝗜𝗠𝗘 ━━━ ⌬\n\n";
+    let list = "⌬ ━━━ SOMI 𝗔𝗡𝗜𝗠𝗘 ━━━ ⌬\n\n";
     list += "✨ الأنواع المتاحة:\n";
     list += "│ " + keys.join(" ، ") + "\n\n";
     list += "💡 اكتب: [ وايفو حضن ]\n";
@@ -37,7 +37,7 @@ module.exports.run = async function ({ api, event, args }) {
 
   const engName = typesMap[name];
   if (!engName) {
-    return api.sendMessage("⚠️ | هذا النوع غير متوفر في قائمة كيرا.", threadID, messageID);
+    return api.sendMessage("⚠️ | هذا النوع غير متوفر في قائمة سومي.", threadID, messageID);
   }
 
   try {
@@ -50,7 +50,7 @@ module.exports.run = async function ({ api, event, args }) {
 
     // 3. إرسال الصورة
     const msg = {
-      body: `⌬ ━━━ 𝗞𝗜𝗥𝗔 𝗪𝗔𝗜𝗙𝗨 ━━━ ⌬\n\n🖼️ النوع: ${name}\n✨ المصدر: Waifu.pics\n\n⌬ ━━━━━━━━━━━━━━ ⌬`,
+      body: `⌬ ━━━ SOMI 𝗪𝗔𝗜𝗙𝗨 ━━━ ⌬\n\n🖼️ النوع: ${name}\n✨ المصدر: Waifu.pics\n\n⌬ ━━━━━━━━━━━━━━ ⌬`,
       attachment: imgRes.data
     };
 
@@ -82,7 +82,7 @@ module.exports.handleReaction = async function ({ api, event, handleReaction }) 
     const imgRes = await axios.get(res.data.url, { responseType: 'stream' });
 
     return api.sendMessage({
-      body: `⌬ ━━━ 𝗞𝗜𝗥𝗔 𝗪𝗔𝗜𝗙𝗨 ━━━ ⌬\n\n🔄 صورة جديدة من نوع: ${handleReaction.typeName}`,
+      body: `⌬ ━━━ SOMI 𝗪𝗔𝗜𝗙𝗨 ━━━ ⌬\n\n🔄 صورة جديدة من نوع: ${handleReaction.typeName}`,
       attachment: imgRes.data
     }, event.threadID);
   } catch (e) {
