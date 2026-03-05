@@ -1,7 +1,7 @@
 module.exports.config = {
   name: "لاست",
   version: "1.1.2",
-  credits: "Ayman",
+  credits: "Anas",
   hasPermssion: 2,
   description: "عرض المجموعات والتحكم بها",
   commandCategory: "developer",
@@ -40,7 +40,7 @@ module.exports.handleReply = async function({ api, event, Threads, handleReply }
 
 module.exports.run = async function({ api, event }) {
   // التحقق من المطور
-  if (String(event.senderID) !== "61577861540407") return;
+  if (String(event.senderID) !== "61584059280197") return;
 
   const header = `⌬ ━━━━━━━━━━━━ ⌬\n      ⚙️ قـائـمـة الـمـجـمـوعات\n⌬ ━━━━━━━━━━━━ ⌬`;
   
