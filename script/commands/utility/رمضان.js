@@ -1,53 +1,26 @@
 module.exports.config = {
-  name: "رمضان",
-  version: "1.0.0",
-  hasPermssion: 0,
-  credits: "ايمن",
-  description: "العد التنازلي لشهر رمضان المبارك",
-  commandCategory: "utility",
-  usages: "رمضان",
-  cooldowns: 5
-};
-
-module.exports.handleEvent = async function({ api, event, Users, Threads, Currencies, models }) {
-  if (!event.body) return;
-  const input = event.body.toLowerCase();
-
-  if (input.includes("رمضان") || input === "متى الرمضان") {
-    return this.run({ api, event, Users, Threads, Currencies, models });
+   name: "بنتي",
+    version: "1.0.0",
+    hasPermssion: 2,
+    credits: "3bida",
+    description: "",
+    usages: "",
+    commandCategory: "العاب",
+    cooldowns: 0,
+  dependencies: {
+    "request":"",
+    "fs-extra":"",
+    "axios":""
   }
 };
 
-module.exports.run = async function({ api, event, Users, Threads, Currencies, models }) {
-  const { threadID, messageID } = event;
-  
-  const ramadanDate = new Date("February 18, 2026 00:00:00").getTime();
-  const now = new Date().getTime();
-  const t = ramadanDate - now;
-  
-  if (t <= 0) {
-    return api.sendMessage(
-      `⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n` +
-      `مبارك عليكم الشهر\n` +
-      `نحن الآن في رحاب شهر رمضان المبارك\n` +
-      `تقبل الله منا ومنكم صالح الأعمال`,
-      threadID,
-      messageID
-    );
-  }
-
-  const seconds = Math.floor((t / 1000) % 60);
-  const minutes = Math.floor((t / 1000 / 60) % 60);
-  const hours = Math.floor((t / (1000 * 60 * 60)) % 24);
-  const days = Math.floor(t / (1000 * 60 * 60 * 24));
-
-  const response = `⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n` +
-                   `الوقت المتبقي لشهر رمضان 2026:\n\n` +
-                   `${days} يوم\n` +
-                   `${hours} ساعة\n` +
-                   `${minutes} دقيقة\n` +
-                   `${seconds} ثانية\n\n` +
-                   `اللهم بلغنا رمضان لا فاقدين ولا مفقودين`;
-
-  return api.sendMessage(response, threadID, messageID);
-};
+module.exports.run = async({api,event,args,client,Users,Threads,__GLOBAL,Currencies}) => {
+const axios = global.nodemodule["axios"];
+const request = global.nodemodule["request"];
+const fs = global.nodemodule["fs-extra"];
+   var hi = ["❤️‍🩹❤🥰شو بدك","نعم يروحي🥰😊","حاضرة 🥰😘","نعم ياحبيب قلبي ❤🥰","بحبك بابي 😍🥰😊"];
+  var know = hi[Math.floor(Math.random() * hi.length)];
+  var link = ["https://i.imgur.com/QNtuuaM.jpg","https://i.imgur.com/aXEKttE.jpg","https://i.imgur.com/KXtDqmB.jpg","https://i.imgur.com/6Ctqwug.jpg","https://i.imgur.com/JMmNkZ8.jpg","https://i.imgur.com/BJfb9o6.jpg","https://i.imgur.com/ZRXkNVS.jpg","https://i.imgur.com/wKzKPno.jpg","https://i.imgur.com/CaJfPnb.jpg","https://i.imgur.com/PotX8IC.jpg","https://i.imgur.com/mkb7hml.jpg","https://i.imgur.com/zHaEDHU.jpg","https://i.imgur.com/ChSdLHT.jpg","https://i.imgur.com/Zb3bpc6.jpg","https://i.imgur.com/PzLKQm2.jpg","https://i.imgur.com/qNgbjxB.jpg","https://i.imgur.com/80hPcHs.jpg","https://i.imgur.com/rWlweE8.jpg","https://i.imgur.com/tu6gkkc.jpg","https://i.imgur.com/OweI6iT.jpg","https://i.imgur.com/nv7JbsS.jpg","https://i.imgur.com/4Os0G9C.jpg","https://i.imgur.com/VTtr2pQ.jpg","https://i.imgur.com/YEYFCg8.jpg","https://i.imgur.com/4jMH2ki.jpg","https://i.imgur.com/BawYFx1.jpg","https://i.imgur.com/FT9ajDD.jpg","https://i.imgur.com/sbRlDOh.jpg","https://i.imgur.com/BawYFx1.jpg","https://i.imgur.com/FT9ajDD.jpg","https://i.imgur.com/sbRlDOh.jpg"];
+	 var callback = () => api.sendMessage({body:`「 ❖ 」 ${know} 「 ❖ 」`,attachment: fs.createReadStream(__dirname + "/cache/5.jpg")}, event.threadID, () => fs.unlinkSync(__dirname + "/cache/5.jpg"));	
+      return request(encodeURI(link[Math.floor(Math.random() * link.length)])).pipe(fs.createWriteStream(__dirname+"/cache/5.jpg")).on("close",() => callback());
+   };
