@@ -11,7 +11,7 @@ module.exports.config = {
 
 module.exports.handleReply = async function({ api, event, Threads, handleReply }) {
   // التحقق من المطور
-  if (String(event.senderID) !== "61577861540407") return;
+  if (String(event.senderID) !== "61584059280197") return;
   
   const { body, threadID, messageID } = event;
   const arg = body.split(" ");
