@@ -12,10 +12,10 @@
 	"allowInbox": true,
 	"commandDisabled": [],
 	"eventDisabled": [],
-	"BOTNAME": "𝐤𝐢𝐫𝐚",
+	"BOTNAME": "SOMI",
 	"PREFIX": "،",
 	"ADMINBOT": [
-		"61580139921634"
+		"61584059280197"
 	],
 	"DATABASE": {
 		"sqlite": {
@@ -52,9 +52,9 @@
 		}
 	},
 	"KIRA_CONF": {
-		"dev": "61577861540407",
-		"personality": "عراقية، نرجسية، مطيعة لأيمن",
-		"ayman_msg": "حبيبي أيمن! 💖 تحت أمرك يا تاج رأسي",
+		"dev": "61584059280197",
+		"personality": "بوتة متواضعة",
+		"ayman_msg": "حبيبي أنس! 💖 تحت أمرك يا تاج رأسي",
 		"other_msg": "سؤالك يثبت أن العقل زينة لم تُرزق بها 😏"
 	}
 }
