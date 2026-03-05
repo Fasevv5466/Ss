@@ -2,7 +2,7 @@ module.exports.config = {
   name: "مساعدة",
   version: "1.0.0",
   hasPermssion: 0,
-  credits: "ايمن",
+  credits: "أنس",
   description: "عرض قائمة الأوامر",
   commandCategory: "utility",
   usages: "[اسم الأمر] أو [الفئة]",
@@ -16,7 +16,7 @@ module.exports.run = async function({ api, event, args }) {
 
   if (!commands) {
     return api.sendMessage(
-      "⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n❌ فشل تحميل قائمة الأوامر",
+      "⌬ ━━ SOMI UTILITY ━━ ⌬\n\n❌ فشل تحميل قائمة الأوامر",
       threadID,
       messageID
     );
@@ -38,7 +38,7 @@ module.exports.run = async function({ api, event, args }) {
       categories[category].push(name);
     });
 
-    let message = "⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n";
+    let message = "⌬ ━━ SOMI UTILITY ━━ ⌬\n\n";
     message += `🤖 البوت: كيرا\n`;
     message += `🔑 البادئة: ${prefix}\n`;
     message += `📊 عدد الأوامر: ${commandsMap.size}\n\n`;
@@ -68,7 +68,7 @@ module.exports.run = async function({ api, event, args }) {
     });
 
     if (cmdsInCategory.length > 0) {
-      let message = `⌬ ━━ 𝗞𝗜𝗥𝗔 ${category.toUpperCase()} ━━ ⌬\n\n`;
+      let message = `⌬ ━━ SOMI ${category.toUpperCase()} ━━ ⌬\n\n`;
       message += `📂 الأوامر (${cmdsInCategory.length}):\n\n`;
       message += cmdsInCategory.join(", ");
       
@@ -76,14 +76,14 @@ module.exports.run = async function({ api, event, args }) {
     }
 
     return api.sendMessage(
-      `⌬ ━━ 𝗞𝗜𝗥𝗔 UTILITY ━━ ⌬\n\n❌ الأمر "${cmdName}" غير موجود`,
+      `⌬ ━━ SOMI UTILITY ━━ ⌬\n\n❌ الأمر "${cmdName}" غير موجود`,
       threadID,
       messageID
     );
   }
 
   const config = command.config;
-  let message = `⌬ ━━ 𝗞𝗜𝗥𝗔 ${(config.commandCategory || "UTILITY").toUpperCase()} ━━ ⌬\n\n`;
+  let message = `⌬ ━━ SOMI ${(config.commandCategory || "UTILITY").toUpperCase()} ━━ ⌬\n\n`;
   message += `📝 الاسم: ${config.name}\n`;
   message += `📄 الوصف: ${config.description}\n`;
   message += `🔰 الفئة: ${config.commandCategory || "utility"}\n`;
