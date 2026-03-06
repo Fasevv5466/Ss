@@ -315,7 +315,7 @@ app.get('/', (req, res) => {
     <div class="stat-card">
       <span class="stat-icon">🩸</span>
       <div class="stat-label">المكتبة</div>
-      <div class="stat-value" style="font-size:0.8rem">nexus-fca</div>
+      <div class="stat-value" style="font-size:0.8rem">ws3-fca</div>
     </div>
     <div class="stat-card">
       <span class="stat-icon">👁️</span>
@@ -381,8 +381,8 @@ const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } = req
 const { join, resolve } = require("path");
 const logger = require("./utils/log.js");
 
-// ✅ nexus-fca — أفضل مكتبة للاستقرار الطويل
-const login = require("nexus-fca");
+// ✅ ws3-fca — بديل للمكتبة القديمة للاستقرار الطويل
+const login = require("ws3-fca");
 
 const axios = require("axios");
 
@@ -501,12 +501,12 @@ function onBot({ models: botModel }) {
 
         loginApiData.setOptions(global.config.FCAOption);
 
-        // ✅ ميزة nexus-fca — ضبط backoff للاستقرار الطويل
+        // ✅ ميزة ws3-fca — ضبط backoff للاستقرار الطويل
         if (typeof loginApiData.setBackoffOptions === 'function') {
             loginApiData.setBackoffOptions({ base: 1000, factor: 1.5, max: 30000, jitter: true });
         }
 
-        // ✅ ميزة nexus-fca — تفعيل lazy preflight لتسريع الاتصال
+        // ✅ ميزة ws3-fca — تفعيل lazy preflight لتسريع الاتصال
         if (typeof loginApiData.enableLazyPreflight === 'function') {
             loginApiData.enableLazyPreflight(true);
         }
@@ -567,7 +567,7 @@ function onBot({ models: botModel }) {
             loginApiData.sendMessage(`لـقـد تـم تـشـغـيـل الـبـوت فـي ${timeNow} ✅`, global.config.ADMINBOT[0]);
         }
 
-        // ✅ ميزة nexus-fca — مراقبة الصحة كل 5 دقائق
+        // ✅ ميزة ws3-fca — مراقبة الصحة كل 5 دقائق
         if (typeof loginApiData.getHealthMetrics === 'function') {
             setInterval(() => {
                 const h = loginApiData.getHealthMetrics();
