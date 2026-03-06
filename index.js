@@ -8,9 +8,9 @@ const moment = require("moment-timezone");
 const timerestart = 120;
 const port = process.env.PORT || 8000;
 
-// ═══════════════════════════════════════════════
-//           KIRA — HELLGATE UPTIME PAGE
-// ═══════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
+//           KIRA â€” HELLGATE UPTIME PAGE
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 app.get('/', (req, res) => {
     const startTime = global.client?.timeStart || Date.now();
     const uptime = Date.now() - startTime;
@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KIRA — بوابة الجحيم</title>
+<title>KIRA â€” ط¨ظˆط§ط¨ط© ط§ظ„ط¬ط­ظٹظ…</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=UnifrakturMaguntia&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
@@ -165,7 +165,7 @@ app.get('/', (req, res) => {
     margin:24px 0;position:relative;box-shadow:0 0 8px var(--ember);
   }
   .hell-divider::before,.hell-divider::after{
-    content:'✦';position:absolute;top:50%;transform:translateY(-50%);
+    content:'âœ¦';position:absolute;top:50%;transform:translateY(-50%);
     color:var(--gold);font-size:1rem;text-shadow:0 0 10px var(--ember);
   }
   .hell-divider::before{left:-12px;} .hell-divider::after{right:-12px;}
@@ -214,7 +214,7 @@ app.get('/', (req, res) => {
     border-left:3px solid var(--ember);border-right:3px solid var(--ember);
     margin-bottom:28px;position:relative;
   }
-  .hell-quote::before{content:'❝';position:absolute;top:-15px;left:20px;font-size:3rem;color:var(--blood);line-height:1;font-family:'Cinzel Decorative',serif;}
+  .hell-quote::before{content:'â‌‌';position:absolute;top:-15px;left:20px;font-size:3rem;color:var(--blood);line-height:1;font-family:'Cinzel Decorative',serif;}
   .quote-text{font-family:'Crimson Text',serif;font-style:italic;font-size:clamp(0.85rem,2.5vw,1.05rem);color:rgba(232,213,176,0.8);line-height:1.7;}
   .quote-author{margin-top:8px;font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:var(--gold);letter-spacing:0.2em;opacity:0.7;}
 
@@ -262,7 +262,7 @@ app.get('/', (req, res) => {
       <circle cx="100" cy="100" r="88" fill="none" stroke="#FF2200" stroke-width="0.5" opacity="0.5"/>
       <polygon points="100,10 37,190 190,73 10,73 163,190" fill="none" stroke="#FF2200" stroke-width="1.5" opacity="0.8"/>
       <circle cx="100" cy="100" r="40" fill="rgba(139,0,0,0.15)" stroke="#C8960C" stroke-width="0.8"/>
-      <text x="100" y="30" text-anchor="middle" fill="#C8960C" font-size="9" font-family="serif" opacity="0.6">ᚲ ᛁ ᚱ ᚨ</text>
+      <text x="100" y="30" text-anchor="middle" fill="#C8960C" font-size="9" font-family="serif" opacity="0.6">لڑ² ل›پ لڑ± لڑ¨</text>
       <g stroke="#8B0000" stroke-width="0.5" opacity="0.6">
         <line x1="100" y1="5"   x2="100" y2="12"/>
         <line x1="140" y1="14"  x2="137" y2="20"/>
@@ -286,64 +286,64 @@ app.get('/', (req, res) => {
 
   <div class="title-block">
     <div class="kira-name">Kira</div>
-    <div class="kira-subtitle">ᛒᚨᚾᛖ ᛟᚠ ᛏᚺᛖ ᚾᛖᛏᚹᛟᚱᚲ &nbsp;✦&nbsp; روح الشبكة الأبدية</div>
+    <div class="kira-subtitle">ل›’لڑ¨لڑ¾ل›– ل›ںلڑ  ل›ڈلڑ؛ل›– لڑ¾ل›–ل›ڈلڑ¹ل›ںلڑ±لڑ² &nbsp;âœ¦&nbsp; ط±ظˆط­ ط§ظ„ط´ط¨ظƒط© ط§ظ„ط£ط¨ط¯ظٹط©</div>
   </div>
 
   <div class="hell-divider"></div>
 
   <div class="status-badge">
     <div class="pulse-dot"></div>
-    النظام يعمل — الروح مستيقظة — الجحيم متصل
+    ط§ظ„ظ†ط¸ط§ظ… ظٹط¹ظ…ظ„ â€” ط§ظ„ط±ظˆط­ ظ…ط³طھظٹظ‚ط¸ط© â€” ط§ظ„ط¬ط­ظٹظ… ظ…طھطµظ„
   </div>
 
   <div class="stats-grid">
     <div class="stat-card">
-      <span class="stat-icon">🔥</span>
-      <div class="stat-label">وقت التشغيل</div>
+      <span class="stat-icon">ًں”¥</span>
+      <div class="stat-label">ظˆظ‚طھ ط§ظ„طھط´ط؛ظٹظ„</div>
       <div class="stat-value burning" id="uptime">${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">💀</span>
-      <div class="stat-label">الحالة</div>
+      <span class="stat-icon">ًں’€</span>
+      <div class="stat-label">ط§ظ„ط­ط§ظ„ط©</div>
       <div class="stat-value" style="color:#00ff88;text-shadow:0 0 10px #00ff88">ONLINE</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">⚡</span>
-      <div class="stat-label">المنصة</div>
+      <span class="stat-icon">âڑ،</span>
+      <div class="stat-label">ط§ظ„ظ…ظ†طµط©</div>
       <div class="stat-value" style="font-size:0.9rem">Render</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">🩸</span>
-      <div class="stat-label">المكتبة</div>
-      <div class="stat-value" style="font-size:0.8rem">ws3-fca</div>
+      <span class="stat-icon">ًں©¸</span>
+      <div class="stat-label">ط§ظ„ظ…ظƒطھط¨ط©</div>
+      <div class="stat-value" style="font-size:0.8rem">nexus-fca</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">👁️</span>
-      <div class="stat-label">الإصدار</div>
+      <span class="stat-icon">ًں‘پï¸ڈ</span>
+      <div class="stat-label">ط§ظ„ط¥طµط¯ط§ط±</div>
       <div class="stat-value">v1.2.14</div>
     </div>
     <div class="stat-card">
-      <span class="stat-icon">🌑</span>
-      <div class="stat-label">المحرك</div>
+      <span class="stat-icon">ًںŒ‘</span>
+      <div class="stat-label">ط§ظ„ظ…ط­ط±ظƒ</div>
       <div class="stat-value" style="font-size:0.85rem">Node.js</div>
     </div>
   </div>
 
   <div class="hell-quote">
     <p class="quote-text">
-      أنا لستُ مجرد بوت... أنا الصدى الذي يسكن الشبكة،<br>
-      الظل الذي لا يُمحى، والنار التي لا تنطفئ.
+      ط£ظ†ط§ ظ„ط³طھظڈ ظ…ط¬ط±ط¯ ط¨ظˆطھ... ط£ظ†ط§ ط§ظ„طµط¯ظ‰ ط§ظ„ط°ظٹ ظٹط³ظƒظ† ط§ظ„ط´ط¨ظƒط©طŒ<br>
+      ط§ظ„ط¸ظ„ ط§ظ„ط°ظٹ ظ„ط§ ظٹظڈظ…ط­ظ‰طŒ ظˆط§ظ„ظ†ط§ط± ط§ظ„طھظٹ ظ„ط§ طھظ†ط·ظپط¦.
     </p>
-    <p class="quote-author">— كيرا، حارسة الجحيم الرقمي</p>
+    <p class="quote-author">â€” ظƒظٹط±ط§طŒ ط­ط§ط±ط³ط© ط§ظ„ط¬ط­ظٹظ… ط§ظ„ط±ظ‚ظ…ظٹ</p>
   </div>
 
-  <div class="runes">ᚲ ᛁ ᚱ ᚨ &nbsp; ᛞᛖᚨᚦ &nbsp; ᚠᛁᚱᛖ &nbsp; ᛊᛟᚢᛚ</div>
+  <div class="runes">لڑ² ل›پ لڑ± لڑ¨ &nbsp; ل›‍ل›–لڑ¨لڑ¦ &nbsp; لڑ ل›پلڑ±ل›– &nbsp; ل›ٹل›ںلڑ¢ل›ڑ</div>
 
   <div class="hell-divider"></div>
 
   <div class="bottom-bar">
     <span>KIRA-BOT</span>
-    <span>by ayman ✦ ${moment().tz("Africa/Casablanca").format("YYYY-MM-DD HH:mm:ss")}</span>
+    <span>by ayman âœ¦ ${moment().tz("Africa/Casablanca").format("YYYY-MM-DD HH:mm:ss")}</span>
     <span>GPL-3.0</span>
   </div>
 </div>
@@ -368,25 +368,25 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(chalk.cyan(`📡 Health check server is running on port ${port}`));
+    console.log(chalk.cyan(`ًں“، Health check server is running on port ${port}`));
 });
 
-// تنظيف الكاش عند التشغيل
+// طھظ†ط¸ظٹظپ ط§ظ„ظƒط§ط´ ط¹ظ†ط¯ ط§ظ„طھط´ط؛ظٹظ„
 exec("rm -rf script/commands/data && mkdir -p script/commands/data && rm -rf script/commands/tad/* ", (error) => {
     if (error) return;
-    console.log(chalk.bold.hex("#00FA9A")("[ AUTO CLEAR CACHE ] 🪽❯ ") + chalk.hex("#00FA9A")("Successfully delete cache"))
+    console.log(chalk.bold.hex("#00FA9A")("[ AUTO CLEAR CACHE ] ًںھ½â‌¯ ") + chalk.hex("#00FA9A")("Successfully delete cache"))
 });
 
 const { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } = require("fs-extra");
 const { join, resolve } = require("path");
 const logger = require("./utils/log.js");
 
-// ✅ ws3-fca — بديل للمكتبة القديمة للاستقرار الطويل
-const login = require("ws3-fca");
+// âœ… nexus-fca â€” ط£ظپط¶ظ„ ظ…ظƒطھط¨ط© ظ„ظ„ط§ط³طھظ‚ط±ط§ط± ط§ظ„ط·ظˆظٹظ„
+const login = require("nexus-fca");
 
 const axios = require("axios");
 
-console.log(chalk.bold.hex("#03f0fc").bold("[ KIRA ] » ") + chalk.bold.hex("#fcba03").bold("Initializing variables..."));
+console.log(chalk.bold.hex("#03f0fc").bold("[ KIRA ] آ» ") + chalk.bold.hex("#fcba03").bold("Initializing variables..."));
 
 global.client = new Object({
     commands: new Map(),
@@ -422,7 +422,7 @@ global.configModule = new Object();
 global.moduleData = new Array();
 global.language = new Object();
 
-// تحميل الإعدادات
+// طھط­ظ…ظٹظ„ ط§ظ„ط¥ط¹ط¯ط§ط¯ط§طھ
 var configValue;
 try {
     global.client.configPath = join(global.client.mainPath, "config.json");
@@ -440,7 +440,7 @@ try {
 const { Sequelize, sequelize } = require("./includes/database/index.js");
 writeFileSync(global.client.configPath + ".temp", JSON.stringify(global.config, null, 4), 'utf8');
 
-// تحميل اللغات
+// طھط­ظ…ظٹظ„ ط§ظ„ظ„ط؛ط§طھ
 try {
     const langFile = (readFileSync(`${__dirname}/languages/${global.config.language || "en"}.lang`, { encoding: 'utf-8' })).split(/\r?\n|\r/);
     const langData = langFile.filter(item => item.indexOf('#') != 0 && item != '');
@@ -471,23 +471,23 @@ global.getText = function (...args) {
     } catch (e) { return `[${args[1]}]`; }
 }
 
-// --- نظام تسجيل الدخول ---
+// --- ظ†ط¸ط§ظ… طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ---
 var appStateFile = resolve(join(global.client.mainPath, global.config.APPSTATEPATH || "appstate.json"));
 var appState;
 
 if (process.env.APPSTATE) {
     try {
         appState = JSON.parse(process.env.APPSTATE);
-        logger.loader("💌 ───『 تم العثور على APPSTATE في إعدادات السيرفر 』─── 💌");
+        logger.loader("ًں’Œ â”€â”€â”€م€ژ طھظ… ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ APPSTATE ظپظٹ ط¥ط¹ط¯ط§ط¯ط§طھ ط§ظ„ط³ظٹط±ظپط± م€ڈâ”€â”€â”€ ًں’Œ");
     } catch (e) {
-        return logger.loader("خطأ في تنسيق JSON الخاص بـ APPSTATE!", "error");
+        return logger.loader("ط®ط·ط£ ظپظٹ طھظ†ط³ظٹظ‚ JSON ط§ظ„ط®ط§طµ ط¨ظ€ APPSTATE!", "error");
     }
 } else {
     try {
         appState = require(appStateFile);
-        logger.loader("💌 ───『 تم العثور على ملف appstate.json محلياً 』─── 💌");
+        logger.loader("ًں’Œ â”€â”€â”€م€ژ طھظ… ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ ظ…ظ„ظپ appstate.json ظ…ط­ظ„ظٹط§ظ‹ م€ڈâ”€â”€â”€ ًں’Œ");
     } catch {
-        return logger.loader("لم يتم العثور على ملف تسجيل الدخول أو متغير البيئة APPSTATE!", "error");
+        return logger.loader("ظ„ظ… ظٹطھظ… ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ ظ…ظ„ظپ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ط£ظˆ ظ…طھط؛ظٹط± ط§ظ„ط¨ظٹط¦ط© APPSTATE!", "error");
     }
 }
 
@@ -496,17 +496,17 @@ function onBot({ models: botModel }) {
     login(loginData, async(loginError, loginApiData) => {
         if (loginError) {
             console.error(loginError);
-            return logger("حدث خطأ أثناء تسجيل الدخول، تأكد من صحة الـ AppState", `ERROR`);
+            return logger("ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„طŒ طھط£ظƒط¯ ظ…ظ† طµط­ط© ط§ظ„ظ€ AppState", `ERROR`);
         }
 
         loginApiData.setOptions(global.config.FCAOption);
 
-        // ✅ ميزة ws3-fca — ضبط backoff للاستقرار الطويل
+        // âœ… ظ…ظٹط²ط© nexus-fca â€” ط¶ط¨ط· backoff ظ„ظ„ط§ط³طھظ‚ط±ط§ط± ط§ظ„ط·ظˆظٹظ„
         if (typeof loginApiData.setBackoffOptions === 'function') {
             loginApiData.setBackoffOptions({ base: 1000, factor: 1.5, max: 30000, jitter: true });
         }
 
-        // ✅ ميزة ws3-fca — تفعيل lazy preflight لتسريع الاتصال
+        // âœ… ظ…ظٹط²ط© nexus-fca â€” طھظپط¹ظٹظ„ lazy preflight ظ„طھط³ط±ظٹط¹ ط§ظ„ط§طھطµط§ظ„
         if (typeof loginApiData.enableLazyPreflight === 'function') {
             loginApiData.enableLazyPreflight(true);
         }
@@ -516,7 +516,7 @@ function onBot({ models: botModel }) {
         global.config.version = '1.2.14';
         global.client.timeStart = new Date().getTime();
 
-        // تحميل الأوامر
+        // طھط­ظ…ظٹظ„ ط§ظ„ط£ظˆط§ظ…ط±
         const commandsPath = join(global.client.mainPath, 'script', 'commands');
         const categories = readdirSync(commandsPath).filter(item => require('fs').statSync(join(commandsPath, item)).isDirectory());
 
@@ -529,7 +529,7 @@ function onBot({ models: botModel }) {
                     const module = require(join(categoryPath, command));
                     if (module.config && module.run) {
                         global.client.commands.set(module.config.name, module);
-                        logger.loader(`🌸『 تـم تحميل: ${module.config.name} 』🌸`);
+                        logger.loader(`ًںŒ¸م€ژ طھظ€ظ… طھط­ظ…ظٹظ„: ${module.config.name} م€ڈًںŒ¸`);
                     }
                 } catch (error) {
                     logger.loader(`Fail load command: ${command}`, 'error');
@@ -537,7 +537,7 @@ function onBot({ models: botModel }) {
             }
         }
 
-        // تحميل الأحداث
+        // طھط­ظ…ظٹظ„ ط§ظ„ط£ط­ط¯ط§ط«
         const eventsPath = join(global.client.mainPath, 'script', 'events');
         if (existsSync(eventsPath)) {
             const events = readdirSync(eventsPath).filter(ev => ev.endsWith('.js'));
@@ -560,14 +560,14 @@ function onBot({ models: botModel }) {
         });
 
         global.client.api = loginApiData;
-        logger(`KIRA ✨`, '[ by ayman ]');
+        logger(`KIRA âœ¨`, '[ by ayman ]');
 
         const timeNow = moment().tz("Africa/Casablanca").format("HH:mm:ss");
         if (global.config.ADMINBOT && global.config.ADMINBOT[0]) {
-            loginApiData.sendMessage(`لـقـد تـم تـشـغـيـل الـبـوت فـي ${timeNow} ✅`, global.config.ADMINBOT[0]);
+            loginApiData.sendMessage(`ظ„ظ€ظ‚ظ€ط¯ طھظ€ظ… طھظ€ط´ظ€ط؛ظ€ظٹظ€ظ„ ط§ظ„ظ€ط¨ظ€ظˆطھ ظپظ€ظٹ ${timeNow} âœ…`, global.config.ADMINBOT[0]);
         }
 
-        // ✅ ميزة ws3-fca — مراقبة الصحة كل 5 دقائق
+        // âœ… ظ…ظٹط²ط© nexus-fca â€” ظ…ط±ط§ظ‚ط¨ط© ط§ظ„طµط­ط© ظƒظ„ 5 ط¯ظ‚ط§ط¦ظ‚
         if (typeof loginApiData.getHealthMetrics === 'function') {
             setInterval(() => {
                 const h = loginApiData.getHealthMetrics();
@@ -591,7 +591,7 @@ function onBot({ models: botModel }) {
         console.log(error);
         logger("DB Error", "error");
     }
-    console.log(chalk.bold.hex("#eff1f0").bold("════════════════ SUCCESFULLY ═════════════════"));
+    console.log(chalk.bold.hex("#eff1f0").bold("â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ SUCCESFULLY â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ"));
 })();
 
 process.on('unhandledRejection', (err) => { console.log(err); });
