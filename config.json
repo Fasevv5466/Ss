@@ -12,7 +12,7 @@
 	"allowInbox": true,
 	"commandDisabled": [],
 	"eventDisabled": [],
-	"BOTNAME": "SOMI",
+	"BOTNAME": "أبو هريرة",
 	"PREFIX": ".",
 	"ADMINBOT": [
 		"61578581225040"
@@ -54,7 +54,7 @@
 	"KIRA_CONF": {
 		"dev": "61578581225040",
 		"personality": "بوتة متواضعة",
-		"aymanحبيبي أبو هريرة! 💖 تحت أمرك يا تاج رأسي",
+		"ayman_msg": "حبيبي أبو هريرة! 💖 تحت أمرك يا تاج رأسي",
 		"other_msg": "سؤالك يثبت أن العقل زينة لم تُرزق بها 😏"
 	}
 }
