@@ -115,9 +115,13 @@ for (const item of langData) {
 }
 
 global.getText = function (...args) {
-    const langText = global.language;    
+    const langText = global.language;
     if (!langText.hasOwnProperty(args[0])) throw `${__filename} - Not found key language: ${args[0]}`;
-    var text = langText[args[0]][args[1]];
+    var text = langText[args[0]]?.[args[1]];
+    if (typeof text !== "string") {
+        console.log(`⚠️ Missing lang key: ${args[0]}.${args[1]}`);
+        return "";
+    }
     for (var i = args.length - 1; i > 0; i--) {
         const regEx = RegExp(`%${i}`, 'g');
         text = text.replace(regEx, args[i + 1]);
@@ -386,4 +390,7 @@ function onBot({ models: botModel }) {
     console.log(chalk.bold.hex("#eff1f0").bold("════════════════ SUCCESFULLY ═════════════════"));
 })();
 
-process.on('unhandledRejection', (err, p) => {});
+process.on('unhandledRejection', (err, p) => {
+    console.log("[FCA-ERROR]", err);
+    console.log(err?.stack);
+});
