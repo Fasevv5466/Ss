@@ -9,9 +9,9 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
 
     // ─── زخرفة الرسائل الموحّدة ──────────────────────────────
     const HEADER = {
-        UTILITY:   "⌬ ━━ 𝗞𝗜𝗥𝗔 𝗨𝗧𝗜𝗟𝗜𝗧𝗬 ━━ ⌬",
-        ADMIN:     "⌬ ━━ 𝗞𝗜𝗥𝗔 𝗔𝗗𝗠𝗜𝗡 ━━ ⌬",
-        DEVELOPER: "⌬ ━━ 𝗞𝗜𝗥𝗔 𝗗𝗘𝗩𝗘𝗟𝗢𝗣𝗘𝗥 ━━ ⌬",
+        UTILITY:   "⌬ ━━ SOMI jon ━━ ⌬",
+        ADMIN:     "⌬ ━━ SOMI jon ━━ ⌬",
+        DEVELOPER: "⌬ ━━ SOMI jon ━━ ⌬",
     };
 
     return async function ({ event }) {
@@ -33,22 +33,28 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
         const prefix = threadSetting.hasOwnProperty("PREFIX") ? threadSetting.PREFIX : PREFIX;
         const botID = api.getCurrentUserID();
 
-        // ✅ إصلاح KENO: prefixRegex يعتمد botID لا senderID
         const prefixRegex = new RegExp(`^(<@!?${botID}>|${escapeRegex(prefix)})\\s*`);
         const [matchedPrefix] = body.match(prefixRegex) || [null];
         if (!matchedPrefix) return;
 
         const args = body.slice(matchedPrefix.length).trim().split(/ +/);
         const commandName = args.shift().toLowerCase();
+
+        // ─── إذا لم يكتب المستخدم اسم أمر بعد البادئة ─────────
+        if (!commandName) return;
+
         var command = commands.get(commandName);
 
         // ─── فلاتر الحظر والأوضاع ───────────────────────────────
         if (threadBanned.has(threadID) && !ADMINBOT.includes(senderID)) return;
-        if (userBanned.has(senderID) && !ADMINBOT.includes(senderID)) return;
+        if (userBanned.has(senderID) && !ADMINBOT.includes(senderID)) {
+            try { api.setMessageReaction('🚫', messageID, () => {}, true); } catch(_) {}
+            return;
+        }
         if (YASSIN === "true" && !ADMINBOT.includes(senderID)) return;
         if (adminOnly && !ADMINBOT.includes(senderID)) return;
 
-        // ─── restrictList (مجموعات مقيّدة للأدمن فقط) — من KENO ─
+        // ─── restrictList ────────────────────────────────────────
         try {
             const restrictPath = path.join(__dirname, "../../script/commands/cache/addGroup.json");
             const restrictList = JSON.parse(fs.readFileSync(restrictPath, "utf8"));
@@ -63,22 +69,11 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
         if (!command) {
             const allCommandNames = Array.from(commands.keys());
             const checker = stringSimilarity.findBestMatch(commandName, allCommandNames);
-
             if (checker.bestMatch.rating >= 0.8) {
                 command = commands.get(checker.bestMatch.target);
-            } else if (matchedPrefix) {
-                const closest = checker.bestMatch.target;
-                const suggestions = [
-                    `${HEADER.UTILITY}\n\n❌ خطأ: "${commandName}" غير مسجل\n💡 هل تقصد: '${closest}'؟`,
-                    `${HEADER.UTILITY}\n\n⚠️ الأمر غير موجود\n🔍 جرب: '${closest}'`,
-                    `${HEADER.UTILITY}\n\n🚫 أمر خاطئ\n✨ ربما تقصد: '${closest}'`,
-                    `${HEADER.UTILITY}\n\n😅 \"${commandName}\" مش موجود\n💬 قصدك '${closest}'؟`,
-                ];
-                return api.sendMessage(
-                    suggestions[Math.floor(Math.random() * suggestions.length)],
-                    threadID,
-                    messageID
-                );
+            } else {
+                // أمر غير موجود ولا يشبه أي أمر = لا رد
+                return;
             }
         }
 
@@ -156,7 +151,6 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
         // ─── تنفيذ الأمر ─────────────────────────────────────────
         try {
             const Obj = { api, event, args, models, Users, Threads, Currencies, permssion, getText: getText2 };
-            // ✅ await لمعالجة أخطاء async بشكل صحيح
             await command.run(Obj);
             timestamps.set(senderID, dateNow);
 
